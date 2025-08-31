@@ -9,7 +9,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #f0f2f5;
             margin: 0;
-            padding-top: 100px; /* ★★変更★★ 固定ヘッダー分の余白を確保 */
+            padding-top: 80px; /* 固定ヘッダー分の余白を確保 */
         }
         .quiz-container {
             width: 100%;
@@ -18,7 +18,7 @@
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin: 0 auto 20px auto; /* 上下のマージン調整 */
+            margin: 0 auto 20px auto;
         }
         h1 {
             text-align: center;
@@ -35,7 +35,6 @@
             margin-left: 10px;
         }
         
-        /* ★★ここから変更★★ ヘッダーを画面上部に固定するスタイル */
         #quiz-header {
             position: fixed;
             top: 0;
@@ -44,23 +43,39 @@
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
-            padding: 15px 20px;
+            padding: 10px 20px;
             z-index: 100;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-width: 840px; /* quiz-container + padding */
+            max-width: 840px;
             margin: 0 auto;
             border-bottom-left-radius: 10px;
             border-bottom-right-radius: 10px;
+            /* ★★ここから変更★★ */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* ★★ここまで変更★★ */
         }
         #score-text {
             font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
             margin: 0;
-            text-align: center;
-            min-height: 30px;
+            text-align: left;
+            flex-grow: 1; /* スコア表示エリアを広げる */
         }
-        /* ★★ここまで変更★★ */
+        /* ★★ここから追加★★ */
+        .font-controls button {
+            font-size: 1em;
+            padding: 5px 10px;
+            margin-left: 5px;
+            background-color: #e9ecef;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* ★★ここまで追加★★ */
 
         .quiz-item {
             margin-bottom: 40px;
@@ -131,8 +146,12 @@
 <body>
 
     <div id="quiz-header">
-        <p id="score-text">正解数: 0 / 135</p>
-    </div>
+        <p id="score-text">正解数: 0 / 0</p>
+        <div class="font-controls">
+            <button id="font-increase-btn">文字大</button>
+            <button id="font-decrease-btn">文字小</button>
+        </div>
+        </div>
 
     <div class="quiz-container">
         <h1>解剖学クイズ<span id="last-updated" class="update-info"></span></h1>
@@ -146,7 +165,6 @@
     <script src="quiz-kaibougaku.js"></script>
 
     <script>
-        // このHTMLファイル自身の最終更新日時を表示するためのスクリプト
         document.addEventListener('DOMContentLoaded', () => {
             const lastModified = new Date(document.lastModified);
             const year = lastModified.getFullYear();

@@ -2,9 +2,12 @@
 const scoreText = document.getElementById('score-text');
 const quizBody = document.getElementById('quiz-body');
 const finishBtn = document.getElementById('finish-btn');
+const fontIncreaseBtn = document.getElementById('font-increase-btn'); // 追加
+const fontDecreaseBtn = document.getElementById('font-decrease-btn'); // 追加
 
-let quizzes = []; // クイズデータを格納する配列
-let userAnswers = {}; // ユーザーの回答を保存するオブジェクト
+let quizzes = [];
+let userAnswers = {};
+let currentFontScale = 1.0; // 追加
 
 // テキストファイルからクイズデータを読み込んで表示する
 async function setupQuiz() {
@@ -57,7 +60,7 @@ async function setupQuiz() {
         }
         
         renderAllQuizzes();
-        updateScore(); // 初期スコア表示
+        updateScore();
 
     } catch (error) {
         quizBody.innerHTML = `<p style="color: red; font-weight: bold;">${error.message}</p>`;
@@ -84,7 +87,6 @@ function renderAllQuizzes() {
     quizBody.innerHTML = quizHTML;
 }
 
-// ★★ここから変更★★
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
     const quizItem = document.getElementById(`quiz-${quizIndex}`);
@@ -98,7 +100,6 @@ function selectChoice(quizIndex, choiceIndex) {
     const selectedChoice = selectedBtn.textContent;
     const currentQuiz = quizzes[quizIndex];
     
-    // ユーザーの回答を保存
     userAnswers[quizIndex] = selectedChoice;
 
     if (selectedChoice === currentQuiz.answer) {
@@ -109,23 +110,19 @@ function selectChoice(quizIndex, choiceIndex) {
         feedbackText.style.color = 'red';
     }
 
-    // スコアをリアルタイムで更新
     updateScore();
 }
 
 // スコアを計算して表示する関数
 function updateScore() {
     let score = 0;
-    let answeredCount = 0;
     for (const quizIndex in userAnswers) {
-        answeredCount++;
         if (userAnswers[quizIndex] === quizzes[quizIndex].answer) {
             score++;
         }
     }
-    scoreText.textContent = `正解数: ${score} / ${answeredCount}`;
+    scoreText.textContent = `正解数: ${score} / ${quizzes.length}`;
 }
-// ★★ここまで変更★★
 
 // 「クイズ終了」ボタンを押したときの処理
 function finishQuiz() {
@@ -168,6 +165,20 @@ function finishQuiz() {
 
 // イベントリスナーを設定
 finishBtn.addEventListener('click', finishQuiz);
+
+// ★★ここから追加★★
+fontIncreaseBtn.addEventListener('click', () => {
+    currentFontScale += 0.1;
+    quizBody.style.fontSize = `${currentFontScale}em`;
+});
+
+fontDecreaseBtn.addEventListener('click', () => {
+    if (currentFontScale > 0.7) { // 70%より小さくはしない
+        currentFontScale -= 0.1;
+        quizBody.style.fontSize = `${currentFontScale}em`;
+    }
+});
+// ★★ここまで追加★★
 
 // 最初にクイズをセットアップ
 setupQuiz();
