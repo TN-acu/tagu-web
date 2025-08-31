@@ -64,16 +64,38 @@
                 flex-direction: column; 
                 height: auto;
             }
+            /* ★★ここから変更★★ */
             .nav-column { 
                 border-right: none; 
                 border-bottom: 2px solid #dee2e6; 
-                flex-grow: 0; 
+                flex-grow: 0; /* 高さが自動になるように */
                 min-width: 100%; 
-                box-sizing: border-box; 
+                box-sizing: border-box;
+                padding: 10px 0; /* 上下のパディングを調整 */
             }
+            /* 「メニュー」の見出しをスマホでは非表示に */
+            .nav-column h2 {
+                display: none;
+            }
+            /* ulをflexにしてリンクを横並びに */
+            .nav-column ul {
+                display: flex;
+                justify-content: center; /* 中央揃え */
+                flex-wrap: wrap; /* 画面が狭い場合に折り返す */
+                margin: 0;
+            }
+            /* liの縦マージンを削除 */
+            .nav-column li {
+                margin-bottom: 0;
+            }
+            /* リンクの左右に少しマージンを追加 */
+            .nav-column a {
+                margin: 0 5px;
+            }
+            /* ★★ここまで変更★★ */
             .content-column { 
                 flex-grow: 1; 
-                height: 80vh; /* 縦表示時の高さを確保 */ 
+                height: 85vh; /* メニューバー以外の高さを確保 */ 
             }
         }
     </style>
@@ -92,3 +114,9 @@
         <div class="content-column">
             <iframe src="timer.html" name="contentFrame" title="コンテンツ表示エリア">
                 お使いのブラウザはiframeに対応していません。
+            </iframe>
+        </div>
+    </div>
+
+</body>
+</html>
