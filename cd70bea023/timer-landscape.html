@@ -60,14 +60,15 @@
         }
         .controls {
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
-            margin-top: 10px;
+            margin-top: auto;
+            padding: 8px; border: 1px solid #ddd; border-radius: 8px;
         }
         #start-btn { background-color: var(--primary-color); }
         #stop-btn { background-color: var(--danger-color); }
         #reset-btn { background-color: var(--secondary-color); }
+        #reset-start-btn { background-color: var(--info-color); }
         .preset-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 350px; margin: 10px auto; }
         .preset-buttons button { width: 100%; margin: 0; font-size: clamp(0.9em, 2vw, 1.8em); padding: 10px 15px; background-color: var(--success-color); }
-        #toggle-alarm-btn { margin-left: 10px; }
         #toggle-alarm-btn.on { background-color: var(--danger-color); }
         #toggle-alarm-btn.off { background-color: var(--secondary-color); }
         .volume-control { display: flex; align-items: center; gap: 8px; margin-left: 10px; }
@@ -107,7 +108,6 @@
         .task-description .task-note { font-size: 0.9em; color: #555; padding-left: 0;}
         .highlight { font-weight: bold; color: var(--danger-color); }
         .ios-volume-notice { display: none; font-size: 0.9em; color: var(--secondary-color); }
-        #reset-start-btn { background-color: var(--info-color); }
     </style>
 </head>
 <body>
@@ -191,7 +191,7 @@
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const resetBtn = document.getElementById('reset-btn');
-    const resetStartBtn = document.getElementById('reset-start-btn'); // 追加
+    const resetStartBtn = document.getElementById('reset-start-btn');
     const presetOkyuBtn = document.getElementById('preset-okyu-btn');
     const presetShashiBtn = document.getElementById('preset-shashi-btn');
     const presetTestBtn = document.getElementById('preset-test-btn');
@@ -204,8 +204,8 @@
     const secDownBtn = document.getElementById('sec-down-btn');
     const zoomInBtn = document.getElementById('zoom-in-btn');
     const zoomOutBtn = document.getElementById('zoom-out-btn');
-    const zoomInBtn2 = document.getElementById('zoom-in-btn-2'); // 追加
-    const zoomOutBtn2 = document.getElementById('zoom-out-btn-2'); // 追加
+    const zoomInBtn2 = document.getElementById('zoom-in-btn-2');
+    const zoomOutBtn2 = document.getElementById('zoom-out-btn-2');
     const alarmSound = new Audio('alarm.mp3');
     let timerId = null;
     let remainingTime = 0;
@@ -223,11 +223,14 @@
         const seconds = String(lastModified.getSeconds()).padStart(2, '0');
         const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
         const updateElement = document.getElementById('last-updated');
+        const updateElement2 = document.getElementById('last-updated-2');
         if (updateElement) {
             updateElement.innerHTML = `last update ${formattedDate}`;
         }
+        if (updateElement2) {
+            updateElement2.innerHTML = `last update ${formattedDate}`;
+        }
     };
-
     function updateInitialDisplay() {
         const minutes = parseInt(minutesInput.value) || 0;
         const seconds = parseInt(secondsInput.value) || 0;
@@ -299,7 +302,7 @@
     startBtn.addEventListener('click', startTimer);
     stopBtn.addEventListener('click', stopTimer);
     resetBtn.addEventListener('click', resetTimer);
-    resetStartBtn.addEventListener('click', () => { // 追加
+    resetStartBtn.addEventListener('click', () => {
         resetTimer();
         startTimer();
     });
@@ -315,10 +318,22 @@
     presetShashiBtn.addEventListener('click', () => setPresetAndStart(2, 30));
     presetTestBtn.addEventListener('click', () => setPresetAndStart(0, 3));
     preset45minBtn.addEventListener('click', () => setPresetAndStart(45, 0));
-    toggleAlarmBtn.addEventListener('click', () => { /* ... */ });
-    volumeSlider.addEventListener('input', (e) => { /* ... */ });
-    
-    // ズーム関数
+    toggleAlarmBtn.addEventListener('click', () => {
+        isAlarmOn = !isAlarmOn;
+        if (isAlarmOn) {
+            toggleAlarmBtn.textContent = 'タイマー音 ON状態';
+            toggleAlarmBtn.classList.add('on');
+            toggleAlarmBtn.classList.remove('off');
+        } else {
+            toggleAlarmBtn.textContent = 'タイマー音 OFF状態';
+            toggleAlarmBtn.classList.add('off');
+            toggleAlarmBtn.classList.remove('on');
+        }
+    });
+    volumeSlider.addEventListener('input', (e) => {
+        alarmSound.volume = e.target.value;
+    });
+
     const zoomIn = () => {
         currentZoom += 0.1;
         document.body.style.zoom = currentZoom;
@@ -331,11 +346,30 @@
     };
     zoomInBtn.addEventListener('click', zoomIn);
     zoomOutBtn.addEventListener('click', zoomOut);
-    zoomInBtn2.addEventListener('click', zoomIn); // 追加
-    zoomOutBtn2.addEventListener('click', zoomOut); // 追加
-    
+    zoomInBtn2.addEventListener('click', zoomIn);
+    zoomOutBtn2.addEventListener('click', zoomOut);
+
     const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    document.addEventListener('DOMContentLoaded', () => { /* ... */ });
+    document.addEventListener('DOMContentLoaded', () => {
+        const initialMinutes = parseInt(minutesInput.value, 10) || 0;
+        const initialSeconds = parseInt(secondsInput.value, 10) || 0;
+        minutesInput.value = String(initialMinutes).padStart(2, '0');
+        secondsInput.value = String(initialSeconds).padStart(2, '0');
+        updateInitialDisplay();
+        displayLastUpdated();
+
+        if (isIOS()) {
+            const volumeControl = document.querySelector('.volume-control');
+            if (volumeControl) {
+                volumeControl.style.display = 'none';
+                const notice = document.createElement('span');
+                notice.className = 'ios-volume-notice';
+                notice.textContent = 'iOSでは端末のボタンで音量を調整してください';
+                notice.style.display = 'inline';
+                volumeControl.parentNode.appendChild(notice);
+            }
+        }
+    });
 </script>
 
 </body>

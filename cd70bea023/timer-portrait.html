@@ -62,6 +62,7 @@
         #start-btn { background-color: var(--primary-color); }
         #stop-btn { background-color: var(--danger-color); }
         #reset-btn { background-color: var(--secondary-color); }
+        #reset-start-btn { background-color: var(--info-color); }
         .preset-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 350px; margin: 15px auto; }
         .preset-buttons button { width: 100%; margin: 0; font-size: clamp(1.1em, 3.5vw, 2.2em); padding: 12px 15px; background-color: var(--success-color); }
         #toggle-alarm-btn.on { background-color: var(--danger-color); }
@@ -103,7 +104,6 @@
         .task-description .task-note { font-size: 0.9em; color: #555; padding-left: 0;}
         .highlight { font-weight: bold; color: var(--danger-color); }
         .ios-volume-notice { display: none; font-size: 0.9em; color: var(--secondary-color); }
-        #reset-start-btn { background-color: var(--info-color); }
     </style>
 </head>
 <body>
@@ -181,7 +181,7 @@
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const resetBtn = document.getElementById('reset-btn');
-    const resetStartBtn = document.getElementById('reset-start-btn'); // 追加
+    const resetStartBtn = document.getElementById('reset-start-btn');
     const presetOkyuBtn = document.getElementById('preset-okyu-btn');
     const presetShashiBtn = document.getElementById('preset-shashi-btn');
     const presetTestBtn = document.getElementById('preset-test-btn');
@@ -201,20 +201,92 @@
     let currentZoom = 1.0;
     alarmSound.volume = volumeSlider.value;
     
-    const displayLastUpdated = () => { /* ... */ };
-    function updateInitialDisplay() { /* ... */ }
-    function updateDisplay() { /* ... */ }
-    function startTimer() { /* ... */ }
-    function stopTimer() { /* ... */ }
-    function resetTimer() { /* ... */ }
-    function formatInput(event) { /* ... */ }
-    function setPresetAndStart(minutes, seconds) { /* ... */ }
-    function updateInputValue(inputElement, change) { /* ... */ }
+    const displayLastUpdated = () => {
+        const lastModified = new Date(document.lastModified);
+        const year = lastModified.getFullYear();
+        const month = String(lastModified.getMonth() + 1).padStart(2, '0');
+        const day = String(lastModified.getDate()).padStart(2, '0');
+        const hours = String(lastModified.getHours()).padStart(2, '0');
+        const minutes = String(lastModified.getMinutes()).padStart(2, '0');
+        const seconds = String(lastModified.getSeconds()).padStart(2, '0');
+        const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
+        const updateElement = document.getElementById('last-updated');
+        if (updateElement) {
+            updateElement.innerHTML = `last update ${formattedDate}`;
+        }
+    };
+    function updateInitialDisplay() {
+        const minutes = parseInt(minutesInput.value) || 0;
+        const seconds = parseInt(secondsInput.value) || 0;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        timerDisplay.style.color = remainingTime <= 0 ? '#dc3545' : '#333';
+    }
+    function startTimer() {
+        if (timerId !== null) return;
+        if (remainingTime <= 0) {
+            remainingTime = (parseInt(minutesInput.value) || 0) * 60 + (parseInt(secondsInput.value) || 0);
+        }
+        if (remainingTime <= 0) { alert('時間を設定してください。'); return; }
+        updateDisplay();
+        timerId = setInterval(() => {
+            remainingTime--;
+            updateDisplay();
+            if (remainingTime <= 0) {
+                stopTimer();
+                if (isAlarmOn) {
+                    alarmSound.play().catch(e => console.error("音声の再生に失敗しました:", e));
+                }
+            }
+        }, 1000);
+    }
+    function stopTimer() {
+        clearInterval(timerId);
+        timerId = null;
+    }
+    function resetTimer() {
+        stopTimer();
+        remainingTime = 0;
+        updateInitialDisplay();
+        timerDisplay.style.color = '#333';
+    }
+    function formatInput(event) {
+        const input = event.target;
+        let value = parseInt(input.value, 10);
+        if (isNaN(value) || value < 0) { value = 0; }
+        if (input.id === 'seconds-input' && value > 59) { value = 59; }
+        input.value = String(value).padStart(2, '0');
+        updateInitialDisplay();
+    }
+    function setPresetAndStart(minutes, seconds) {
+        stopTimer();
+        minutesInput.value = String(minutes).padStart(2, '0');
+        secondsInput.value = String(seconds).padStart(2, '0');
+        updateInitialDisplay();
+        remainingTime = minutes * 60 + seconds;
+        startTimer();
+    }
+    function updateInputValue(inputElement, change) {
+        let currentValue = parseInt(inputElement.value, 10) || 0;
+        let newValue = currentValue + change;
+        if (inputElement.id === 'seconds-input') {
+            if (newValue > 59) newValue = 0;
+            if (newValue < 0) newValue = 59;
+        } else {
+            if (newValue < 0) newValue = 0;
+        }
+        inputElement.value = String(newValue).padStart(2, '0');
+        updateInitialDisplay();
+    }
     
     startBtn.addEventListener('click', startTimer);
     stopBtn.addEventListener('click', stopTimer);
     resetBtn.addEventListener('click', resetTimer);
-    resetStartBtn.addEventListener('click', () => { // 追加
+    resetStartBtn.addEventListener('click', () => {
         resetTimer();
         startTimer();
     });
@@ -230,14 +302,53 @@
     presetShashiBtn.addEventListener('click', () => setPresetAndStart(2, 30));
     presetTestBtn.addEventListener('click', () => setPresetAndStart(0, 3));
     preset45minBtn.addEventListener('click', () => setPresetAndStart(45, 0));
-    toggleAlarmBtn.addEventListener('click', () => { /* ... */ });
+    toggleAlarmBtn.addEventListener('click', () => {
+        isAlarmOn = !isAlarmOn;
+        if (isAlarmOn) {
+            toggleAlarmBtn.textContent = 'タイマー音 ON状態';
+            toggleAlarmBtn.classList.add('on');
+            toggleAlarmBtn.classList.remove('off');
+        } else {
+            toggleAlarmBtn.textContent = 'タイマー音 OFF状態';
+            toggleAlarmBtn.classList.add('off');
+            toggleAlarmBtn.classList.remove('on');
+        }
+    });
     volumeSlider.addEventListener('input', (e) => {
         alarmSound.volume = e.target.value;
     });
-    zoomInBtn.addEventListener('click', () => { /* ... */ });
-    zoomOutBtn.addEventListener('click', () => { /* ... */ });
+    zoomInBtn.addEventListener('click', () => {
+        currentZoom += 0.1;
+        document.body.style.zoom = currentZoom;
+    });
+    zoomOutBtn.addEventListener('click', () => {
+        if (currentZoom > 0.5) {
+            currentZoom -= 0.1;
+            document.body.style.zoom = currentZoom;
+        }
+    });
+
     const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    document.addEventListener('DOMContentLoaded', () => { /* ... */ });
+    document.addEventListener('DOMContentLoaded', () => {
+        const initialMinutes = parseInt(minutesInput.value, 10) || 0;
+        const initialSeconds = parseInt(secondsInput.value, 10) || 0;
+        minutesInput.value = String(initialMinutes).padStart(2, '0');
+        secondsInput.value = String(initialSeconds).padStart(2, '0');
+        updateInitialDisplay();
+        displayLastUpdated();
+
+        if (isIOS()) {
+            const volumeControl = document.querySelector('.volume-control');
+            if (volumeControl) {
+                volumeControl.style.display = 'none';
+                const notice = document.createElement('span');
+                notice.className = 'ios-volume-notice';
+                notice.textContent = 'iOSでは端末のボタンで音量を調整してください';
+                notice.style.display = 'inline';
+                volumeControl.parentNode.appendChild(notice);
+            }
+        }
+    });
 </script>
 
 </body>
