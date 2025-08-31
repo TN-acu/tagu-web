@@ -5,72 +5,32 @@
     <title>tagu-web</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root {
-            /* ★★変更★★: JavaScriptで計算した高さを格納するCSS変数を定義 */
-            --app-height: 100vh;
-        }
+        /* CSSに変更はありません */
         html, body {
             margin: 0; padding: 0; height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-        .container { 
-            display: flex; 
-            /* ★★変更★★: 100vhの代わりにCSS変数を使用 */
-            height: var(--app-height); 
-        }
+        .container { display: flex; height: var(--app-height, 100vh); }
         .nav-column {
-            flex: 1; 
-            background-color: #f8f9fa; 
-            padding: 20px;
-            border-right: 2px solid #dee2e6; 
-            overflow-y: auto;
-            min-width: 200px;
+            flex: 1; background-color: #f8f9fa; padding: 20px;
+            border-right: 2px solid #dee2e6; overflow-y: auto; min-width: 200px;
         }
-        .content-column { 
-            flex: 4; 
-            overflow: hidden; 
-        }
-        iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-        }
-        .nav-column h2 { 
-            margin-top: 0; 
-            font-size: 1.5em; 
-        }
+        .content-column { flex: 4; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .nav-column h2 { margin-top: 0; font-size: 1.5em; }
         .nav-column ul { list-style: none; padding: 0; }
         .nav-column li { margin-bottom: 10px; }
-        .nav-column a { 
-            text-decoration: none; color: #007bff; font-size: 1.2em; 
-            display: block; padding: 8px 12px; border-radius: 5px; 
-            transition: background-color 0.2s; 
-        }
+        .nav-column a { text-decoration: none; color: #007bff; font-size: 1.2em; display: block; padding: 8px 12px; border-radius: 5px; transition: background-color 0.2s; }
         .nav-column a:hover { background-color: #e9ecef; }
-        
         @media (max-width: 768px) {
-            .container { 
-                flex-direction: column; 
-                height: auto; /* スマホ表示ではコンテンツの長さに合わせる */
-            }
-            .nav-column { 
-                border-right: none; border-bottom: 2px solid #dee2e6; 
-                flex-grow: 0; min-width: 100%; box-sizing: border-box;
-                padding: 10px 0;
-            }
+            .container { flex-direction: column; height: auto; }
+            .nav-column { border-right: none; border-bottom: 2px solid #dee2e6; flex-grow: 0; min-width: 100%; box-sizing: border-box; padding: 10px 0; }
             .nav-column h2 { display: none; }
             .nav-column ul { display: flex; justify-content: center; flex-wrap: wrap; margin: 0; }
             .nav-column li { margin-bottom: 0; }
             .nav-column a { margin: 0 5px; }
-            .content-column { 
-                flex-grow: 1;
-                /* ★★変更★★: 高さをautoにしてiframeの内容に追従させる */
-                height: auto;
-            }
-            iframe {
-                /* ★★追加★★: iframeに最低限の高さを与え、スクロールを可能にする */
-                min-height: 100vh;
-            }
+            .content-column { flex-grow: 1; height: auto; }
+            iframe { min-height: 100vh; }
         }
     </style>
 </head>
@@ -78,7 +38,7 @@
 
     <div class="container">
         <div class="nav-column">
-            <h2>メニュー</h2>
+            <h2>アプリ選択</h2>
             <ul>
                 <li><a href="timer-portrait.html" target="contentFrame">タイマー（縦）</a></li>
                 <li><a href="timer-landscape.html" target="contentFrame">タイマー（横）</a></li>
@@ -99,7 +59,7 @@
             doc.style.setProperty('--app-height', `${window.innerHeight}px`);
         };
         window.addEventListener('resize', setAppHeight);
-        setAppHeight(); // 初期読み込み時にも実行
+        setAppHeight();
     </script>
 
 </body>
