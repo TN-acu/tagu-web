@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイマーアプリ（縦表示）</title>
+    <style>
+        :root {
+            --primary-color: #007bff; --danger-color: #dc3545;
+            --success-color: #28a745; --secondary-color: #6c757d;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0; background-color: #f0f0f0; padding: 15px; box-sizing: border-box;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column; /* 縦並びレイアウトに固定 */
+            align-items: center;
+            gap: 20px; background-color: white; padding: 20px;
+            border-radius: 10px; box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+            max-width: 600px; width: 100%; margin: 0 auto; box-sizing: border-box;
+        }
+        .timer-section, .extra-controls-section {
+            width: 100%; text-align: center;
+        }
+        h1 { font-size: 2em; color: #333; margin-top: 0; margin-bottom: 20px; }
+        #timer-display {
+            font-size: clamp(4em, 15vw, 8em); margin: 20px 0; font-family: monospace;
+            color: #333; background-color: #e9ecef; padding: 10px; border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .inputs span { font-size: clamp(2em, 8vw, 4em); vertical-align: middle; color: #555; }
+        input[type="number"] {
+            width: clamp(80px, 25vw, 160px); font-size: clamp(2em, 8vw, 4.2em);
+            text-align: center; border: 2px solid #ccc; border-radius: 5px; padding: 5px;
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        button {
+            font-size: clamp(1.5em, 5vw, 3.2em); padding: 10px 15px; margin: 5px;
+            cursor: pointer; border-radius: 5px; border: none; color: white;
+            transition: background-color 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .controls { display: flex; justify-content: center; flex-wrap: wrap; }
+        #start-btn { background-color: var(--primary-color); }
+        #stop-btn { background-color: var(--danger-color); }
+        #reset-btn { background-color: var(--secondary-color); }
+        .preset-buttons { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px; margin: 20px auto; }
+        .preset-buttons button { width: 100%; margin: 0; font-size: clamp(1.2em, 4vw, 2.5em); padding: 15px 20px; background-color: var(--success-color); }
+        .image-container img { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="timer-section">
+        <h1>タイマー</h1>
+        <div class="inputs">
+            <input type="number" id="minutes-input" placeholder="分" min="0" value="2">
+            <span>:</span>
+            <input type="number" id="seconds-input" placeholder="秒" min="0" max="59" value="30">
+        </div>
+        <div id="timer-display">02:30</div>
+        <div class="controls">
+            <button id="start-btn">スタート</button>
+            <button id="stop-btn">ストップ</button>
+            <button id="reset-btn">リセット</button>
+        </div>
+    </div>
+    <div class="extra-controls-section">
+        <h1>プリセット & 参照</h1>
+        <div class="preset-buttons">
+            <button id="preset-okyu-btn">お灸（5分）</button>
+            <button id="preset-shashi-btn">斜刺（2分30秒）</button>
+            <button id="preset-suiheishi-btn">水平刺（2分30秒）</button>
+            <button id="preset-test-btn">3秒テスト</button>
+        </div>
+        <div class="image-container">
+            <img id="needle-angle-img" src="needle_angles.png" alt="鍼の刺入角度">
+        </div>
+    </div>
+</div>
+
+<script>
+    const minutesInput = document.getElementById('minutes-input');
+    const secondsInput = document.getElementById('seconds-input');
+    const timerDisplay = document.getElementById('timer-display');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const presetOkyuBtn = document.getElementById('preset-okyu-btn');
+    const presetShashiBtn = document.getElementById('preset-shashi-btn');
+    const presetSuiheishiBtn = document.getElementById('preset-suiheishi-btn');
+    const presetTestBtn = document.getElementById('preset-test-btn');
+    const alarmSound = new Audio('alarm.mp3');
+    let timerId = null;
+    let remainingTime = 0;
+
+    function updateInitialDisplay() {
+        const minutes = parseInt(minutesInput.value) || 0;
+        const seconds = parseInt(secondsInput.value) || 0;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        timerDisplay.style.color = remainingTime <= 0 ? '#dc3545' : '#333';
+    }
+    function startTimer() {
+        if (timerId !== null) return;
+        if (remainingTime <= 0) {
+            remainingTime = (parseInt(minutesInput.value) || 0) * 60 + (parseInt(secondsInput.value) || 0);
+        }
+        if (remainingTime <= 0) { alert('時間を設定してください。'); return; }
+        updateDisplay();
+        timerId = setInterval(() => {
+            remainingTime--;
+            updateDisplay();
+            if (remainingTime <= 0) {
+                stopTimer();
+                alarmSound.play().catch(e => console.error("音声の再生に失敗しました:", e));
+            }
+        }, 1000);
+    }
+    function stopTimer() { clearInterval(timerId); timerId = null; }
+    function resetTimer() { stopTimer(); remainingTime = 0; updateInitialDisplay(); }
+    function setPresetAndStart(minutes, seconds) {
+        stopTimer();
+        minutesInput.value = minutes;
+        secondsInput.value = seconds;
+        updateInitialDisplay();
+        remainingTime = minutes * 60 + seconds;
+        startTimer();
+    }
+    
+    startBtn.addEventListener('click', startTimer);
+    stopBtn.addEventListener('click', stopTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    minutesInput.addEventListener('input', updateInitialDisplay);
+    secondsInput.addEventListener('input', updateInitialDisplay);
+    presetOkyuBtn.addEventListener('click', () => setPresetAndStart(5, 0));
+    presetShashiBtn.addEventListener('click', () => setPresetAndStart(2, 30));
+    presetSuiheishiBtn.addEventListener('click', () => setPresetAndStart(2, 30));
+    presetTestBtn.addEventListener('click', () => setPresetAndStart(0, 3));
+
+    updateInitialDisplay();
+</script>
+
+</body>
+</html>
