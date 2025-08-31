@@ -4,17 +4,13 @@ const quizBody = document.getElementById('quiz-body');
 const finishBtn = document.getElementById('finish-btn');
 
 let quizzes = []; // クイズデータを格納する配列
+let userAnswers = {}; // ユーザーの回答を保存するオブジェクト
 
 // テキストファイルからクイズデータを読み込んで表示する
 async function setupQuiz() {
     try {
         const response = await fetch('quiz_data_kaibougaku.txt');
-        if (!response.ok) {
-            // ★★変更★★: fetch失敗のErrorオブジェクトを生成するが、まだ投げない
-            const fetchError = new Error('クイズデータ(quiz_data_kaibougaku.txt)の読み込みに失敗しました。ファイルが存在するか確認してください。');
-            // エラーを投げる前にfinallyブロックを実行させるために、ここでreturnするのではなく、後でthrowする
-            throw fetchError;
-        }
+        if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
         const textData = await response.text();
         const lines = textData.split('\n').filter(line => line.trim() !== '');
@@ -61,9 +57,9 @@ async function setupQuiz() {
         }
         
         renderAllQuizzes();
+        updateScore(); // 初期スコア表示
 
     } catch (error) {
-        // ★★変更★★: quizBodyにエラーメッセージを表示
         quizBody.innerHTML = `<p style="color: red; font-weight: bold;">${error.message}</p>`;
     }
 }
@@ -88,6 +84,7 @@ function renderAllQuizzes() {
     quizBody.innerHTML = quizHTML;
 }
 
+// ★★ここから変更★★
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
     const quizItem = document.getElementById(`quiz-${quizIndex}`);
@@ -100,6 +97,9 @@ function selectChoice(quizIndex, choiceIndex) {
 
     const selectedChoice = selectedBtn.textContent;
     const currentQuiz = quizzes[quizIndex];
+    
+    // ユーザーの回答を保存
+    userAnswers[quizIndex] = selectedChoice;
 
     if (selectedChoice === currentQuiz.answer) {
         feedbackText.textContent = '正解！';
@@ -108,7 +108,24 @@ function selectChoice(quizIndex, choiceIndex) {
         feedbackText.textContent = `不正解... 正解は「${currentQuiz.answer}」`;
         feedbackText.style.color = 'red';
     }
+
+    // スコアをリアルタイムで更新
+    updateScore();
 }
+
+// スコアを計算して表示する関数
+function updateScore() {
+    let score = 0;
+    let answeredCount = 0;
+    for (const quizIndex in userAnswers) {
+        answeredCount++;
+        if (userAnswers[quizIndex] === quizzes[quizIndex].answer) {
+            score++;
+        }
+    }
+    scoreText.textContent = `正解数: ${score} / ${answeredCount}`;
+}
+// ★★ここまで変更★★
 
 // 「クイズ終了」ボタンを押したときの処理
 function finishQuiz() {
@@ -139,7 +156,7 @@ function finishQuiz() {
 
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
     scoreText.innerHTML = `
-        正解数: ${score} / ${quizzes.length} <br>
+        最終結果: ${score} / ${quizzes.length} 正解<br>
         正解率: ${percentage.toFixed(1)}%
     `;
     
