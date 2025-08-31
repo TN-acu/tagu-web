@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4択クイズ</title>
+    <title>4択クイズ（全問表示形式）</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -22,32 +22,31 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         #quiz-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
             border-bottom: 2px solid #eee;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
-        #progress-text {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #555;
-        }
         #score-text {
-            font-size: 1.2em;
+            font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
+            height: 30px; /* 高さを確保してレイアウトのガタつきを防ぐ */
         }
-        #question-text {
+        .quiz-item {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .question-text {
             font-size: 1.5em;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             line-height: 1.6;
         }
         .choices-container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
         }
         .choice-btn {
             width: 100%;
@@ -60,43 +59,43 @@
             text-align: left;
             transition: background-color 0.2s, border-color 0.2s;
         }
-        .choice-btn:hover:not([disabled]) {
+        .choice-btn:hover:not(.selected) {
             background-color: #e9ecef;
         }
+        .choice-btn.selected {
+             border-color: #007bff;
+             background-color: #e7f1ff;
+        }
         .choice-btn.correct {
-            background-color: #d4edda; /* 正解の色 (薄緑) */
+            background-color: #d4edda;
             border-color: #c3e6cb;
             font-weight: bold;
         }
         .choice-btn.incorrect {
-            background-color: #f8d7da; /* 不正解の色 (薄赤) */
+            background-color: #f8d7da;
             border-color: #f5c6cb;
         }
         .choice-btn:disabled {
             cursor: not-allowed;
-            opacity: 0.8;
         }
-        #feedback-text {
-            margin-top: 20px;
-            font-size: 1.4em;
+        .feedback-text {
+            margin-top: 10px;
+            font-size: 1.2em;
             font-weight: bold;
-            height: 30px; /* 高さを固定してレイアウトのガタつきを防ぐ */
+            height: 25px; /* 高さを確保 */
         }
-        #next-btn {
-            display: none; /* 最初は非表示 */
+        #finish-btn {
+            display: block;
             width: 100%;
             padding: 15px;
             margin-top: 20px;
             font-size: 1.3em;
             font-weight: bold;
             color: white;
-            background-color: #007bff;
+            background-color: #28a745;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-        }
-        .quiz-end-container {
-            text-align: center;
         }
     </style>
 </head>
@@ -104,21 +103,13 @@
 
     <div class="quiz-container">
         <div id="quiz-header">
-            <p id="progress-text">問題 1</p>
-            <p id="score-text">正解数: 0 / 0</p>
+            <p id="score-text"></p>
         </div>
 
         <div id="quiz-body">
-            <p id="question-text">ここに問題文が表示されます。</p>
-            <div class="choices-container">
-                <button class="choice-btn" data-choice-index="0">選択肢1</button>
-                <button class="choice-btn" data-choice-index="1">選択肢2</button>
-                <button class="choice-btn" data-choice-index="2">選択肢3</button>
-                <button class="choice-btn" data-choice-index="3">選択肢4</button>
             </div>
-            <p id="feedback-text"></p>
-            <button id="next-btn">次の問題へ</button>
-        </div>
+
+        <button id="finish-btn">クイズ終了</button>
     </div>
 
     <script src="quiz-kaibougaku.js"></script>
