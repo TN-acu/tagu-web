@@ -21,6 +21,20 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .update-info {
+            font-size: 0.5em;
+            color: #999;
+            font-weight: normal;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
         #quiz-header {
             text-align: center;
             border-bottom: 2px solid #eee;
@@ -31,7 +45,7 @@
             font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
-            height: 30px; /* 高さを確保してレイアウトのガタつきを防ぐ */
+            min-height: 30px;
         }
         .quiz-item {
             margin-bottom: 40px;
@@ -82,7 +96,7 @@
             margin-top: 10px;
             font-size: 1.2em;
             font-weight: bold;
-            height: 25px; /* 高さを確保 */
+            min-height: 25px;
         }
         #finish-btn {
             display: block;
@@ -102,6 +116,8 @@
 <body>
 
     <div class="quiz-container">
+        <h1>解剖学クイズ<span id="last-updated" class="update-info"></span></h1>
+        
         <div id="quiz-header">
             <p id="score-text"></p>
         </div>
@@ -113,5 +129,23 @@
     </div>
 
     <script src="quiz-kaibougaku.js"></script>
+
+    <script>
+        // このHTMLファイル自身の最終更新日時を表示するためのスクリプト
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastModified = new Date(document.lastModified);
+            const year = lastModified.getFullYear();
+            const month = String(lastModified.getMonth() + 1).padStart(2, '0');
+            const day = String(lastModified.getDate()).padStart(2, '0');
+            const hours = String(lastModified.getHours()).padStart(2, '0');
+            const minutes = String(lastModified.getMinutes()).padStart(2, '0');
+            const seconds = String(lastModified.getSeconds()).padStart(2, '0');
+            const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
+            const updateElement = document.getElementById('last-updated');
+            if (updateElement) {
+                updateElement.innerHTML = `last update ${formattedDate}`;
+            }
+        });
+    </script>
 </body>
 </html>

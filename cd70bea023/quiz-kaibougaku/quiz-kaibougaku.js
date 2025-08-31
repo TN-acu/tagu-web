@@ -1,7 +1,7 @@
 // HTML要素の取得
 const scoreText = document.getElementById('score-text');
 const quizBody = document.getElementById('quiz-body');
-const finishBtn = document.getElementById('finish-btn'); // finish-btn を使うように変更
+const finishBtn = document.getElementById('finish-btn');
 
 let quizzes = []; // クイズデータを格納する配列
 
@@ -9,19 +9,21 @@ let quizzes = []; // クイズデータを格納する配列
 async function setupQuiz() {
     try {
         const response = await fetch('quiz_data_kaibougaku.txt');
-        if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
+        if (!response.ok) {
+            // ★★変更★★: fetch失敗のErrorオブジェクトを生成するが、まだ投げない
+            const fetchError = new Error('クイズデータ(quiz_data_kaibougaku.txt)の読み込みに失敗しました。ファイルが存在するか確認してください。');
+            // エラーを投げる前にfinallyブロックを実行させるために、ここでreturnするのではなく、後でthrowする
+            throw fetchError;
+        }
         
         const textData = await response.text();
         const lines = textData.split('\n').filter(line => line.trim() !== '');
 
-        // クイズデータを解析
         for (let i = 0; i < lines.length; i += 5) {
             const quizBlock = lines.slice(i, i + 5);
             if (quizBlock.length < 5) continue;
-
             let question = '';
             const choicesRaw = [];
-
             quizBlock.forEach(line => {
                 if (line.startsWith('?')) {
                     let tempQuestion = line.trim();
@@ -36,10 +38,8 @@ async function setupQuiz() {
                     choicesRaw.push(line.trim());
                 }
             });
-            
             let correctAnswer = '';
             const finalChoices = [];
-
             choicesRaw.forEach(choice => {
                 if (choice.startsWith('*')) {
                     const cleanChoice = choice.substring(1).trim();
@@ -49,12 +49,10 @@ async function setupQuiz() {
                     finalChoices.push(choice);
                 }
             });
-
             if (question === '' || correctAnswer === '' || finalChoices.length !== 4) {
                 console.warn(`問題ブロック( ${i + 1}行目〜 )の形式が不正です。スキップします。`);
                 continue;
             }
-
             quizzes.push({
                 question: question,
                 choices: finalChoices,
@@ -62,11 +60,11 @@ async function setupQuiz() {
             });
         }
         
-        // クイズのHTMLを生成して表示
         renderAllQuizzes();
 
     } catch (error) {
-        quizBody.innerHTML = `<p>${error.message}</p>`;
+        // ★★変更★★: quizBodyにエラーメッセージを表示
+        quizBody.innerHTML = `<p style="color: red; font-weight: bold;">${error.message}</p>`;
     }
 }
 
@@ -97,15 +95,12 @@ function selectChoice(quizIndex, choiceIndex) {
     const feedbackText = quizItem.querySelector('.feedback-text');
     const selectedBtn = choiceButtons[choiceIndex];
     
-    // 他の選択肢の選択状態を解除
     choiceButtons.forEach(btn => btn.classList.remove('selected'));
-    // クリックしたボタンを選択状態にする
     selectedBtn.classList.add('selected');
 
     const selectedChoice = selectedBtn.textContent;
     const currentQuiz = quizzes[quizIndex];
 
-    // 正誤判定
     if (selectedChoice === currentQuiz.answer) {
         feedbackText.textContent = '正解！';
         feedbackText.style.color = 'green';
@@ -124,7 +119,6 @@ function finishQuiz() {
         const choiceButtons = quizItem.querySelectorAll('.choice-btn');
         const selectedBtn = quizItem.querySelector('.choice-btn.selected');
         
-        // 全てのボタンを無効化
         choiceButtons.forEach(btn => btn.disabled = true);
         
         if (selectedBtn) {
@@ -134,7 +128,6 @@ function finishQuiz() {
                 selectedBtn.classList.add('correct');
             } else {
                 selectedBtn.classList.add('incorrect');
-                // 正解の選択肢もハイライト
                 choiceButtons.forEach(btn => {
                     if (btn.textContent === quiz.answer) {
                         btn.classList.add('correct');
@@ -144,18 +137,15 @@ function finishQuiz() {
         }
     });
 
-    // 最終スコアを表示
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
     scoreText.innerHTML = `
         正解数: ${score} / ${quizzes.length} <br>
         正解率: ${percentage.toFixed(1)}%
     `;
     
-    // 「もう一度」ボタンに変更
     finishBtn.textContent = 'もう一度挑戦する';
     finishBtn.onclick = () => location.reload();
     
-    // ページトップにスクロール
     window.scrollTo(0, 0);
 }
 
