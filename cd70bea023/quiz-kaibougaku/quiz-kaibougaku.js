@@ -2,12 +2,12 @@
 const scoreText = document.getElementById('score-text');
 const quizBody = document.getElementById('quiz-body');
 const finishBtn = document.getElementById('finish-btn');
-const fontIncreaseBtn = document.getElementById('font-increase-btn'); // 追加
-const fontDecreaseBtn = document.getElementById('font-decrease-btn'); // 追加
+const fontIncreaseBtn = document.getElementById('font-increase-btn');
+const fontDecreaseBtn = document.getElementById('font-decrease-btn');
 
 let quizzes = [];
 let userAnswers = {};
-let currentFontScale = 1.0; // 追加
+let currentFontScale = 1.0;
 
 // テキストファイルからクイズデータを読み込んで表示する
 async function setupQuiz() {
@@ -25,14 +25,16 @@ async function setupQuiz() {
             const choicesRaw = [];
             quizBlock.forEach(line => {
                 if (line.startsWith('?')) {
+                    // ★★ここから変更★★
+                    // "?番号. " の部分のみを取り除くように修正
                     let tempQuestion = line.trim();
                     const match = tempQuestion.match(/^\?\d+\.\s*(.*)/);
                     if (match && match[1]) {
-                        tempQuestion = match[1];
+                        question = match[1].trim(); // 分類テキストは残す
                     } else {
-                        tempQuestion = tempQuestion.substring(1);
+                        question = tempQuestion.substring(1).trim();
                     }
-                    question = tempQuestion.replace(/（上肢筋・骨・下肢筋・骨）$/, '').trim();
+                    // ★★ここまで変更★★
                 } else {
                     choicesRaw.push(line.trim());
                 }
@@ -166,19 +168,17 @@ function finishQuiz() {
 // イベントリスナーを設定
 finishBtn.addEventListener('click', finishQuiz);
 
-// ★★ここから追加★★
 fontIncreaseBtn.addEventListener('click', () => {
     currentFontScale += 0.1;
     quizBody.style.fontSize = `${currentFontScale}em`;
 });
 
 fontDecreaseBtn.addEventListener('click', () => {
-    if (currentFontScale > 0.7) { // 70%より小さくはしない
+    if (currentFontScale > 0.7) {
         currentFontScale -= 0.1;
         quizBody.style.fontSize = `${currentFontScale}em`;
     }
 });
-// ★★ここまで追加★★
 
 // 最初にクイズをセットアップ
 setupQuiz();
