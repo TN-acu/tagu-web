@@ -1,27 +1,20 @@
 // HTML要素の取得
-const progressText = document.getElementById('progress-text');
 const scoreText = document.getElementById('score-text');
-const questionText = document.getElementById('question-text');
-const choiceButtons = document.querySelectorAll('.choice-btn');
-const feedbackText = document.getElementById('feedback-text');
-const nextBtn = document.getElementById('next-btn');
 const quizBody = document.getElementById('quiz-body');
+const finishBtn = document.getElementById('finish-btn'); // finish-btn を使うように変更
 
 let quizzes = []; // クイズデータを格納する配列
-let currentQuizIndex = 0;
-let score = 0;
 
-// テキストファイルからクイズデータを読み込む
-async function loadQuizzes() {
+// テキストファイルからクイズデータを読み込んで表示する
+async function setupQuiz() {
     try {
         const response = await fetch('quiz_data_kaibougaku.txt');
-        if (!response.ok) {
-            throw new Error('クイズデータの読み込みに失敗しました。');
-        }
+        if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
+        
         const textData = await response.text();
-        
         const lines = textData.split('\n').filter(line => line.trim() !== '');
-        
+
+        // クイズデータを解析
         for (let i = 0; i < lines.length; i += 5) {
             const quizBlock = lines.slice(i, i + 5);
             if (quizBlock.length < 5) continue;
@@ -31,25 +24,19 @@ async function loadQuizzes() {
 
             quizBlock.forEach(line => {
                 if (line.startsWith('?')) {
-                    // ★★ここから変更★★
-                    // "?番号. " と末尾の分類テキストを取り除く
                     let tempQuestion = line.trim();
-                    // まず先頭のマークと番号を削除
                     const match = tempQuestion.match(/^\?\d+\.\s*(.*)/);
                     if (match && match[1]) {
                         tempQuestion = match[1];
                     } else {
-                        // 番号がない形式にも対応
                         tempQuestion = tempQuestion.substring(1);
                     }
-                    // 次に末尾の分類テキストを削除
                     question = tempQuestion.replace(/（上肢筋・骨・下肢筋・骨）$/, '').trim();
-                    // ★★ここまで変更★★
                 } else {
                     choicesRaw.push(line.trim());
                 }
             });
-
+            
             let correctAnswer = '';
             const finalChoices = [];
 
@@ -75,93 +62,105 @@ async function loadQuizzes() {
             });
         }
         
-        showQuiz();
+        // クイズのHTMLを生成して表示
+        renderAllQuizzes();
 
     } catch (error) {
-        questionText.textContent = error.message;
+        quizBody.innerHTML = `<p>${error.message}</p>`;
     }
 }
 
-// クイズを表示する関数
-function showQuiz() {
-    feedbackText.textContent = '';
-    nextBtn.style.display = 'none';
-
-    choiceButtons.forEach(btn => {
-        btn.disabled = false;
-        btn.classList.remove('correct', 'incorrect');
+// 全てのクイズをHTMLとして描画する関数
+function renderAllQuizzes() {
+    let quizHTML = '';
+    quizzes.forEach((quiz, index) => {
+        quizHTML += `
+            <div class="quiz-item" id="quiz-${index}">
+                <p class="question-text"><strong>問題 ${index + 1}:</strong> ${quiz.question}</p>
+                <div class="choices-container">
+                    <button class="choice-btn" onclick="selectChoice(${index}, 0)">${quiz.choices[0]}</button>
+                    <button class="choice-btn" onclick="selectChoice(${index}, 1)">${quiz.choices[1]}</button>
+                    <button class="choice-btn" onclick="selectChoice(${index}, 2)">${quiz.choices[2]}</button>
+                    <button class="choice-btn" onclick="selectChoice(${index}, 3)">${quiz.choices[3]}</button>
+                </div>
+                <p class="feedback-text"></p>
+            </div>
+        `;
     });
-
-    const currentQuiz = quizzes[currentQuizIndex];
-    questionText.textContent = currentQuiz.question;
-    
-    choiceButtons.forEach((btn, index) => {
-        btn.textContent = currentQuiz.choices[index];
-    });
-
-    progressText.textContent = `問題 ${currentQuizIndex + 1} / ${quizzes.length}`;
+    quizBody.innerHTML = quizHTML;
 }
 
-// 回答を選択したときの処理
-function selectChoice(event) {
-    const selectedBtn = event.target;
+// 選択肢をクリックしたときの処理
+function selectChoice(quizIndex, choiceIndex) {
+    const quizItem = document.getElementById(`quiz-${quizIndex}`);
+    const choiceButtons = quizItem.querySelectorAll('.choice-btn');
+    const feedbackText = quizItem.querySelector('.feedback-text');
+    const selectedBtn = choiceButtons[choiceIndex];
+    
+    // 他の選択肢の選択状態を解除
+    choiceButtons.forEach(btn => btn.classList.remove('selected'));
+    // クリックしたボタンを選択状態にする
+    selectedBtn.classList.add('selected');
+
     const selectedChoice = selectedBtn.textContent;
-    const currentQuiz = quizzes[currentQuizIndex];
+    const currentQuiz = quizzes[quizIndex];
 
-    choiceButtons.forEach(btn => {
-        btn.disabled = true;
-    });
-
+    // 正誤判定
     if (selectedChoice === currentQuiz.answer) {
-        selectedBtn.classList.add('correct');
         feedbackText.textContent = '正解！';
         feedbackText.style.color = 'green';
-        score++;
     } else {
-        selectedBtn.classList.add('incorrect');
         feedbackText.textContent = `不正解... 正解は「${currentQuiz.answer}」`;
         feedbackText.style.color = 'red';
-        choiceButtons.forEach(btn => {
-            if (btn.textContent === currentQuiz.answer) {
-                btn.classList.add('correct');
+    }
+}
+
+// 「クイズ終了」ボタンを押したときの処理
+function finishQuiz() {
+    let score = 0;
+    
+    quizzes.forEach((quiz, index) => {
+        const quizItem = document.getElementById(`quiz-${index}`);
+        const choiceButtons = quizItem.querySelectorAll('.choice-btn');
+        const selectedBtn = quizItem.querySelector('.choice-btn.selected');
+        
+        // 全てのボタンを無効化
+        choiceButtons.forEach(btn => btn.disabled = true);
+        
+        if (selectedBtn) {
+            const selectedChoice = selectedBtn.textContent;
+            if (selectedChoice === quiz.answer) {
+                score++;
+                selectedBtn.classList.add('correct');
+            } else {
+                selectedBtn.classList.add('incorrect');
+                // 正解の選択肢もハイライト
+                choiceButtons.forEach(btn => {
+                    if (btn.textContent === quiz.answer) {
+                        btn.classList.add('correct');
+                    }
+                });
             }
-        });
-    }
+        }
+    });
 
-    scoreText.textContent = `正解数: ${score} / ${currentQuizIndex + 1}`;
-
-    if (currentQuizIndex < quizzes.length - 1) {
-        nextBtn.style.display = 'block';
-    } else {
-        setTimeout(showResults, 1500);
-    }
-}
-
-// 次の問題へ進む処理
-function goToNextQuiz() {
-    currentQuizIndex++;
-    showQuiz();
-}
-
-// 最終結果を表示する関数
-function showResults() {
+    // 最終スコアを表示
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
-    quizBody.innerHTML = `
-        <div class="quiz-end-container">
-            <h2>クイズ終了！</h2>
-            <p>あなたの最終スコア</p>
-            <p style="font-size: 2.5em; font-weight: bold; margin: 20px 0;">${score} / ${quizzes.length}</p>
-            <p style="font-size: 1.5em;">正解率: ${percentage.toFixed(1)}%</p>
-            <button onclick="location.reload()" style="padding: 15px; font-size: 1.2em; margin-top: 20px; cursor: pointer;">もう一度挑戦する</button>
-        </div>
+    scoreText.innerHTML = `
+        正解数: ${score} / ${quizzes.length} <br>
+        正解率: ${percentage.toFixed(1)}%
     `;
+    
+    // 「もう一度」ボタンに変更
+    finishBtn.textContent = 'もう一度挑戦する';
+    finishBtn.onclick = () => location.reload();
+    
+    // ページトップにスクロール
+    window.scrollTo(0, 0);
 }
 
 // イベントリスナーを設定
-choiceButtons.forEach(btn => {
-    btn.addEventListener('click', selectChoice);
-});
-nextBtn.addEventListener('click', goToNextQuiz);
+finishBtn.addEventListener('click', finishQuiz);
 
-// 最初にクイズデータを読み込む
-loadQuizzes();
+// 最初にクイズをセットアップ
+setupQuiz();
