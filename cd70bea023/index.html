@@ -8,7 +8,7 @@
         html, body {
             margin: 0; padding: 0; height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            overflow: hidden;
+            /* ★★変更★★: PC表示でも縦スクロールが必要な場合を考慮し、overflow:hiddenを削除 */
         }
         .container { 
             display: flex; 
@@ -57,45 +57,37 @@
         
         /* スマートフォン向けレスポンシブ対応 (自動レイアウト) */
         @media (max-width: 768px) {
-            html, body { 
-                overflow: auto; 
-            }
             .container { 
                 flex-direction: column; 
-                height: auto;
+                height: auto; /* ★★変更★★: コンテンツの長さに合わせて高さを自動調整 */
             }
-            /* ★★ここから変更★★ */
             .nav-column { 
                 border-right: none; 
                 border-bottom: 2px solid #dee2e6; 
-                flex-grow: 0; /* 高さが自動になるように */
+                flex-grow: 0;
                 min-width: 100%; 
                 box-sizing: border-box;
-                padding: 10px 0; /* 上下のパディングを調整 */
+                padding: 10px 0;
             }
-            /* 「メニュー」の見出しをスマホでは非表示に */
             .nav-column h2 {
                 display: none;
             }
-            /* ulをflexにしてリンクを横並びに */
             .nav-column ul {
                 display: flex;
-                justify-content: center; /* 中央揃え */
-                flex-wrap: wrap; /* 画面が狭い場合に折り返す */
+                justify-content: center;
+                flex-wrap: wrap;
                 margin: 0;
             }
-            /* liの縦マージンを削除 */
             .nav-column li {
                 margin-bottom: 0;
             }
-            /* リンクの左右に少しマージンを追加 */
             .nav-column a {
                 margin: 0 5px;
             }
-            /* ★★ここまで変更★★ */
             .content-column { 
                 flex-grow: 1; 
-                height: 85vh; /* メニューバー以外の高さを確保 */ 
+                height: auto; /* ★★変更★★: iframeのコンテンツに合わせて高さを自動調整 */
+                min-height: 80vh; /* 最低限の高さを確保 */
             }
         }
     </style>
@@ -112,7 +104,7 @@
             </ul>
         </div>
         <div class="content-column">
-            <iframe src="timer.html" name="contentFrame" title="コンテンツ表示エリア">
+            <iframe src="timer.html" name="contentFrame" title="コンテンツ表示エリア" onload="this.style.height = this.contentWindow.document.body.scrollHeight + 'px';">
                 お使いのブラウザはiframeに対応していません。
             </iframe>
         </div>
