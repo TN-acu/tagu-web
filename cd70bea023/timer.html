@@ -248,7 +248,6 @@
             if (remainingTime <= 0) {
                 stopTimer();
                 alarmSound.play().catch(e => console.error("音声の再生に失敗しました:", e));
-                alert('時間です！');
             }
         }, 1000);
     }
