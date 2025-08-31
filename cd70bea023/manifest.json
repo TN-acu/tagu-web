@@ -1,6 +1,6 @@
 {
   "name": "taguアプリ",
-  "short_name": "tagu",
+  "short_name": "taguアプリ",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0f0f0",
