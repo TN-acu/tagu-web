@@ -9,9 +9,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #f0f2f5;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            padding-top: 100px; /* ★★変更★★ 固定ヘッダー分の余白を確保 */
         }
         .quiz-container {
             width: 100%;
@@ -20,6 +18,7 @@
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 0 auto 20px auto; /* 上下のマージン調整 */
         }
         h1 {
             text-align: center;
@@ -35,18 +34,34 @@
             vertical-align: middle;
             margin-left: 10px;
         }
+        
+        /* ★★ここから変更★★ ヘッダーを画面上部に固定するスタイル */
         #quiz-header {
-            text-align: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 15px 20px;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 840px; /* quiz-container + padding */
+            margin: 0 auto;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
         }
         #score-text {
             font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
+            margin: 0;
+            text-align: center;
             min-height: 30px;
         }
+        /* ★★ここまで変更★★ */
+
         .quiz-item {
             margin-bottom: 40px;
             border-bottom: 1px solid #eee;
@@ -115,13 +130,13 @@
 </head>
 <body>
 
+    <div id="quiz-header">
+        <p id="score-text">正解数: 0 / 135</p>
+    </div>
+
     <div class="quiz-container">
         <h1>解剖学クイズ<span id="last-updated" class="update-info"></span></h1>
         
-        <div id="quiz-header">
-            <p id="score-text"></p>
-        </div>
-
         <div id="quiz-body">
             </div>
 
