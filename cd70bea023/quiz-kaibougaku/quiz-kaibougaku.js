@@ -22,18 +22,29 @@ async function loadQuizzes() {
         
         const lines = textData.split('\n').filter(line => line.trim() !== '');
         
-        // ★★ここから変更★★ 5行1セットで、マークを元に解析
         for (let i = 0; i < lines.length; i += 5) {
             const quizBlock = lines.slice(i, i + 5);
-            if (quizBlock.length < 5) continue; // 5行未満のブロックはスキップ
+            if (quizBlock.length < 5) continue;
 
             let question = '';
             const choicesRaw = [];
 
-            // 5行のブロックから問題文(?)と選択肢を振り分ける
             quizBlock.forEach(line => {
                 if (line.startsWith('?')) {
-                    question = line.substring(1).trim();
+                    // ★★ここから変更★★
+                    // "?番号. " と末尾の分類テキストを取り除く
+                    let tempQuestion = line.trim();
+                    // まず先頭のマークと番号を削除
+                    const match = tempQuestion.match(/^\?\d+\.\s*(.*)/);
+                    if (match && match[1]) {
+                        tempQuestion = match[1];
+                    } else {
+                        // 番号がない形式にも対応
+                        tempQuestion = tempQuestion.substring(1);
+                    }
+                    // 次に末尾の分類テキストを削除
+                    question = tempQuestion.replace(/（上肢筋・骨・下肢筋・骨）$/, '').trim();
+                    // ★★ここまで変更★★
                 } else {
                     choicesRaw.push(line.trim());
                 }
@@ -42,7 +53,6 @@ async function loadQuizzes() {
             let correctAnswer = '';
             const finalChoices = [];
 
-            // 4つの選択肢の中から正解(*)を探す
             choicesRaw.forEach(choice => {
                 if (choice.startsWith('*')) {
                     const cleanChoice = choice.substring(1).trim();
@@ -53,7 +63,6 @@ async function loadQuizzes() {
                 }
             });
 
-            // データが不正な場合はスキップ
             if (question === '' || correctAnswer === '' || finalChoices.length !== 4) {
                 console.warn(`問題ブロック( ${i + 1}行目〜 )の形式が不正です。スキップします。`);
                 continue;
@@ -65,7 +74,6 @@ async function loadQuizzes() {
                 answer: correctAnswer
             });
         }
-        // ★★ここまで変更★★
         
         showQuiz();
 
