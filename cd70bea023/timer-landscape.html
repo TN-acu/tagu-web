@@ -30,13 +30,17 @@
             display: flex; justify-content: space-between; align-items: center;
             width: 100%; margin-bottom: 10px;
         }
-        h1 { font-size: 1.8em; color: #333; margin: 0; }
+        h1, h2 { 
+            font-size: 1.1em; color: #555; margin: 0;
+            text-align: left;
+        }
+        h2 { margin-bottom: 5px; text-align: center; }
+
         .zoom-controls { margin: 0; }
         .zoom-controls button {
             font-size: 0.9em; padding: 5px 10px; background-color: #f0f0f0;
             color: #333; border: 1px solid #ccc; box-shadow: none;
         }
-        h2 { font-size: 1.1em; color: #555; margin-bottom: 5px; }
         #timer-display {
             font-size: clamp(3em, 8vw, 6em); margin: 5px 0; font-family: monospace;
             color: #333; background-color: #e9ecef; padding: 5px; border-radius: 8px;
@@ -60,8 +64,7 @@
         }
         .controls {
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
-            margin-top: auto;
-            padding: 8px; border: 1px solid #ddd; border-radius: 8px;
+            margin-top: 10px;
         }
         #start-btn { background-color: var(--primary-color); }
         #stop-btn { background-color: var(--danger-color); }
@@ -69,6 +72,7 @@
         #reset-start-btn { background-color: var(--info-color); }
         .preset-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 350px; margin: 10px auto; }
         .preset-buttons button { width: 100%; margin: 0; font-size: clamp(0.9em, 2vw, 1.8em); padding: 10px 15px; background-color: var(--success-color); }
+        #toggle-alarm-btn { margin-left: 10px; }
         #toggle-alarm-btn.on { background-color: var(--danger-color); }
         #toggle-alarm-btn.off { background-color: var(--secondary-color); }
         .volume-control { display: flex; align-items: center; gap: 8px; margin-left: 10px; }
@@ -115,11 +119,7 @@
 <div class="main-container">
     <div class="timer-section">
         <div class="header-container">
-            <h1>タイマーアプリ（横表示）<span id="last-updated" class="update-info"></span></h1>
-            <div class="zoom-controls">
-                <button id="zoom-in-btn">表示拡大</button>
-                <button id="zoom-out-btn">表示縮小</button>
-            </div>
+            <h2>タイマーアプリ（横表示）<span id="last-updated" class="update-info"></span></h2>
         </div>
         <h2>時間の手動設定</h2>
         <div class="inputs">
@@ -156,7 +156,7 @@
     </div>
     <div class="extra-controls-section">
         <div class="header-container">
-            <h1>タイマープリセット＆自動スタート<span id="last-updated-2" class="update-info"></span></h1>
+            <h2>タイマープリセット＆自動スタート</h2>
             <div class="zoom-controls">
                 <button id="zoom-in-btn-2">表示拡大</button>
                 <button id="zoom-out-btn-2">表示縮小</button>
@@ -202,8 +202,6 @@
     const minDownBtn = document.getElementById('min-down-btn');
     const secUpBtn = document.getElementById('sec-up-btn');
     const secDownBtn = document.getElementById('sec-down-btn');
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
     const zoomInBtn2 = document.getElementById('zoom-in-btn-2');
     const zoomOutBtn2 = document.getElementById('zoom-out-btn-2');
     const alarmSound = new Audio('alarm.mp3');
@@ -223,12 +221,8 @@
         const seconds = String(lastModified.getSeconds()).padStart(2, '0');
         const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
         const updateElement = document.getElementById('last-updated');
-        const updateElement2 = document.getElementById('last-updated-2');
         if (updateElement) {
             updateElement.innerHTML = `last update ${formattedDate}`;
-        }
-        if (updateElement2) {
-            updateElement2.innerHTML = `last update ${formattedDate}`;
         }
     };
     function updateInitialDisplay() {
@@ -344,8 +338,6 @@
             document.body.style.zoom = currentZoom;
         }
     };
-    zoomInBtn.addEventListener('click', zoomIn);
-    zoomOutBtn.addEventListener('click', zoomOut);
     zoomInBtn2.addEventListener('click', zoomIn);
     zoomOutBtn2.addEventListener('click', zoomOut);
 
