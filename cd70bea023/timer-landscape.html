@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>タイマーアプリ（横表示）</title>
     <style>
-        /* CSSは変更ありません */
         :root {
             --primary-color: #007bff; --danger-color: #dc3545;
             --success-color: #28a745; --secondary-color: #6c757d;
+            --warning-color: #ffc107; /* 黄色 */
+            --orange-color: #fd7e14; /* オレンジ色 */
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -29,7 +30,9 @@
             color: #333; background-color: #e9ecef; padding: 10px; border-radius: 8px;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
         }
-        .inputs span { font-size: clamp(2em, 5vw, 4em); vertical-align: middle; color: #555; }
+        .inputs { display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .inputs span.colon { font-size: clamp(2em, 5vw, 4em); color: #555; }
+        .inputs span.unit { font-size: clamp(1em, 2.5vw, 2em); color: #555; padding-left: 2px; }
         input[type="number"] {
             width: clamp(70px, 15vw, 160px); font-size: clamp(2em, 5vw, 4.2em);
             text-align: center; border: 2px solid #ccc; border-radius: 5px; padding: 5px;
@@ -54,7 +57,8 @@
             margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; flex-wrap: wrap;
         }
         .alarm-controls button { font-size: 1.2em; padding: 8px 15px; margin: 0; }
-        .alarm-controls button.off { background-color: var(--secondary-color); }
+        #toggle-alarm-btn.on { background-color: var(--danger-color); }
+        #toggle-alarm-btn.off { background-color: var(--secondary-color); }
         .volume-control { display: flex; align-items: center; gap: 10px; }
         .volume-control label { font-size: 1.2em; }
         input[type="range"] { width: 120px; }
@@ -63,18 +67,31 @@
             border-radius: 8px; background-color: #f8f9fa; line-height: 1.8;
         }
         .highlight { font-weight: bold; color: var(--danger-color); }
+        .update-info {
+            font-size: 0.5em; color: #999; font-weight: normal;
+            vertical-align: middle; margin-left: 10px;
+        }
+        #preset-test-btn {
+            background-color: var(--warning-color);
+            color: #212529; /* 黄色背景に黒文字 */
+        }
+        #preset-45min-btn {
+            background-color: var(--orange-color);
+        }
     </style>
 </head>
 <body>
 
 <div class="main-container">
     <div class="timer-section">
-        <h1>タイマー</h1>
-        <h2>直接入力</h2>
+        <h1>タイマー<span id="last-updated" class="update-info"></span></h1>
+        <h2>時間の手動設定</h2>
         <div class="inputs">
-            <input type="number" id="minutes-input" placeholder="分" min="0" value="2">
-            <span>:</span>
+            <input type="number" id="minutes-input" placeholder="分" min="0" value="02">
+            <span class="unit">分</span>
+            <span class="colon">:</span>
             <input type="number" id="seconds-input" placeholder="秒" min="0" max="59" value="30">
+            <span class="unit">秒</span>
         </div>
         <div id="timer-display">02:30</div>
         <div class="controls">
@@ -83,7 +100,7 @@
             <button id="reset-btn">リセット</button>
         </div>
         <div class="alarm-controls">
-            <button id="toggle-alarm-btn">アラームON</button>
+            <button id="toggle-alarm-btn" class="on">タイマー音 ON状態</button>
             <div class="volume-control">
                 <label for="volume-slider">音量</label>
                 <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1.0">
@@ -93,13 +110,145 @@
     <div class="extra-controls-section">
         <h1>タイマープリセット</h1>
         <div class="preset-buttons">
-            <button id="preset-okyu-btn">お灸（5分）</button>
-            <button id="preset-shashi-btn">斜刺（2分30秒）</button>
-            <button id="preset-suiheishi-btn">水平刺（2分30秒）</button>
-            <button id="preset-test-btn">3秒テスト</button>
+            <button id="preset-okyu-btn">試験 ５分</button>
+            <button id="preset-shashi-btn">２分３０秒</button>
+            <button id="preset-test-btn">３秒タイマーテスト</button>
+            <button id="preset-45min-btn">４５分</button>
         </div>
         <div class="task-description">
             <p>鍼試験課題：１寸３分（３番）の銀鍼を使用し、指示された部位・方向に刺鍼する<span class="highlight">（５分以内に２本）</span><br>
             ①斜刺　皮膚面に対して <span class="highlight">４５度</span> で<span class="highlight">１５ｍｍ</span> 刺入（下腿前面）<br>
             ②水平刺　皮膚面に対して <span class="highlight">１５度未満</span> で <span class="highlight">２０ｍｍ</span> 刺入（反対側の下腿内側）</p>
-            <p>灸試験課題：踵に半米粒大（<span class="highlight">底 １．２５ｍｍ、高さ ２．５ｍｍ</span>）の透熱灸を３壮、反対側の踵に半米粒大の七分灸（知熱灸）を３壮施灸
+            <p>灸試験課題：踵に半米粒大（<span class="highlight">底 １．２５ｍｍ、高さ ２．５ｍｍ</span>）の透熱灸を３壮、反対側の踵に半米粒大の七分灸（知熱灸）を３壮施灸する<span class="highlight">（５分以内）</span><br>
+            <span class="highlight">※３壮は転化した壮數（つりあげ、途中消えも含む）とする</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const minutesInput = document.getElementById('minutes-input');
+    const secondsInput = document.getElementById('seconds-input');
+    const timerDisplay = document.getElementById('timer-display');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const presetOkyuBtn = document.getElementById('preset-okyu-btn');
+    const presetShashiBtn = document.getElementById('preset-shashi-btn');
+    const presetTestBtn = document.getElementById('preset-test-btn');
+    const preset45minBtn = document.getElementById('preset-45min-btn');
+    const toggleAlarmBtn = document.getElementById('toggle-alarm-btn');
+    const volumeSlider = document.getElementById('volume-slider');
+    const alarmSound = new Audio('alarm.mp3');
+    let timerId = null;
+    let remainingTime = 0;
+    let isAlarmOn = true;
+    alarmSound.volume = volumeSlider.value;
+    
+    const displayLastUpdated = () => {
+        const lastModified = new Date(document.lastModified);
+        const year = lastModified.getFullYear();
+        const month = String(lastModified.getMonth() + 1).padStart(2, '0');
+        const day = String(lastModified.getDate()).padStart(2, '0');
+        const hours = String(lastModified.getHours()).padStart(2, '0');
+        const minutes = String(lastModified.getMinutes()).padStart(2, '0');
+        const seconds = String(lastModified.getSeconds()).padStart(2, '0');
+        const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
+        const updateElement = document.getElementById('last-updated');
+        if (updateElement) {
+            updateElement.innerHTML = `last update ${formattedDate}`;
+        }
+    };
+
+    function updateInitialDisplay() {
+        const minutes = parseInt(minutesInput.value) || 0;
+        const seconds = parseInt(secondsInput.value) || 0;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        timerDisplay.style.color = remainingTime <= 0 ? '#dc3545' : '#333';
+    }
+    function startTimer() {
+        if (timerId !== null) return;
+        if (remainingTime <= 0) {
+            remainingTime = (parseInt(minutesInput.value) || 0) * 60 + (parseInt(secondsInput.value) || 0);
+        }
+        if (remainingTime <= 0) { alert('時間を設定してください。'); return; }
+        updateDisplay();
+        timerId = setInterval(() => {
+            remainingTime--;
+            updateDisplay();
+            if (remainingTime <= 0) {
+                stopTimer();
+                if (isAlarmOn) {
+                    alarmSound.play().catch(e => console.error("音声の再生に失敗しました:", e));
+                }
+            }
+        }, 1000);
+    }
+    function stopTimer() {
+        clearInterval(timerId);
+        timerId = null;
+    }
+    function resetTimer() {
+        stopTimer();
+        remainingTime = 0;
+        updateInitialDisplay();
+        timerDisplay.style.color = '#333';
+    }
+    function formatInput(event) {
+        const input = event.target;
+        let value = parseInt(input.value, 10);
+        if (isNaN(value) || value < 0) { value = 0; }
+        if (input.id === 'seconds-input' && value > 59) { value = 59; }
+        input.value = String(value).padStart(2, '0');
+        updateInitialDisplay();
+    }
+    function setPresetAndStart(minutes, seconds) {
+        stopTimer();
+        minutesInput.value = String(minutes).padStart(2, '0');
+        secondsInput.value = String(seconds).padStart(2, '0');
+        updateInitialDisplay();
+        remainingTime = minutes * 60 + seconds;
+        startTimer();
+    }
+    
+    startBtn.addEventListener('click', startTimer);
+    stopBtn.addEventListener('click', stopTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    minutesInput.addEventListener('input', updateInitialDisplay);
+    secondsInput.addEventListener('input', updateInitialDisplay);
+    minutesInput.addEventListener('blur', formatInput);
+    secondsInput.addEventListener('blur', formatInput);
+    presetOkyuBtn.addEventListener('click', () => setPresetAndStart(5, 0));
+    presetShashiBtn.addEventListener('click', () => setPresetAndStart(2, 30));
+    presetTestBtn.addEventListener('click', () => setPresetAndStart(0, 3));
+    preset45minBtn.addEventListener('click', () => setPresetAndStart(45, 0));
+    toggleAlarmBtn.addEventListener('click', () => {
+        isAlarmOn = !isAlarmOn;
+        if (isAlarmOn) {
+            toggleAlarmBtn.textContent = 'タイマー音 ON状態';
+            toggleAlarmBtn.classList.add('on');
+            toggleAlarmBtn.classList.remove('off');
+        } else {
+            toggleAlarmBtn.textContent = 'タイマー音 OFF状態';
+            toggleAlarmBtn.classList.add('off');
+            toggleAlarmBtn.classList.remove('on');
+        }
+    });
+    volumeSlider.addEventListener('input', (e) => {
+        alarmSound.volume = e.target.value;
+    });
+
+    const initialMinutes = parseInt(minutesInput.value, 10) || 0;
+    const initialSeconds = parseInt(secondsInput.value, 10) || 0;
+    minutesInput.value = String(initialMinutes).padStart(2, '0');
+    secondsInput.value = String(initialSeconds).padStart(2, '0');
+    updateInitialDisplay();
+    displayLastUpdated();
+</script>
+
+</body>
+</html>
