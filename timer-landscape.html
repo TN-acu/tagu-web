@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイマーアプリ（横表示）</title>
+    <style>
+        :root {
+            --primary-color: #007bff; --danger-color: #dc3545;
+            --success-color: #28a745; --secondary-color: #6c757d;
+            --warning-color: #ffc107; --orange-color: #fd7e14;
+            --info-color: #17a2b8; --dark-green: #218838;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0; background-color: #f0f0f0; padding: 10px; box-sizing: border-box;
+            -webkit-text-size-adjust: 100%;
+        }
+        .main-container {
+            display: flex; gap: 15px; background-color: white; padding: 15px;
+            border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 1200px; width: 100%; margin: 0 auto; box-sizing: border-box;
+            height: calc(100vh - 20px);
+        }
+        .timer-section, .extra-controls-section {
+            flex: 1; min-width: 0; text-align: center;
+            display: flex; flex-direction: column;
+        }
+        .header-container {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; margin-bottom: 10px;
+        }
+        h1 { font-size: 1.8em; color: #333; margin: 0; }
+        .zoom-controls { margin: 0; }
+        .zoom-controls button {
+            font-size: 0.9em; padding: 5px 10px; background-color: #f0f0f0;
+            color: #333; border: 1px solid #ccc; box-shadow: none;
+        }
+        h2 { font-size: 1.1em; color: #555; margin-bottom: 5px; }
+        #timer-display {
+            font-size: clamp(3em, 8vw, 6em); margin: 5px 0; font-family: monospace;
+            color: #333; background-color: #e9ecef; padding: 5px; border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .inputs { display: flex; justify-content: center; align-items: center; gap: 3px; }
+        .inputs span.colon { font-size: clamp(1.8em, 4vw, 3.5em); color: #555; }
+        .inputs span.unit { font-size: clamp(0.9em, 2vw, 1.8em); color: #555; padding-left: 2px; }
+        input[type="number"] {
+            width: clamp(60px, 12vw, 120px); font-size: clamp(1.8em, 4vw, 3.8em);
+            text-align: center; border: 2px solid #ccc; border-radius: 5px; padding: 4px;
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        button {
+            font-size: clamp(1em, 2.5vw, 2em); padding: 8px 12px; margin: 3px;
+            cursor: pointer; border-radius: 5px; border: none; color: white;
+            transition: background-color 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .controls {
+            display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        #start-btn { background-color: var(--primary-color); }
+        #stop-btn { background-color: var(--danger-color); }
+        #reset-btn { background-color: var(--secondary-color); }
+        .preset-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 350px; margin: 10px auto; }
+        .preset-buttons button { width: 100%; margin: 0; font-size: clamp(0.9em, 2vw, 1.8em); padding: 10px 15px; background-color: var(--success-color); }
+        #toggle-alarm-btn { margin-left: 10px; }
+        #toggle-alarm-btn.on { background-color: var(--danger-color); }
+        #toggle-alarm-btn.off { background-color: var(--secondary-color); }
+        .volume-control { display: flex; align-items: center; gap: 8px; margin-left: 10px; }
+        .volume-control label { font-size: 1em; color: #333; }
+        input[type="range"] { width: 80px; }
+        .update-info {
+            font-size: 0.5em; color: #999; font-weight: normal;
+            vertical-align: middle; margin-left: 8px;
+        }
+        #preset-test-btn { background-color: var(--warning-color); color: #212529; }
+        #preset-45min-btn { background-color: var(--orange-color); }
+        .input-group { display: flex; align-items: center; gap: 4px; }
+        .input-controls { display: flex; flex-direction: column; }
+        .stepper-btn {
+            font-size: 0.8em; line-height: 1; padding: 3px 6px;
+            margin: 1px 0; min-width: 24px; height: 24px;
+            background-color: #f0f0f0; color: #333; border: 1px solid #ccc;
+            box-shadow: none; font-family: monospace;
+        }
+        .task-wrapper {
+            width: 100%; flex-grow: 1; overflow-y: auto;
+            border: 1px solid #ddd; border-radius: 8px;
+            background-color: #f8f9fa; margin-top: 10px;
+        }
+        .task-description {
+            text-align: left; padding: 10px; line-height: 1.6; font-size: 0.9em;
+        }
+        .task-description h3 {
+            font-size: 1em; color: var(--primary-color); border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 4px; margin-top: 0; margin-bottom: 8px;
+        }
+        .task-description p, .task-description ol { margin: 0 0 10px 0; padding-left: 15px;}
+        .task-description ol { padding-left: 30px; }
+        .task-description li { margin-bottom: 6px; }
+        .task-description .task-term { color: var(--info-color); font-weight: bold; }
+        .task-description .task-value { color: var(--dark-green); font-weight: bold; }
+        .task-description .task-note { font-size: 0.9em; color: #555; padding-left: 0;}
+        .highlight { font-weight: bold; color: var(--danger-color); }
+        .ios-volume-notice { display: none; font-size: 0.9em; color: var(--secondary-color); }
+        #reset-start-btn { background-color: var(--info-color); }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="timer-section">
+        <div class="header-container">
+            <h1>タイマーアプリ（横表示）<span id="last-updated" class="update-info"></span></h1>
+            <div class="zoom-controls">
+                <button id="zoom-in-btn">表示拡大</button>
+                <button id="zoom-out-btn">表示縮小</button>
+            </div>
+        </div>
+        <h2>時間の手動設定</h2>
+        <div class="inputs">
+            <div class="input-group">
+                <input type="number" id="minutes-input" placeholder="分" min="0" value="05">
+                <div class="input-controls">
+                    <button id="min-up-btn" class="stepper-btn">▲</button>
+                    <button id="min-down-btn" class="stepper-btn">▼</button>
+                </div>
+            </div>
+            <span class="unit">分</span>
+            <span class="colon">:</span>
+            <div class="input-group">
+                <input type="number" id="seconds-input" placeholder="秒" min="0" max="59" value="00">
+                <div class="input-controls">
+                    <button id="sec-up-btn" class="stepper-btn">▲</button>
+                    <button id="sec-down-btn" class="stepper-btn">▼</button>
+                </div>
+            </div>
+            <span class="unit">秒</span>
+        </div>
+        <div id="timer-display">05:00</div>
+        <div class="controls">
+            <button id="start-btn">スタート</button>
+            <button id="stop-btn">ストップ</button>
+            <button id="reset-btn">リセット</button>
+            <button id="reset-start-btn">リセット＆自動スタート</button>
+            <button id="toggle-alarm-btn" class="on">タイマー音 ON状態</button>
+            <div class="volume-control">
+                <label for="volume-slider">音量</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1.0">
+            </div>
+        </div>
+    </div>
+    <div class="extra-controls-section">
+        <div class="header-container">
+            <h1>タイマープリセット＆自動スタート<span id="last-updated-2" class="update-info"></span></h1>
+            <div class="zoom-controls">
+                <button id="zoom-in-btn-2">表示拡大</button>
+                <button id="zoom-out-btn-2">表示縮小</button>
+            </div>
+        </div>
+        <div class="preset-buttons">
+            <button id="preset-okyu-btn">試験 ５分</button>
+            <button id="preset-shashi-btn">２分３０秒</button>
+            <button id="preset-test-btn">３秒タイマーテスト</button>
+            <button id="preset-45min-btn">４５分</button>
+        </div>
+        <div class="task-wrapper">
+            <div class="task-description">
+                <h3>鍼試験課題</h3>
+                <p>１寸３分（３番）の銀鍼を使用し、指示された部位・方向に刺鍼する<span class="highlight">（５分以内に２本）</span></p>
+                <ol>
+                    <li><span class="task-term">斜刺:</span> 皮膚面に対して <span class="task-value">４５度</span> で <span class="task-value">１５ｍｍ</span> 刺入（下腿前面）</li>
+                    <li><span class="task-term">水平刺:</span> 皮膚面に対して <span class="task-value">１５度未満</span> で <span class="task-value">２０ｍｍ</span> 刺入（反対側の下腿内側）</li>
+                </ol>
+                <h3>灸試験課題</h3>
+                <p>踵に半米粒大（底 １．２５ｍｍ、高さ ２．５ｍｍ）の透熱灸を３壮、反対側の踵に半米粒大の七分灸（知熱灸）を３壮施灸する<span class="highlight">（５分以内）</span></p>
+                <p class="task-note"><span class="highlight">※３壮は転化した壮數（つりあげ、途中消えも含む）とする</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const minutesInput = document.getElementById('minutes-input');
+    const secondsInput = document.getElementById('seconds-input');
+    const timerDisplay = document.getElementById('timer-display');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const resetStartBtn = document.getElementById('reset-start-btn'); // 追加
+    const presetOkyuBtn = document.getElementById('preset-okyu-btn');
+    const presetShashiBtn = document.getElementById('preset-shashi-btn');
+    const presetTestBtn = document.getElementById('preset-test-btn');
+    const preset45minBtn = document.getElementById('preset-45min-btn');
+    const toggleAlarmBtn = document.getElementById('toggle-alarm-btn');
+    const volumeSlider = document.getElementById('volume-slider');
+    const minUpBtn = document.getElementById('min-up-btn');
+    const minDownBtn = document.getElementById('min-down-btn');
+    const secUpBtn = document.getElementById('sec-up-btn');
+    const secDownBtn = document.getElementById('sec-down-btn');
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const zoomInBtn2 = document.getElementById('zoom-in-btn-2'); // 追加
+    const zoomOutBtn2 = document.getElementById('zoom-out-btn-2'); // 追加
+    const alarmSound = new Audio('alarm.mp3');
+    let timerId = null;
+    let remainingTime = 0;
+    let isAlarmOn = true;
+    let currentZoom = 1.0;
+    alarmSound.volume = volumeSlider.value;
+    
+    const displayLastUpdated = () => {
+        const lastModified = new Date(document.lastModified);
+        const year = lastModified.getFullYear();
+        const month = String(lastModified.getMonth() + 1).padStart(2, '0');
+        const day = String(lastModified.getDate()).padStart(2, '0');
+        const hours = String(lastModified.getHours()).padStart(2, '0');
+        const minutes = String(lastModified.getMinutes()).padStart(2, '0');
+        const seconds = String(lastModified.getSeconds()).padStart(2, '0');
+        const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
+        const updateElement = document.getElementById('last-updated');
+        if (updateElement) {
+            updateElement.innerHTML = `last update ${formattedDate}`;
+        }
+    };
+
+    function updateInitialDisplay() {
+        const minutes = parseInt(minutesInput.value) || 0;
+        const seconds = parseInt(secondsInput.value) || 0;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        timerDisplay.style.color = remainingTime <= 0 ? '#dc3545' : '#333';
+    }
+    function startTimer() {
+        if (timerId !== null) return;
+        if (remainingTime <= 0) {
+            remainingTime = (parseInt(minutesInput.value) || 0) * 60 + (parseInt(secondsInput.value) || 0);
+        }
+        if (remainingTime <= 0) { alert('時間を設定してください。'); return; }
+        updateDisplay();
+        timerId = setInterval(() => {
+            remainingTime--;
+            updateDisplay();
+            if (remainingTime <= 0) {
+                stopTimer();
+                if (isAlarmOn) {
+                    alarmSound.play().catch(e => console.error("音声の再生に失敗しました:", e));
+                }
+            }
+        }, 1000);
+    }
+    function stopTimer() {
+        clearInterval(timerId);
+        timerId = null;
+    }
+    function resetTimer() {
+        stopTimer();
+        remainingTime = 0;
+        updateInitialDisplay();
+        timerDisplay.style.color = '#333';
+    }
+    function formatInput(event) {
+        const input = event.target;
+        let value = parseInt(input.value, 10);
+        if (isNaN(value) || value < 0) { value = 0; }
+        if (input.id === 'seconds-input' && value > 59) { value = 59; }
+        input.value = String(value).padStart(2, '0');
+        updateInitialDisplay();
+    }
+    function setPresetAndStart(minutes, seconds) {
+        stopTimer();
+        minutesInput.value = String(minutes).padStart(2, '0');
+        secondsInput.value = String(seconds).padStart(2, '0');
+        updateInitialDisplay();
+        remainingTime = minutes * 60 + seconds;
+        startTimer();
+    }
+    function updateInputValue(inputElement, change) {
+        let currentValue = parseInt(inputElement.value, 10) || 0;
+        let newValue = currentValue + change;
+        if (inputElement.id === 'seconds-input') {
+            if (newValue > 59) newValue = 0;
+            if (newValue < 0) newValue = 59;
+        } else {
+            if (newValue < 0) newValue = 0;
+        }
+        inputElement.value = String(newValue).padStart(2, '0');
+        updateInitialDisplay();
+    }
+    
+    startBtn.addEventListener('click', startTimer);
+    stopBtn.addEventListener('click', stopTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    resetStartBtn.addEventListener('click', () => { // 追加
+        resetTimer();
+        startTimer();
+    });
+    minutesInput.addEventListener('input', updateInitialDisplay);
+    secondsInput.addEventListener('input', updateInitialDisplay);
+    minutesInput.addEventListener('blur', formatInput);
+    secondsInput.addEventListener('blur', formatInput);
+    minUpBtn.addEventListener('click', () => updateInputValue(minutesInput, 1));
+    minDownBtn.addEventListener('click', () => updateInputValue(minutesInput, -1));
+    secUpBtn.addEventListener('click', () => updateInputValue(secondsInput, 1));
+    secDownBtn.addEventListener('click', () => updateInputValue(secondsInput, -1));
+    presetOkyuBtn.addEventListener('click', () => setPresetAndStart(5, 0));
+    presetShashiBtn.addEventListener('click', () => setPresetAndStart(2, 30));
+    presetTestBtn.addEventListener('click', () => setPresetAndStart(0, 3));
+    preset45minBtn.addEventListener('click', () => setPresetAndStart(45, 0));
+    toggleAlarmBtn.addEventListener('click', () => { /* ... */ });
+    volumeSlider.addEventListener('input', (e) => { /* ... */ });
+    
+    // ズーム関数
+    const zoomIn = () => {
+        currentZoom += 0.1;
+        document.body.style.zoom = currentZoom;
+    };
+    const zoomOut = () => {
+        if (currentZoom > 0.5) {
+            currentZoom -= 0.1;
+            document.body.style.zoom = currentZoom;
+        }
+    };
+    zoomInBtn.addEventListener('click', zoomIn);
+    zoomOutBtn.addEventListener('click', zoomOut);
+    zoomInBtn2.addEventListener('click', zoomIn); // 追加
+    zoomOutBtn2.addEventListener('click', zoomOut); // 追加
+    
+    const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    document.addEventListener('DOMContentLoaded', () => { /* ... */ });
+</script>
+
+</body>
+</html>
