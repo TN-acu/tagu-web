@@ -126,10 +126,8 @@
         }
         .choice-btn:disabled {
             cursor: not-allowed;
-            /* ★★ここから変更★★ */
             color: #333 !important; /* disabled状態でも文字色を黒に保つ */
             opacity: 1; /* disabled状態でもボタンを薄くしない */
-            /* ★★ここまで変更★★ */
         }
         .feedback-text {
             margin-top: 10px;
@@ -170,6 +168,39 @@
             .choice-btn {
                 font-size: 1em;
                 padding: 12px;
+            }
+        }
+
+        /* 印刷用スタイル */
+        @media print {
+            #quiz-header {
+                display: none; /* ヘッダー全体を非表示 */
+            }
+            body {
+                padding-top: 0; /* ヘッダーがないので上部の余白も不要 */
+                background-color: white; /* 印刷時に背景色を白に */
+            }
+            .quiz-container {
+                box-shadow: none; /* 印刷時に影をなくす */
+                margin: 0;
+                padding: 0;
+            }
+            #finish-btn {
+                display: none; /* 印刷時に終了ボタンを非表示 */
+            }
+            /* ★★ここから追加★★ */
+            .quiz-item {
+                page-break-inside: avoid; /* 問題ブロック内で改ページされるのを防ぐ */
+            }
+            /* ★★ここまで追加★★ */
+            .question-text {
+                font-size: 1.1em;
+            }
+            .choice-btn {
+                font-size: 0.9em;
+            }
+            .feedback-text {
+                font-size: 1em;
             }
         }
     </style>
