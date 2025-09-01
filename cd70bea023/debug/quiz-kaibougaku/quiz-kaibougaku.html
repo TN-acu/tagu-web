@@ -59,6 +59,7 @@
             justify-content: space-between;
             align-items: center;
             box-sizing: border-box; /* paddingを含めてwidthを計算 */
+            flex-wrap: nowrap; /* ★★ヘッダーが回り込まないようにする★★ */
         }
         #score-text {
             font-size: 1.5em;
@@ -67,6 +68,13 @@
             margin: 0;
             text-align: left;
             flex-grow: 1; /* スコア表示エリアを広げる */
+            white-space: nowrap; /* ★★スコアテキストが改行しないようにする★★ */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .font-controls {
+            display: flex; /* ボタン同士が並ぶように */
+            align-items: center;
         }
         .font-controls button {
             font-size: 1em;
@@ -77,14 +85,13 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             cursor: pointer;
+            white-space: nowrap; /* ボタンテキストが改行しないように */
         }
-        /* ★★ここから追加★★ */
         #pdf-btn {
             background-color: #007bff;
             color: white;
             font-weight: bold;
         }
-        /* ★★ここまで追加★★ */
 
         .quiz-item {
             margin-bottom: 40px;
@@ -250,8 +257,8 @@
         <div class="font-controls">
             <button id="font-increase-btn">文字大</button>
             <button id="font-decrease-btn">文字小</button>
-            <button id="pdf-btn">PDF</button>
-            </div>
+            <button id="pdf-btn">PDF化</button>
+        </div>
     </div>
 
     <div class="quiz-container">

@@ -204,9 +204,14 @@ fontDecreaseBtn.addEventListener('click', () => {
 
 // ★★ここから変更★★
 pdfBtn.addEventListener('click', () => {
-    // 先にクイズを終了状態にしてから、印刷ダイアログを呼び出す
-    finishQuiz();
-    window.print();
+    // ユーザーに確認を求める
+    const isConfirmed = confirm('PDF化をするとクイズが終了します。よろしいですか？');
+    
+    // 「OK」が押された場合のみ処理を実行
+    if (isConfirmed) {
+        finishQuiz();
+        window.print();
+    }
 });
 // ★★ここまで変更★★
 
