@@ -126,10 +126,8 @@
         }
         .choice-btn:disabled {
             cursor: not-allowed;
-            /* ★★ここから変更★★ */
             color: #333 !important; /* disabled状態でも文字色を黒に保つ */
             opacity: 1; /* disabled状態でもボタンを薄くしない */
-            /* ★★ここまで変更★★ */
         }
         .feedback-text {
             margin-top: 10px;
@@ -172,6 +170,59 @@
                 padding: 12px;
             }
         }
+
+        /* ★★ここから変更★★ 印刷用スタイル */
+        @page {
+            size: A4; /* 用紙サイズをA4に */
+            margin: 2cm; /* 用紙の余白 */
+
+            @bottom-center {
+                content: counter(page) " / " counter(pages); /* "現ページ / 総ページ" */
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+
+        @media print {
+            #quiz-header, #finish-btn, .update-info, h1 {
+                display: none; /* ヘッダー、終了ボタン、更新情報、タイトルを非表示 */
+            }
+            body {
+                padding-top: 0;
+                background-color: white;
+            }
+            .quiz-container {
+                box-shadow: none;
+                border: none;
+                margin: 0;
+                padding: 0;
+                max-width: 100%;
+            }
+            .quiz-item {
+                page-break-inside: avoid; /* 問題ブロック内での改ページを防ぐ */
+                border-bottom: 1px dotted #ccc;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+            .quiz-item:nth-child(6n):not(:last-child) {
+                page-break-after: always; /* 6問ごとに改ページ */
+            }
+            .question-text {
+                font-size: 12pt;
+                line-height: 1.4;
+                margin-bottom: 10px;
+            }
+            .choice-btn {
+                font-size: 11pt;
+                padding: 8px;
+                border: 1px solid #ccc;
+            }
+            .feedback-text {
+                font-size: 10pt;
+                min-height: 18px;
+            }
+        }
+        /* ★★ここまで変更★★ */
     </style>
 </head>
 <body>
