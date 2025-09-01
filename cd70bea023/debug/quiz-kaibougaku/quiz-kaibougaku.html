@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4択クイズ（全問表示形式）</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding-top: 70px; /* 固定ヘッダー分の余白を確保 */
+        }
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 0 auto 20px auto;
+            box-sizing: border-box; /* paddingを含めてwidthを計算 */
+        }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .update-info {
+            font-size: 0.5em;
+            color: #999;
+            font-weight: normal;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        
+        #quiz-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 10px 20px;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 840px;
+            margin: 0 auto;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box; /* paddingを含めてwidthを計算 */
+        }
+        #score-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0;
+            text-align: left;
+            flex-grow: 1; /* スコア表示エリアを広げる */
+        }
+        .font-controls button {
+            font-size: 1em;
+            padding: 5px 10px;
+            margin-left: 5px;
+            background-color: #e9ecef;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .quiz-item {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .question-text {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            overflow-wrap: break-word; /* 長い単語でも折り返す */
+            word-wrap: break-word;
+        }
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            background-color: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .choice-btn:hover:not(.selected) {
+            background-color: #e9ecef;
+        }
+        .choice-btn.selected {
+             border-color: #007bff;
+             background-color: #e7f1ff;
+        }
+        .choice-btn.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            font-weight: bold;
+        }
+        .choice-btn.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .choice-btn:disabled {
+            cursor: not-allowed;
+        }
+        .feedback-text {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 25px;
+        }
+        #finish-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 60px;
+            }
+            .quiz-container {
+                padding: 15px;
+            }
+             #quiz-header {
+                padding: 8px 15px;
+            }
+            #score-text {
+                font-size: 1.2em;
+            }
+            .question-text {
+                font-size: 1.2em;
+            }
+            .choice-btn {
+                font-size: 1em;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-header">
+        <p id="score-text">正解数: 0 / 0</p>
+        <div class="font-controls">
+            <button id="font-increase-btn">文字大</button>
+            <button id="font-decrease-btn">文字小</button>
+        </div>
+    </div>
+
+    <div class="quiz-container">
+        <h1>解剖学クイズ<span id="last-updated" class="update-info"></span></h1>
+        
+        <div id="quiz-body">
+            </div>
+
+        <button id="finish-btn">クイズ終了</button>
+    </div>
+
+    <script src="quiz-kaibougaku.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastModified = new Date(document.lastModified);
+            const year = lastModified.getFullYear();
+            const month = String(lastModified.getMonth() + 1).padStart(2, '0');
+            const day = String(lastModified.getDate()).padStart(2, '0');
+            const hours = String(lastModified.getHours()).padStart(2, '0');
+            const minutes = String(lastModified.getMinutes()).padStart(2, '0');
+            const seconds = String(lastModified.getSeconds()).padStart(2, '0');
+            const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
+            const updateElement = document.getElementById('last-updated');
+            if (updateElement) {
+                updateElement.innerHTML = `last update ${formattedDate}`;
+            }
+        });
+    </script>
+</body>
+</html>
