@@ -56,10 +56,8 @@ async function setupQuiz() {
                 }
             });
 
-            // ★★ここから変更★★
             // 選択肢の配列をシャッフル
             shuffleArray(finalChoices);
-            // ★★ここまで変更★★
 
             if (question === '' || correctAnswer === '' || finalChoices.length !== 4) {
                 console.warn(`問題ブロック( ${i + 1}行目〜 )の形式が不正です。スキップします。`);
@@ -144,24 +142,38 @@ function finishQuiz() {
     quizzes.forEach((quiz, index) => {
         const quizItem = document.getElementById(`quiz-${index}`);
         const choiceButtons = quizItem.querySelectorAll('.choice-btn');
-        const selectedBtn = quizItem.querySelector('.choice-btn.selected');
+        const feedbackText = quizItem.querySelector('.feedback-text');
         
         choiceButtons.forEach(btn => btn.disabled = true);
         
-        if (selectedBtn) {
-            const selectedChoice = selectedBtn.textContent;
-            if (selectedChoice === quiz.answer) {
+        const userAnswer = userAnswers[index];
+
+        if (userAnswer) { // 回答済の問題
+            if (userAnswer === quiz.answer) {
                 score++;
-                selectedBtn.classList.add('correct');
-            } else {
-                selectedBtn.classList.add('incorrect');
+                // 正解した選択肢を探してスタイルを適用
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent === quiz.answer) {
-                        btn.classList.add('correct');
-                    }
+                    if (btn.textContent === userAnswer) btn.classList.add('correct');
+                });
+            } else {
+                // 不正解だった選択肢と、本当の正解の選択肢にスタイルを適用
+                choiceButtons.forEach(btn => {
+                    if (btn.textContent === userAnswer) btn.classList.add('incorrect');
+                    if (btn.textContent === quiz.answer) btn.classList.add('correct');
                 });
             }
+        } else { // ★★ここから変更★★ 未回答の問題
+            // 正解の選択肢を緑色でハイライト
+            choiceButtons.forEach(btn => {
+                if (btn.textContent === quiz.answer) {
+                    btn.classList.add('correct');
+                }
+            });
+            // フィードバック欄に青文字で正解を表示
+            feedbackText.textContent = ` 正解は「${quiz.answer}」`;
+            feedbackText.style.color = 'blue';
         }
+        // ★★ここまで変更★★
     });
 
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
