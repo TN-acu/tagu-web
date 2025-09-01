@@ -84,6 +84,12 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 20px;
         }
+        /* ★★ここから追加★★ 画面上では答えの表示欄を隠す */
+        .answer-display {
+            display: none;
+        }
+        /* ★★ここまで追加★★ */
+
         .question-text {
             font-size: 1.5em;
             margin-bottom: 20px;
@@ -173,53 +179,61 @@
 
         /* ★★ここから変更★★ 印刷用スタイル */
         @page {
-            size: A4; /* 用紙サイズをA4に */
-            margin: 2cm; /* 用紙の余白 */
-
+            size: A4;
+            margin: 1.5cm;
             @bottom-center {
-                content: counter(page) " / " counter(pages); /* "現ページ / 総ページ" */
+                content: counter(page) " / " counter(pages);
                 font-size: 10pt;
                 color: #666;
             }
         }
 
         @media print {
-            #quiz-header, #finish-btn, .update-info, h1 {
-                display: none; /* ヘッダー、終了ボタン、更新情報、タイトルを非表示 */
+            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
+                display: none;
             }
             body {
                 padding-top: 0;
                 background-color: white;
             }
             .quiz-container {
-                box-shadow: none;
-                border: none;
-                margin: 0;
-                padding: 0;
-                max-width: 100%;
+                box-shadow: none; border: none;
+                margin: 0; padding: 0; max-width: 100%;
             }
             .quiz-item {
-                page-break-inside: avoid; /* 問題ブロック内での改ページを防ぐ */
-                border-bottom: 1px dotted #ccc;
-                margin-bottom: 15px;
-                padding-bottom: 15px;
+                display: grid; /* 2列レイアウトを有効化 */
+                grid-template-columns: 1fr 120px; /* 左列は可変幅、右列は120pxに固定 */
+                gap: 15px; /* 列間の隙間 */
+                page-break-inside: avoid;
+                border-bottom: 1px solid #ccc;
+                margin-bottom: 10px;
+                padding-bottom: 10px;
             }
-            .quiz-item:nth-child(6n):not(:last-child) {
-                page-break-after: always; /* 6問ごとに改ページ */
+            .answer-display {
+                display: flex; /* 印刷時に表示 */
+                align-items: center;
+                justify-content: center;
+                border-left: 1px solid #333; /* 縦線 */
+                font-size: 10pt;
+                font-weight: bold;
+                padding-left: 10px;
+                text-align: left;
             }
             .question-text {
-                font-size: 12pt;
+                font-size: 11pt;
                 line-height: 1.4;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
             .choice-btn {
-                font-size: 11pt;
-                padding: 8px;
-                border: 1px solid #ccc;
-            }
-            .feedback-text {
                 font-size: 10pt;
-                min-height: 18px;
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            .choice-btn.correct, .choice-btn.incorrect, .choice-btn.selected {
+                background-color: transparent;
+                border: 1px solid #ccc;
+                font-weight: normal;
             }
         }
         /* ★★ここまで変更★★ */

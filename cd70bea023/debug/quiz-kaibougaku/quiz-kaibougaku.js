@@ -82,18 +82,24 @@ async function setupQuiz() {
 function renderAllQuizzes() {
     let quizHTML = '';
     quizzes.forEach((quiz, index) => {
+        // ★★ここから変更★★
+        // .question-contentで問題と選択肢をグループ化し、.answer-display（答え表示部）を追加
         quizHTML += `
             <div class="quiz-item" id="quiz-${index}">
-                <p class="question-text"><strong>問題 ${index + 1}:</strong> ${quiz.question}</p>
-                <div class="choices-container">
-                    <button class="choice-btn" onclick="selectChoice(${index}, 0)">${quiz.choices[0]}</button>
-                    <button class="choice-btn" onclick="selectChoice(${index}, 1)">${quiz.choices[1]}</button>
-                    <button class="choice-btn" onclick="selectChoice(${index}, 2)">${quiz.choices[2]}</button>
-                    <button class="choice-btn" onclick="selectChoice(${index}, 3)">${quiz.choices[3]}</button>
+                <div class="question-content">
+                    <p class="question-text"><strong>問題 ${index + 1}:</strong> ${quiz.question}</p>
+                    <div class="choices-container">
+                        <button class="choice-btn" onclick="selectChoice(${index}, 0)">${quiz.choices[0]}</button>
+                        <button class="choice-btn" onclick="selectChoice(${index}, 1)">${quiz.choices[1]}</button>
+                        <button class="choice-btn" onclick="selectChoice(${index}, 2)">${quiz.choices[2]}</button>
+                        <button class="choice-btn" onclick="selectChoice(${index}, 3)">${quiz.choices[3]}</button>
+                    </div>
+                    <p class="feedback-text"></p>
                 </div>
-                <p class="feedback-text"></p>
+                <div class="answer-display">${quiz.answer}</div>
             </div>
         `;
+        // ★★ここまで変更★★
     });
     quizBody.innerHTML = quizHTML;
 }
@@ -151,29 +157,24 @@ function finishQuiz() {
         if (userAnswer) { // 回答済の問題
             if (userAnswer === quiz.answer) {
                 score++;
-                // 正解した選択肢を探してスタイルを適用
                 choiceButtons.forEach(btn => {
                     if (btn.textContent === userAnswer) btn.classList.add('correct');
                 });
             } else {
-                // 不正解だった選択肢と、本当の正解の選択肢にスタイルを適用
                 choiceButtons.forEach(btn => {
                     if (btn.textContent === userAnswer) btn.classList.add('incorrect');
                     if (btn.textContent === quiz.answer) btn.classList.add('correct');
                 });
             }
-        } else { // ★★ここから変更★★ 未回答の問題
-            // 正解の選択肢を緑色でハイライト
+        } else { // 未回答の問題
             choiceButtons.forEach(btn => {
                 if (btn.textContent === quiz.answer) {
                     btn.classList.add('correct');
                 }
             });
-            // フィードバック欄に青文字で正解を表示
             feedbackText.textContent = ` 正解は「${quiz.answer}」`;
             feedbackText.style.color = 'blue';
         }
-        // ★★ここまで変更★★
     });
 
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
