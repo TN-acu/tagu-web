@@ -10,7 +10,8 @@
     <meta http-equiv="Expires" content="0">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            /* ★★ここを変更★★ 教科書体を優先的なフォントとして指定 */
+            font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #f0f2f5;
             margin: 0;
             padding-top: 70px; /* 固定ヘッダー分の余白を確保 */
@@ -232,7 +233,6 @@
                 margin-bottom: 5px;
                 padding-bottom: 5px;
             }
-            /* ★★ここを変更★★ 6問ごとに改ページ */
             .quiz-item:nth-child(6n):not(:last-child) {
                 page-break-after: always; 
             }
