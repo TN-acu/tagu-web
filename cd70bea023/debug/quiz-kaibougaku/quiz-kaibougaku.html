@@ -173,34 +173,45 @@
 
         /* 印刷用スタイル */
         @media print {
-            #quiz-header {
-                display: none; /* ヘッダー全体を非表示 */
+            #quiz-header, #finish-btn {
+                display: none; /* ヘッダーと終了ボタンを非表示 */
             }
             body {
-                padding-top: 0; /* ヘッダーがないので上部の余白も不要 */
-                background-color: white; /* 印刷時に背景色を白に */
+                padding-top: 0;
+                background-color: white;
             }
             .quiz-container {
-                box-shadow: none; /* 印刷時に影をなくす */
+                box-shadow: none;
                 margin: 0;
                 padding: 0;
+                max-width: 100%;
             }
-            #finish-btn {
-                display: none; /* 印刷時に終了ボタンを非表示 */
+            
+            /* ★★ここから変更★★ 3列レイアウト設定 */
+            #quiz-body {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
             }
-            /* ★★ここから追加★★ */
             .quiz-item {
-                page-break-inside: avoid; /* 問題ブロック内で改ページされるのを防ぐ */
+                width: 32%; /* 3列になるように幅を指定 */
+                page-break-inside: avoid; /* 問題ブロック内で改ページさせない */
+                margin-bottom: 20px;
             }
-            /* ★★ここまで追加★★ */
+            /* ★★ここまで変更★★ */
+
             .question-text {
-                font-size: 1.1em;
+                font-size: 0.9em; /* 3列に収まるようにフォントを調整 */
+                line-height: 1.4;
+                margin-bottom: 10px;
             }
             .choice-btn {
-                font-size: 0.9em;
+                font-size: 0.8em;
+                padding: 8px;
             }
             .feedback-text {
-                font-size: 1em;
+                font-size: 0.8em;
+                min-height: 18px;
             }
         }
     </style>
