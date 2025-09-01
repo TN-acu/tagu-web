@@ -59,6 +59,7 @@
             justify-content: space-between;
             align-items: center;
             box-sizing: border-box; /* paddingを含めてwidthを計算 */
+            flex-wrap: nowrap; /* ★★ヘッダーが回り込まないようにする★★ */
         }
         #score-text {
             font-size: 1.5em;
@@ -67,6 +68,13 @@
             margin: 0;
             text-align: left;
             flex-grow: 1; /* スコア表示エリアを広げる */
+            white-space: nowrap; /* ★★スコアテキストが改行しないようにする★★ */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .font-controls {
+            display: flex; /* ボタン同士が並ぶように */
+            align-items: center;
         }
         .font-controls button {
             font-size: 1em;
@@ -77,6 +85,12 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             cursor: pointer;
+            white-space: nowrap; /* ボタンテキストが改行しないように */
+        }
+        #pdf-btn {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
         }
 
         .quiz-item {
@@ -84,6 +98,10 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 20px;
         }
+        .answer-display {
+            display: none;
+        }
+
         .question-text {
             font-size: 1.5em;
             margin-bottom: 20px;
@@ -171,58 +189,65 @@
             }
         }
 
-        /* ★★ここから変更★★ 印刷用スタイル */
+        /* 印刷用スタイル */
         @page {
-            size: A4; /* 用紙サイズをA4に */
-            margin: 2cm; /* 用紙の余白 */
-
+            size: A4;
+            margin: 1.5cm;
             @bottom-center {
-                content: counter(page) " / " counter(pages); /* "現ページ / 総ページ" */
+                content: counter(page) " / " counter(pages);
                 font-size: 10pt;
                 color: #666;
             }
         }
 
         @media print {
-            #quiz-header, #finish-btn, .update-info, h1 {
-                display: none; /* ヘッダー、終了ボタン、更新情報、タイトルを非表示 */
+            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
+                display: none;
             }
             body {
                 padding-top: 0;
                 background-color: white;
             }
             .quiz-container {
-                box-shadow: none;
-                border: none;
-                margin: 0;
-                padding: 0;
-                max-width: 100%;
+                box-shadow: none; border: none;
+                margin: 0; padding: 0; max-width: 100%;
             }
             .quiz-item {
-                page-break-inside: avoid; /* 問題ブロック内での改ページを防ぐ */
-                border-bottom: 1px dotted #ccc;
-                margin-bottom: 15px;
-                padding-bottom: 15px;
+                display: grid; 
+                grid-template-columns: 1fr 120px; 
+                gap: 15px; 
+                page-break-inside: avoid;
+                border-bottom: 1px solid #ccc;
+                margin-bottom: 10px;
+                padding-bottom: 10px;
             }
-            .quiz-item:nth-child(6n):not(:last-child) {
-                page-break-after: always; /* 6問ごとに改ページ */
+            .answer-display {
+                display: flex; 
+                align-items: center;
+                justify-content: center;
+                border-left: 1px solid #333; 
+                font-size: 10pt;
+                font-weight: bold;
+                padding-left: 10px;
+                text-align: left;
             }
             .question-text {
-                font-size: 12pt;
+                font-size: 11pt;
                 line-height: 1.4;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
             .choice-btn {
-                font-size: 11pt;
-                padding: 8px;
-                border: 1px solid #ccc;
-            }
-            .feedback-text {
                 font-size: 10pt;
-                min-height: 18px;
+                padding: 5px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            .choice-btn.correct, .choice-btn.incorrect, .choice-btn.selected {
+                background-color: transparent;
+                border: 1px solid #ccc;
+                font-weight: normal;
             }
         }
-        /* ★★ここまで変更★★ */
     </style>
 </head>
 <body>
@@ -232,6 +257,7 @@
         <div class="font-controls">
             <button id="font-increase-btn">文字大</button>
             <button id="font-decrease-btn">文字小</button>
+            <button id="pdf-btn">PDF化</button>
         </div>
     </div>
 

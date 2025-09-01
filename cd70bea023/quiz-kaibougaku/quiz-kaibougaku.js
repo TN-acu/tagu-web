@@ -4,6 +4,7 @@ const quizBody = document.getElementById('quiz-body');
 const finishBtn = document.getElementById('finish-btn');
 const fontIncreaseBtn = document.getElementById('font-increase-btn');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
+const pdfBtn = document.getElementById('pdf-btn');
 
 let quizzes = [];
 let userAnswers = {};
@@ -84,14 +85,17 @@ function renderAllQuizzes() {
     quizzes.forEach((quiz, index) => {
         quizHTML += `
             <div class="quiz-item" id="quiz-${index}">
-                <p class="question-text"><strong>問題 ${index + 1}:</strong> ${quiz.question}</p>
-                <div class="choices-container">
-                    <button class="choice-btn" onclick="selectChoice(${index}, 0)">${quiz.choices[0]}</button>
-                    <button class="choice-btn" onclick="selectChoice(${index}, 1)">${quiz.choices[1]}</button>
-                    <button class="choice-btn" onclick="selectChoice(${index}, 2)">${quiz.choices[2]}</button>
-                    <button class="choice-btn" onclick="selectChoice(${index}, 3)">${quiz.choices[3]}</button>
+                <div class="question-content">
+                    <p class="question-text"><strong>問題 ${index + 1}:</strong> ${quiz.question}</p>
+                    <div class="choices-container">
+                        <button class="choice-btn" onclick="selectChoice(${index}, 0)">${quiz.choices[0]}</button>
+                        <button class="choice-btn" onclick="selectChoice(${index}, 1)">${quiz.choices[1]}</button>
+                        <button class="choice-btn" onclick="selectChoice(${index}, 2)">${quiz.choices[2]}</button>
+                        <button class="choice-btn" onclick="selectChoice(${index}, 3)">${quiz.choices[3]}</button>
+                    </div>
+                    <p class="feedback-text"></p>
                 </div>
-                <p class="feedback-text"></p>
+                <div class="answer-display">${quiz.answer}</div>
             </div>
         `;
     });
@@ -148,32 +152,27 @@ function finishQuiz() {
         
         const userAnswer = userAnswers[index];
 
-        if (userAnswer) { // 回答済の問題
+        if (userAnswer) { 
             if (userAnswer === quiz.answer) {
                 score++;
-                // 正解した選択肢を探してスタイルを適用
                 choiceButtons.forEach(btn => {
                     if (btn.textContent === userAnswer) btn.classList.add('correct');
                 });
             } else {
-                // 不正解だった選択肢と、本当の正解の選択肢にスタイルを適用
                 choiceButtons.forEach(btn => {
                     if (btn.textContent === userAnswer) btn.classList.add('incorrect');
                     if (btn.textContent === quiz.answer) btn.classList.add('correct');
                 });
             }
-        } else { // ★★ここから変更★★ 未回答の問題
-            // 正解の選択肢を緑色でハイライト
+        } else { 
             choiceButtons.forEach(btn => {
                 if (btn.textContent === quiz.answer) {
                     btn.classList.add('correct');
                 }
             });
-            // フィードバック欄に青文字で正解を表示
             feedbackText.textContent = ` 正解は「${quiz.answer}」`;
             feedbackText.style.color = 'blue';
         }
-        // ★★ここまで変更★★
     });
 
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
@@ -202,6 +201,19 @@ fontDecreaseBtn.addEventListener('click', () => {
         quizBody.style.fontSize = `${currentFontScale}em`;
     }
 });
+
+// ★★ここから変更★★
+pdfBtn.addEventListener('click', () => {
+    // ユーザーに確認を求める
+    const isConfirmed = confirm('PDF化をするとクイズが終了します。よろしいですか？');
+    
+    // 「OK」が押された場合のみ処理を実行
+    if (isConfirmed) {
+        finishQuiz();
+        window.print();
+    }
+});
+// ★★ここまで変更★★
 
 // 最初にクイズをセットアップ
 setupQuiz();
