@@ -56,10 +56,8 @@ async function setupQuiz() {
                 }
             });
 
-            // ★★ここから変更★★
             // 選択肢の配列をシャッフル
             shuffleArray(finalChoices);
-            // ★★ここまで変更★★
 
             if (question === '' || correctAnswer === '' || finalChoices.length !== 4) {
                 console.warn(`問題ブロック( ${i + 1}行目〜 )の形式が不正です。スキップします。`);
@@ -148,20 +146,32 @@ function finishQuiz() {
         
         choiceButtons.forEach(btn => btn.disabled = true);
         
+        // ★★ここから変更★★
         if (selectedBtn) {
+            // 回答済の問題の処理
             const selectedChoice = selectedBtn.textContent;
             if (selectedChoice === quiz.answer) {
                 score++;
                 selectedBtn.classList.add('correct');
             } else {
                 selectedBtn.classList.add('incorrect');
+                // 間違っていた場合は、正解の選択肢もハイライトする
                 choiceButtons.forEach(btn => {
                     if (btn.textContent === quiz.answer) {
                         btn.classList.add('correct');
                     }
                 });
             }
+        } else {
+            // 未回答の問題の処理
+            // 正解の選択肢をハイライトするだけ
+            choiceButtons.forEach(btn => {
+                if (btn.textContent === quiz.answer) {
+                    btn.classList.add('correct');
+                }
+            });
         }
+        // ★★ここまで変更★★
     });
 
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
