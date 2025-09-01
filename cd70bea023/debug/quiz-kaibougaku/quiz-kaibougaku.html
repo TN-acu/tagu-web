@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4択クイズ（全問表示形式）</title>
+    <title>解剖学クイズ</title>
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -192,10 +192,10 @@
             }
         }
 
-        /* ★★ここから変更★★ 印刷用スタイル */
+        /* 印刷用スタイル */
         @page {
             size: A4;
-            margin: 0.8cm; /* ページの余白を最小限に */
+            margin: 0.8cm;
             @bottom-left {
                 content: "last update";
                 font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
@@ -229,10 +229,11 @@
                 gap: 10px; 
                 page-break-inside: avoid;
                 border-bottom: 1px solid #ddd;
-                margin-bottom: 5px;   /* 垂直マージンを詰める */
-                padding-bottom: 5px;  /* 垂直パディングを詰める */
+                margin-bottom: 5px;
+                padding-bottom: 5px;
             }
-            .quiz-item:nth-child(5n):not(:last-child) {
+            /* ★★ここを変更★★ 6問ごとに改ページ */
+            .quiz-item:nth-child(6n):not(:last-child) {
                 page-break-after: always; 
             }
             .answer-display {
@@ -247,15 +248,15 @@
             }
             .question-text {
                 font-size: 11pt;
-                line-height: 1.2; /* 行間を最小限に */
+                line-height: 1.2;
                 margin-bottom: 5px;
             }
             .choices-container {
-                gap: 1px; /* 選択肢間の隙間を最小限に */
+                gap: 1px;
             }
             .choice-btn {
                 font-size: 10pt;
-                padding: 2px 4px; /* 選択肢の上下余白を最小限に */
+                padding: 2px 4px;
                 border: none;
                 border-radius: 0;
             }
@@ -265,7 +266,6 @@
                 font-weight: normal;
             }
         }
-        /* ★★ここまで変更★★ */
     </style>
 </head>
 <body>
