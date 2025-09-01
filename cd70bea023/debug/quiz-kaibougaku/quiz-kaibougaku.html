@@ -59,7 +59,7 @@
             justify-content: space-between;
             align-items: center;
             box-sizing: border-box; /* paddingを含めてwidthを計算 */
-            flex-wrap: nowrap; /* ★★ヘッダーが回り込まないようにする★★ */
+            flex-wrap: nowrap; /* ヘッダーが回り込まないようにする */
         }
         #score-text {
             font-size: 1.5em;
@@ -68,7 +68,7 @@
             margin: 0;
             text-align: left;
             flex-grow: 1; /* スコア表示エリアを広げる */
-            white-space: nowrap; /* ★★スコアテキストが改行しないようにする★★ */
+            white-space: nowrap; /* スコアテキストが改行しないようにする */
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -91,6 +91,9 @@
             background-color: #007bff;
             color: white;
             font-weight: bold;
+        }
+        #pdf-btn.ready {
+            background-color: #28a745; /* 準備完了状態の色（緑） */
         }
 
         .quiz-item {
@@ -178,7 +181,8 @@
                 padding: 8px 15px;
             }
             #score-text {
-                font-size: 1.2em;
+                /* ★★ここを変更★★ */
+                font-size: 1.0em;
             }
             .question-text {
                 font-size: 1.2em;
