@@ -9,6 +9,14 @@ let quizzes = [];
 let userAnswers = {};
 let currentFontScale = 1.0;
 
+// Fisher-Yatesアルゴリズムを使って配列をシャッフルする関数
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // 要素を入れ替え
+    }
+}
+
 // テキストファイルからクイズデータを読み込んで表示する
 async function setupQuiz() {
     try {
@@ -25,16 +33,13 @@ async function setupQuiz() {
             const choicesRaw = [];
             quizBlock.forEach(line => {
                 if (line.startsWith('?')) {
-                    // ★★ここから変更★★
-                    // "?番号. " の部分のみを取り除くように修正
                     let tempQuestion = line.trim();
                     const match = tempQuestion.match(/^\?\d+\.\s*(.*)/);
                     if (match && match[1]) {
-                        question = match[1].trim(); // 分類テキストは残す
+                        question = match[1].trim();
                     } else {
                         question = tempQuestion.substring(1).trim();
                     }
-                    // ★★ここまで変更★★
                 } else {
                     choicesRaw.push(line.trim());
                 }
@@ -50,13 +55,19 @@ async function setupQuiz() {
                     finalChoices.push(choice);
                 }
             });
+
+            // ★★ここから変更★★
+            // 選択肢の配列をシャッフル
+            shuffleArray(finalChoices);
+            // ★★ここまで変更★★
+
             if (question === '' || correctAnswer === '' || finalChoices.length !== 4) {
                 console.warn(`問題ブロック( ${i + 1}行目〜 )の形式が不正です。スキップします。`);
                 continue;
             }
             quizzes.push({
                 question: question,
-                choices: finalChoices,
+                choices: finalChoices, // シャッフルされた選択肢
                 answer: correctAnswer
             });
         }
