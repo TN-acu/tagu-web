@@ -4,6 +4,7 @@ const quizBody = document.getElementById('quiz-body');
 const finishBtn = document.getElementById('finish-btn');
 const fontIncreaseBtn = document.getElementById('font-increase-btn');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
+const pdfBtn = document.getElementById('pdf-btn');
 
 let quizzes = [];
 let userAnswers = {};
@@ -82,8 +83,6 @@ async function setupQuiz() {
 function renderAllQuizzes() {
     let quizHTML = '';
     quizzes.forEach((quiz, index) => {
-        // ★★ここから変更★★
-        // .question-contentで問題と選択肢をグループ化し、.answer-display（答え表示部）を追加
         quizHTML += `
             <div class="quiz-item" id="quiz-${index}">
                 <div class="question-content">
@@ -99,7 +98,6 @@ function renderAllQuizzes() {
                 <div class="answer-display">${quiz.answer}</div>
             </div>
         `;
-        // ★★ここまで変更★★
     });
     quizBody.innerHTML = quizHTML;
 }
@@ -154,7 +152,7 @@ function finishQuiz() {
         
         const userAnswer = userAnswers[index];
 
-        if (userAnswer) { // 回答済の問題
+        if (userAnswer) { 
             if (userAnswer === quiz.answer) {
                 score++;
                 choiceButtons.forEach(btn => {
@@ -166,7 +164,7 @@ function finishQuiz() {
                     if (btn.textContent === quiz.answer) btn.classList.add('correct');
                 });
             }
-        } else { // 未回答の問題
+        } else { 
             choiceButtons.forEach(btn => {
                 if (btn.textContent === quiz.answer) {
                     btn.classList.add('correct');
@@ -203,6 +201,14 @@ fontDecreaseBtn.addEventListener('click', () => {
         quizBody.style.fontSize = `${currentFontScale}em`;
     }
 });
+
+// ★★ここから変更★★
+pdfBtn.addEventListener('click', () => {
+    // 先にクイズを終了状態にしてから、印刷ダイアログを呼び出す
+    finishQuiz();
+    window.print();
+});
+// ★★ここまで変更★★
 
 // 最初にクイズをセットアップ
 setupQuiz();

@@ -78,17 +78,22 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        /* ★★ここから追加★★ */
+        #pdf-btn {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        /* ★★ここまで追加★★ */
 
         .quiz-item {
             margin-bottom: 40px;
             border-bottom: 1px solid #eee;
             padding-bottom: 20px;
         }
-        /* ★★ここから追加★★ 画面上では答えの表示欄を隠す */
         .answer-display {
             display: none;
         }
-        /* ★★ここまで追加★★ */
 
         .question-text {
             font-size: 1.5em;
@@ -177,7 +182,7 @@
             }
         }
 
-        /* ★★ここから変更★★ 印刷用スタイル */
+        /* 印刷用スタイル */
         @page {
             size: A4;
             margin: 1.5cm;
@@ -201,19 +206,19 @@
                 margin: 0; padding: 0; max-width: 100%;
             }
             .quiz-item {
-                display: grid; /* 2列レイアウトを有効化 */
-                grid-template-columns: 1fr 120px; /* 左列は可変幅、右列は120pxに固定 */
-                gap: 15px; /* 列間の隙間 */
+                display: grid; 
+                grid-template-columns: 1fr 120px; 
+                gap: 15px; 
                 page-break-inside: avoid;
                 border-bottom: 1px solid #ccc;
                 margin-bottom: 10px;
                 padding-bottom: 10px;
             }
             .answer-display {
-                display: flex; /* 印刷時に表示 */
+                display: flex; 
                 align-items: center;
                 justify-content: center;
-                border-left: 1px solid #333; /* 縦線 */
+                border-left: 1px solid #333; 
                 font-size: 10pt;
                 font-weight: bold;
                 padding-left: 10px;
@@ -236,7 +241,6 @@
                 font-weight: normal;
             }
         }
-        /* ★★ここまで変更★★ */
     </style>
 </head>
 <body>
@@ -246,7 +250,8 @@
         <div class="font-controls">
             <button id="font-increase-btn">文字大</button>
             <button id="font-decrease-btn">文字小</button>
-        </div>
+            <button id="pdf-btn">PDF</button>
+            </div>
     </div>
 
     <div class="quiz-container">
