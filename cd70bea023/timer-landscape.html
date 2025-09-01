@@ -64,7 +64,7 @@
         button {
             font-size: clamp(1em, 2.5vw, 2em); padding: 8px 12px; margin: 3px;
             cursor: pointer; border-radius: 5px; border: none; color: white;
-            transition: background-color 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .controls {
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
@@ -118,6 +118,8 @@
         .task-description .task-note { font-size: 0.9em; color: #555; padding-left: 0;}
         .highlight { font-weight: bold; color: var(--danger-color); }
         .ios-volume-notice { display: none; font-size: 0.9em; color: var(--secondary-color); }
+        #toggle-repeat-btn.on { background-color: var(--warning-color); color: #212529;}
+        #toggle-repeat-btn.off { background-color: var(--secondary-color); }
     </style>
 </head>
 <body>
@@ -153,6 +155,7 @@
             <button id="stop-btn">ストップ</button>
             <button id="reset-btn">リセット</button>
             <button id="reset-start-btn">リセット＆自動スタート</button>
+            <button id="toggle-repeat-btn" class="off">繰り返し OFF</button>
             <button id="toggle-alarm-btn" class="on">タイマー音 ON状態</button>
             <div class="volume-control">
                 <label for="volume-slider">音量</label>
@@ -215,6 +218,8 @@
     const zoomInBtn2 = document.getElementById('zoom-in-btn-2');
     const zoomOutBtn2 = document.getElementById('zoom-out-btn-2');
     const alarmSound = new Audio('alarm.mp3');
+    const toggleRepeatBtn = document.getElementById('toggle-repeat-btn');
+    let isRepeatOn = false;
     let timerId = null;
     let remainingTime = 0;
     let isAlarmOn = true;
@@ -260,6 +265,12 @@
                 stopTimer();
                 if (isAlarmOn) {
                     alarmSound.play().catch(e => console.error("音声の再生に失敗しました:", e));
+                }
+                if (isRepeatOn) {
+                    setTimeout(() => {
+                        resetTimer();
+                        startTimer();
+                    }, 500);
                 }
             }
         }, 1000);
@@ -334,6 +345,18 @@
             toggleAlarmBtn.textContent = 'タイマー音 OFF状態';
             toggleAlarmBtn.classList.add('off');
             toggleAlarmBtn.classList.remove('on');
+        }
+    });
+    toggleRepeatBtn.addEventListener('click', () => {
+        isRepeatOn = !isRepeatOn;
+        if (isRepeatOn) {
+            toggleRepeatBtn.textContent = '繰り返し ON';
+            toggleRepeatBtn.classList.add('on');
+            toggleRepeatBtn.classList.remove('off');
+        } else {
+            toggleRepeatBtn.textContent = '繰り返し OFF';
+            toggleRepeatBtn.classList.add('off');
+            toggleRepeatBtn.classList.remove('on');
         }
     });
     volumeSlider.addEventListener('input', (e) => {
