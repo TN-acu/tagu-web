@@ -171,10 +171,21 @@
             }
         }
 
-        /* 印刷用スタイル */
+        /* ★★ここから変更★★ 印刷用スタイル */
+        @page {
+            size: A4; /* 用紙サイズをA4に */
+            margin: 2cm; /* 用紙の余白 */
+
+            @bottom-center {
+                content: counter(page) " / " counter(pages); /* "現ページ / 総ページ" */
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+
         @media print {
-            #quiz-header, #finish-btn {
-                display: none; /* ヘッダーと終了ボタンを非表示 */
+            #quiz-header, #finish-btn, .update-info, h1 {
+                display: none; /* ヘッダー、終了ボタン、更新情報、タイトルを非表示 */
             }
             body {
                 padding-top: 0;
@@ -182,38 +193,36 @@
             }
             .quiz-container {
                 box-shadow: none;
+                border: none;
                 margin: 0;
                 padding: 0;
                 max-width: 100%;
             }
-            
-            /* ★★ここから変更★★ 3列レイアウト設定 */
-            #quiz-body {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: space-between;
-            }
             .quiz-item {
-                width: 32%; /* 3列になるように幅を指定 */
-                page-break-inside: avoid; /* 問題ブロック内で改ページさせない */
-                margin-bottom: 20px;
+                page-break-inside: avoid; /* 問題ブロック内での改ページを防ぐ */
+                border-bottom: 1px dotted #ccc;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
             }
-            /* ★★ここまで変更★★ */
-
+            .quiz-item:nth-child(6n):not(:last-child) {
+                page-break-after: always; /* 6問ごとに改ページ */
+            }
             .question-text {
-                font-size: 0.9em; /* 3列に収まるようにフォントを調整 */
+                font-size: 12pt;
                 line-height: 1.4;
                 margin-bottom: 10px;
             }
             .choice-btn {
-                font-size: 0.8em;
+                font-size: 11pt;
                 padding: 8px;
+                border: 1px solid #ccc;
             }
             .feedback-text {
-                font-size: 0.8em;
+                font-size: 10pt;
                 min-height: 18px;
             }
         }
+        /* ★★ここまで変更★★ */
     </style>
 </head>
 <body>
