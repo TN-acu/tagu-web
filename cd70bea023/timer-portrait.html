@@ -80,6 +80,8 @@
         }
         #preset-test-btn { background-color: var(--warning-color); color: #212529; }
         #preset-45min-btn { background-color: var(--orange-color); }
+        #preset-30min-btn { background-color: var(--info-color); }
+        #preset-10min-btn { background-color: var(--dark-green); }
         .input-group { display: flex; align-items: center; gap: 4px; }
         .input-controls { display: flex; flex-direction: column; }
         .stepper-btn {
@@ -161,6 +163,8 @@
             <button id="preset-shashi-btn">２分３０秒</button>
             <button id="preset-test-btn">３秒タイマーテスト</button>
             <button id="preset-45min-btn">４５分</button>
+            <button id="preset-30min-btn">３０分</button>
+            <button id="preset-10min-btn">１０分</button>
         </div>
         <div class="task-wrapper">
             <div class="task-description">
@@ -190,6 +194,8 @@
     const presetShashiBtn = document.getElementById('preset-shashi-btn');
     const presetTestBtn = document.getElementById('preset-test-btn');
     const preset45minBtn = document.getElementById('preset-45min-btn');
+    const preset30minBtn = document.getElementById('preset-30min-btn');
+    const preset10minBtn = document.getElementById('preset-10min-btn');
     const toggleAlarmBtn = document.getElementById('toggle-alarm-btn');
     const volumeSlider = document.getElementById('volume-slider');
     const minUpBtn = document.getElementById('min-up-btn');
@@ -306,6 +312,8 @@
     presetShashiBtn.addEventListener('click', () => setPresetAndStart(2, 30));
     presetTestBtn.addEventListener('click', () => setPresetAndStart(0, 3));
     preset45minBtn.addEventListener('click', () => setPresetAndStart(45, 0));
+    preset30minBtn.addEventListener('click', () => setPresetAndStart(30, 0));
+    preset10minBtn.addEventListener('click', () => setPresetAndStart(10, 0));
     toggleAlarmBtn.addEventListener('click', () => {
         isAlarmOn = !isAlarmOn;
         if (isAlarmOn) {
