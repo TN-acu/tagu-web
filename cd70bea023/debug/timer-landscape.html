@@ -118,11 +118,8 @@
         .task-description .task-note { font-size: 0.9em; color: #555; padding-left: 0;}
         .highlight { font-weight: bold; color: var(--danger-color); }
         .ios-volume-notice { display: none; font-size: 0.9em; color: var(--secondary-color); }
-        
-        /* ★★ここから追加★★ */
         #toggle-repeat-btn.on { background-color: var(--warning-color); color: #212529;}
         #toggle-repeat-btn.off { background-color: var(--secondary-color); }
-        /* ★★ここまで追加★★ */
     </style>
 </head>
 <body>
@@ -157,8 +154,8 @@
             <button id="start-btn">スタート</button>
             <button id="stop-btn">ストップ</button>
             <button id="reset-btn">リセット</button>
-            <button id="toggle-repeat-btn" class="off">繰り返し OFF</button>
             <button id="reset-start-btn">リセット＆自動スタート</button>
+            <button id="toggle-repeat-btn" class="off">繰り返し OFF</button>
             <button id="toggle-alarm-btn" class="on">タイマー音 ON状態</button>
             <div class="volume-control">
                 <label for="volume-slider">音量</label>
@@ -221,12 +218,8 @@
     const zoomInBtn2 = document.getElementById('zoom-in-btn-2');
     const zoomOutBtn2 = document.getElementById('zoom-out-btn-2');
     const alarmSound = new Audio('alarm.mp3');
-
-    // ★★ここから変更★★
     const toggleRepeatBtn = document.getElementById('toggle-repeat-btn');
     let isRepeatOn = false;
-    // ★★ここまで変更★★
-
     let timerId = null;
     let remainingTime = 0;
     let isAlarmOn = true;
@@ -273,16 +266,12 @@
                 if (isAlarmOn) {
                     alarmSound.play().catch(e => console.error("音声の再生に失敗しました:", e));
                 }
-                
-                // ★★ここから変更★★
-                // 繰り返しがONなら、少し待ってからリセット＆スタート
                 if (isRepeatOn) {
                     setTimeout(() => {
                         resetTimer();
                         startTimer();
-                    }, 500); // 0.5秒のディレイ
+                    }, 500);
                 }
-                // ★★ここまで変更★★
             }
         }, 1000);
     }
@@ -358,8 +347,6 @@
             toggleAlarmBtn.classList.remove('on');
         }
     });
-
-    // ★★ここから追加★★
     toggleRepeatBtn.addEventListener('click', () => {
         isRepeatOn = !isRepeatOn;
         if (isRepeatOn) {
@@ -372,8 +359,6 @@
             toggleRepeatBtn.classList.remove('on');
         }
     });
-    // ★★ここまで追加★★
-
     volumeSlider.addEventListener('input', (e) => {
         alarmSound.volume = e.target.value;
     });
