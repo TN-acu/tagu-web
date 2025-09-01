@@ -9,6 +9,14 @@ const pdfBtn = document.getElementById('pdf-btn');
 let quizzes = [];
 let userAnswers = {};
 let currentFontScale = 1.0;
+let isReadyForPrint = false;
+
+// ★★ここから追加★★ デバイスがモバイル（iOS/Android）かどうかを判定する
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+// ★★ここまで追加★★
+
 
 // Fisher-Yatesアルゴリズムを使って配列をシャッフルする関数
 function shuffleArray(array) {
@@ -21,6 +29,12 @@ function shuffleArray(array) {
 // テキストファイルからクイズデータを読み込んで表示する
 async function setupQuiz() {
     try {
+        // ★★ここから追加★★ PCの場合のみ「正答PDF化」ボタンを表示
+        if (isMobileDevice()) {
+            pdfBtn.style.display = 'none';
+        }
+        // ★★ここまで追加★★
+
         const response = await fetch('quiz_data_kaibougaku.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
@@ -188,7 +202,12 @@ function finishQuiz() {
 }
 
 // イベントリスナーを設定
-finishBtn.addEventListener('click', finishQuiz);
+finishBtn.addEventListener('click', () => {
+    finishQuiz();
+    isReadyForPrint = true;
+    pdfBtn.textContent = '印刷プレビューを開く';
+    pdfBtn.classList.add('ready');
+});
 
 fontIncreaseBtn.addEventListener('click', () => {
     currentFontScale += 0.1;
@@ -204,13 +223,25 @@ fontDecreaseBtn.addEventListener('click', () => {
 
 // ★★ここから変更★★
 pdfBtn.addEventListener('click', () => {
-    // ユーザーに確認を求める
-    const isConfirmed = confirm('PDF化をするとクイズが終了します。よろしいですか？');
-    
-    // 「OK」が押された場合のみ処理を実行
-    if (isConfirmed) {
-        finishQuiz();
+    // 状態によって動作を分岐
+    if (isReadyForPrint) {
         window.print();
+        return;
+    }
+
+    const enteredPassword = prompt('パスワードを入力してください:');
+
+    if (enteredPassword === '89') {
+        const isConfirmed = confirm('PDF化をするとクイズが終了します。よろしいですか？');
+        if (isConfirmed) {
+            finishQuiz();
+            isReadyForPrint = true;
+            pdfBtn.textContent = '印刷プレビューを開く';
+            pdfBtn.classList.add('ready');
+            alert('PDF化の準備ができました。もう一度ボタンを押して印刷プレビューを開いてください。');
+        }
+    } else if (enteredPassword !== null) { // キャンセルではなく、間違ったパスワードが入力された場合
+        alert('パスワードが違います。');
     }
 });
 // ★★ここまで変更★★
