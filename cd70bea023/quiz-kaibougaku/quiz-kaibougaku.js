@@ -11,12 +11,10 @@ let userAnswers = {};
 let currentFontScale = 1.0;
 let isReadyForPrint = false;
 
-// ★★ここから追加★★ デバイスがモバイル（iOS/Android）かどうかを判定する
+// デバイスがモバイル（iOS/Android）かどうかを判定する
 function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
-// ★★ここまで追加★★
-
 
 // Fisher-Yatesアルゴリズムを使って配列をシャッフルする関数
 function shuffleArray(array) {
@@ -29,11 +27,9 @@ function shuffleArray(array) {
 // テキストファイルからクイズデータを読み込んで表示する
 async function setupQuiz() {
     try {
-        // ★★ここから追加★★ PCの場合のみ「正答PDF化」ボタンを表示
         if (isMobileDevice()) {
             pdfBtn.style.display = 'none';
         }
-        // ★★ここまで追加★★
 
         const response = await fetch('quiz_data_kaibougaku.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
@@ -71,7 +67,6 @@ async function setupQuiz() {
                 }
             });
 
-            // 選択肢の配列をシャッフル
             shuffleArray(finalChoices);
 
             if (question === '' || correctAnswer === '' || finalChoices.length !== 4) {
@@ -80,7 +75,7 @@ async function setupQuiz() {
             }
             quizzes.push({
                 question: question,
-                choices: finalChoices, // シャッフルされた選択肢
+                choices: finalChoices,
                 answer: correctAnswer
             });
         }
@@ -201,6 +196,53 @@ function finishQuiz() {
     window.scrollTo(0, 0);
 }
 
+// ★★ここから変更★★ PDF印刷のメインロジック
+function handlePdfPrint() {
+    finishQuiz();
+
+    // ファイルの最終更新日時を取得して整形
+    const lastModified = new Date(document.lastModified);
+    const year = lastModified.getFullYear();
+    const month = String(lastModified.getMonth() + 1).padStart(2, '0');
+    const day = String(lastModified.getDate()).padStart(2, '0');
+    const hours = String(lastModified.getHours()).padStart(2, '0');
+    const minutes = String(lastModified.getMinutes()).padStart(2, '0');
+    const seconds = String(lastModified.getSeconds()).padStart(2, '0');
+    const timestamp = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
+
+    // 印刷時のみ適用されるスタイル要素を動的に作成
+    const printStyle = document.createElement('style');
+    printStyle.id = 'dynamic-print-style'; // 後で削除するためにIDを付与
+    printStyle.innerHTML = `
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-left {
+                content: "last update ${timestamp}";
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-right {
+                content: counter(page) " / " counter(pages);
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+    `;
+
+    // 作成したスタイルをheadに追加
+    document.head.appendChild(printStyle);
+
+    // 印刷ダイアログを呼び出す
+    window.print();
+
+    // 印刷ダイアログが閉じた後に、追加したスタイルを削除
+    document.head.removeChild(printStyle);
+}
+// ★★ここまで変更★★
+
 // イベントリスナーを設定
 finishBtn.addEventListener('click', () => {
     finishQuiz();
@@ -221,30 +263,22 @@ fontDecreaseBtn.addEventListener('click', () => {
     }
 });
 
-// ★★ここから変更★★
 pdfBtn.addEventListener('click', () => {
-    // 状態によって動作を分岐
     if (isReadyForPrint) {
-        window.print();
+        handlePdfPrint(); // 準備完了なら直接印刷処理へ
         return;
     }
 
     const enteredPassword = prompt('パスワードを入力してください:');
-
     if (enteredPassword === '89') {
         const isConfirmed = confirm('PDF化をするとクイズが終了します。よろしいですか？');
         if (isConfirmed) {
-            finishQuiz();
-            isReadyForPrint = true;
-            pdfBtn.textContent = '印刷プレビューを開く';
-            pdfBtn.classList.add('ready');
-            alert('PDF化の準備ができました。もう一度ボタンを押して印刷プレビューを開いてください。');
+            handlePdfPrint();
         }
-    } else if (enteredPassword !== null) { // キャンセルではなく、間違ったパスワードが入力された場合
+    } else if (enteredPassword !== null) {
         alert('パスワードが違います。');
     }
 });
-// ★★ここまで変更★★
 
 // 最初にクイズをセットアップ
 setupQuiz();

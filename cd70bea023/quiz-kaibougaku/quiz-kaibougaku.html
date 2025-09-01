@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4択クイズ（全問表示形式）</title>
+    <title>解剖学クイズ</title>
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -195,21 +195,29 @@
         /* 印刷用スタイル */
         @page {
             size: A4;
-            margin: 1.5cm;
-            @bottom-center {
+            margin: 0.8cm;
+            @bottom-left {
+                content: "last update";
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+                font-size: 8pt;
+                color: #666;
+            }
+            @bottom-right {
                 content: counter(page) " / " counter(pages);
-                font-size: 10pt;
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+                font-size: 8pt;
                 color: #666;
             }
         }
 
         @media print {
-            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
-                display: none;
-            }
             body {
                 padding-top: 0;
                 background-color: white;
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+            }
+            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
+                display: none;
             }
             .quiz-container {
                 box-shadow: none; border: none;
@@ -218,36 +226,43 @@
             .quiz-item {
                 display: grid; 
                 grid-template-columns: 1fr 120px; 
-                gap: 15px; 
+                gap: 10px; 
                 page-break-inside: avoid;
-                border-bottom: 1px solid #ccc;
-                margin-bottom: 10px;
-                padding-bottom: 10px;
+                border-bottom: 1px solid #ddd;
+                margin-bottom: 5px;
+                padding-bottom: 5px;
+            }
+            /* ★★ここを変更★★ 6問ごとに改ページ */
+            .quiz-item:nth-child(6n):not(:last-child) {
+                page-break-after: always; 
             }
             .answer-display {
                 display: flex; 
                 align-items: center;
                 justify-content: center;
-                border-left: 1px solid #333; 
+                border-left: 1px solid #666; 
                 font-size: 10pt;
                 font-weight: bold;
-                padding-left: 10px;
+                padding: 0 8px;
                 text-align: left;
             }
             .question-text {
                 font-size: 11pt;
-                line-height: 1.4;
-                margin-bottom: 8px;
+                line-height: 1.2;
+                margin-bottom: 5px;
+            }
+            .choices-container {
+                gap: 1px;
             }
             .choice-btn {
                 font-size: 10pt;
-                padding: 5px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
+                padding: 2px 4px;
+                border: none;
+                border-radius: 0;
             }
             .choice-btn.correct, .choice-btn.incorrect, .choice-btn.selected {
                 background-color: transparent;
-                border: 1px solid #ccc;
+                border: none;
                 font-weight: normal;
             }
         }
