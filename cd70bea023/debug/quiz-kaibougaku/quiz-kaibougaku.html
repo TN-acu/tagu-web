@@ -193,23 +193,14 @@
         }
 
         /* 印刷用スタイル */
-        @page {
-            size: A4;
-            margin: 1.5cm;
-            @bottom-center {
-                content: counter(page) " / " counter(pages);
-                font-size: 10pt;
-                color: #666;
-            }
-        }
-
         @media print {
-            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
-                display: none;
-            }
             body {
                 padding-top: 0;
                 background-color: white;
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+            }
+            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
+                display: none;
             }
             .quiz-container {
                 box-shadow: none; border: none;
@@ -217,31 +208,31 @@
             }
             .quiz-item {
                 display: grid; 
-                grid-template-columns: 1fr 120px; 
+                grid-template-columns: 1fr 140px; 
                 gap: 15px; 
                 page-break-inside: avoid;
                 border-bottom: 1px solid #ccc;
-                margin-bottom: 10px;
-                padding-bottom: 10px;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
             }
             .answer-display {
                 display: flex; 
                 align-items: center;
                 justify-content: center;
                 border-left: 1px solid #333; 
-                font-size: 10pt;
+                font-size: 12pt;
                 font-weight: bold;
-                padding-left: 10px;
+                padding: 0 10px;
                 text-align: left;
             }
             .question-text {
-                font-size: 11pt;
-                line-height: 1.4;
-                margin-bottom: 8px;
+                font-size: 13pt;
+                line-height: 1.5;
+                margin-bottom: 10px;
             }
             .choice-btn {
-                font-size: 10pt;
-                padding: 5px;
+                font-size: 12pt;
+                padding: 8px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
             }
