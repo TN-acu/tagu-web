@@ -195,7 +195,7 @@
         /* ★★ここから変更★★ 印刷用スタイル */
         @page {
             size: A4;
-            margin: 1.5cm; /* ページの余白を縮小 */
+            margin: 1cm; /* ページの余白をさらに縮小 */
             @bottom-left {
                 content: "last update";
                 font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
@@ -225,38 +225,38 @@
             }
             .quiz-item {
                 display: grid; 
-                grid-template-columns: 1fr 140px; 
+                grid-template-columns: 1fr 120px; 
                 gap: 15px; 
                 page-break-inside: avoid;
                 border-bottom: 1px solid #ccc;
-                margin-bottom: 12px; /* 垂直マージンを詰める */
-                padding-bottom: 12px;
+                margin-bottom: 10px; 
+                padding-bottom: 10px;
             }
             .quiz-item:nth-child(5n):not(:last-child) {
-                page-break-after: always; /* 5問ごとに改ページ */
+                page-break-after: always; 
             }
             .answer-display {
                 display: flex; 
                 align-items: center;
                 justify-content: center;
                 border-left: 1px solid #333; 
-                font-size: 12pt;
+                font-size: 11pt;
                 font-weight: bold;
                 padding: 0 10px;
                 text-align: left;
             }
             .question-text {
-                font-size: 13pt;
-                line-height: 1.3; /* 行間を詰める */
-                margin-bottom: 8px;
+                font-size: 12pt;
+                line-height: 1.25; /* 行間を縮小 */
+                margin-bottom: 6px;
             }
             .choices-container {
-                gap: 4px; /* 選択肢間の隙間を詰める */
+                gap: 2px; /* 選択肢間の隙間を縮小 */
             }
             .choice-btn {
-                font-size: 12pt;
-                padding: 5px;
-                border: none; /* 枠線を削除 */
+                font-size: 11pt;
+                padding: 4px; /* 選択肢の上下余白を縮小 */
+                border: none;
                 border-radius: 0;
             }
             .choice-btn.correct, .choice-btn.incorrect, .choice-btn.selected {
