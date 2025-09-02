@@ -20,21 +20,23 @@
         html, body {
             margin: 0; padding: 0; height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden; /* 全体のスクロールはiframeに任せる */
         }
         .container { 
             display: flex; 
             height: var(--app-height); 
         }
         .nav-column {
-            flex: 1; 
+            flex-shrink: 0; /* 縮まないようにする */
+            width: 250px; /* PCでの固定幅 */
             background-color: #f8f9fa; 
             padding: 15px;
             border-right: 2px solid #dee2e6; 
             overflow-y: auto;
-            min-width: 180px;
+            box-sizing: border-box;
         }
         .content-column { 
-            flex: 4; 
+            flex-grow: 1; /* 残りのスペースを全て使う */
             overflow: hidden; 
         }
         iframe { 
@@ -46,7 +48,13 @@
             margin-top: 0; 
             font-size: 1.3em; 
         }
-        .nav-column ul { list-style: none; padding: 0; }
+        .nav-column ul { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0;
+            transition: all 0.3s ease-out; /* メニューの表示/非表示アニメーション */
+            overflow: hidden; /* アニメーションのための必須 */
+        }
         .nav-column li { margin-bottom: 8px; }
         .nav-column a { 
             text-decoration: none; color: #007bff; font-size: 1.1em; 
@@ -63,7 +71,6 @@
             margin-left: 10px;
         }
         
-        /* ★★ここから変更★★ */
         .menu-toggle {
             display: none; /* PCでは非表示 */
             width: 100%;
@@ -75,49 +82,88 @@
             border: none;
             border-bottom: 2px solid #dee2e6;
             cursor: pointer;
+            box-sizing: border-box;
+            transition: all 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        /* ★★ここまで変更★★ */
+        .menu-toggle.close-btn { /* 閉じるボタンのデザイン */
+            border-top: 2px solid #dee2e6; /* 上に線を追加 */
+            border-bottom: none;
+            margin-top: 10px; /* メニュー項目との間に余白 */
+        }
+        .menu-toggle .arrow {
+            display: inline-block;
+            margin-left: 8px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            vertical-align: middle;
+            transition: transform 0.3s ease-out;
+        }
+        .menu-toggle.open-btn .arrow {
+            border-top: 6px solid #333; /* 下向き矢印 */
+        }
+        .menu-toggle.close-btn .arrow {
+            border-bottom: 6px solid #333; /* 上向き矢印 */
+        }
 
         @media (max-width: 768px) {
             .container { 
                 flex-direction: column; 
-                height: auto;
+                height: var(--app-height); /* スマホでもheight 100%を維持 */
             }
             .nav-column { 
+                width: 100%; /* スマホでは全幅 */
                 border-right: none; 
-                flex-grow: 0; 
-                min-width: 100%; 
-                box-sizing: border-box;
+                border-bottom: none; /* 下線をボタンで管理 */
                 padding: 0; /* paddingをリセット */
-                border-bottom: none; /* ボタン側で線を管理 */
+                flex-basis: auto; /* 高さを内容に応じて自動調整 */
+                overflow-y: hidden; /* スムーズなアニメーションのために一時的にhidden */
+                transition: height 0.3s ease-out; /* 高さのアニメーション */
+                background-color: #f8f9fa;
             }
             .nav-column h2 { display: none; }
             
-            /* ★★ここから変更★★ */
             .menu-toggle {
-                display: block; /* スマホで表示 */
+                display: flex; /* スマホで表示 */
             }
-            .nav-column ul { 
-                display: none; /* デフォルトでメニューを非表示 */
-                padding: 10px;
+            #menu-toggle-open { /* 開くボタンは常に表示 */
                 border-bottom: 2px solid #dee2e6;
             }
-            .nav-column.menu-open ul {
-                display: flex; /* 開いた時にメニューを表示 */
-                justify-content: center; 
-                flex-wrap: wrap; 
-                margin: 0;
+            #menu-toggle-close { /* 閉じるボタンはデフォルト非表示 */
+                display: none;
             }
-            /* ★★ここまで変更★★ */
 
-            .nav-column li { margin-bottom: 0; }
-            .nav-column a { margin: 0 4px; font-size: 1em; padding: 5px 8px; }
+            .nav-column ul { 
+                height: 0; /* デフォルトでメニューを非表示 */
+                padding: 0 15px; /* 左右のpaddingは維持 */
+                flex-direction: column; /* 縦並びにする */
+            }
+            .nav-column.menu-open ul {
+                height: auto; /* 開いた時にメニューを表示 */
+                display: flex; /* Flexboxを維持 */
+                padding: 10px 15px; /* 上下のpaddingも表示時に設定 */
+                border-bottom: 2px solid #dee2e6; /* メニューの下線 */
+            }
+            .nav-column.menu-open #menu-toggle-open {
+                display: none; /* メニュー開いているときは「開く」ボタンを隠す */
+            }
+            .nav-column.menu-open #menu-toggle-close {
+                display: flex; /* メニュー開いているときは「閉じる」ボタンを表示 */
+            }
+
+            .nav-column li { margin-bottom: 5px; text-align: center; }
+            .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
+            
             .content-column { 
                 flex-grow: 1;
-                height: auto;
+                height: auto; /* nav-columnのアニメーションに合わせて高さを調整 */
             }
             iframe {
-                min-height: 100vh;
+                min-height: calc(var(--app-height) - var(--nav-height, 46px)); /* ナビゲーションの高さに応じて調整 */
             }
         }
     </style>
@@ -125,15 +171,24 @@
 <body>
 
     <div class="container">
-        <div class="nav-column">
-            <h2>アプリ選択<span id="last-updated" class="update-info"></span></h2>
-            <button class="menu-toggle" id="menu-toggle-btn">メニューを開く ▼</button>
-            <ul>
+        <div class="nav-column" id="nav-column">
+            <h2 id="pc-menu-title">アプリ選択<span id="last-updated" class="update-info"></span></h2>
+            
+            <button class="menu-toggle open-btn" id="menu-toggle-open">
+                他のアプリを選択する <span class="arrow"></span>
+            </button>
+
+            <ul id="app-list">
                 <li><a href="timer-portrait.html" target="contentFrame">●タイマー(縦表示)</a></li>
                 <li><a href="timer-landscape.html" target="contentFrame">●タイマー(横表示)</a></li>
                 <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">●解剖学クイズ(全316問+過去問170問以上)</a></li>
                 <li><a href="quiz-iryougairon2025zenki/quiz-iryougairon2025zenki-kimatu.html" target="contentFrame">●医療概論クイズ(過去問55問+国試問題13問)</a></li>
                 <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">●医療と社会クイズ(過去問21問)</a></li>
+                <li>
+                    <button class="menu-toggle close-btn" id="menu-toggle-close">
+                        他のアプリ選択メニューを閉じる <span class="arrow"></span>
+                    </button>
+                </li>
             </ul>
         </div>
         <div class="content-column">
@@ -147,9 +202,18 @@
         const setAppHeight = () => {
             const doc = document.documentElement;
             doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+            
+            // スマホ表示時のみiframeの最小高さを調整
+            if (window.innerWidth <= 768) {
+                const navColumn = document.getElementById('nav-column');
+                const navHeight = navColumn.offsetHeight; // 現在のナビゲーションの高さを取得
+                doc.style.setProperty('--nav-height', `${navHeight}px`);
+            } else {
+                doc.style.setProperty('--nav-height', '0px'); // PCでは0にリセット
+            }
         };
         window.addEventListener('resize', setAppHeight);
-        setAppHeight();
+        setAppHeight(); // 初期ロード時にも実行
 
         const displayLastUpdated = () => {
             const lastModified = new Date(document.lastModified);
@@ -169,19 +233,106 @@
         };
         displayLastUpdated();
 
-        // ★★ここから追加★★
-        const menuToggleBtn = document.getElementById('menu-toggle-btn');
-        const navColumn = document.querySelector('.nav-column');
+        const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
+        const menuToggleCloseBtn = document.getElementById('menu-toggle-close');
+        const navColumn = document.getElementById('nav-column');
+        const appList = document.getElementById('app-list');
+        const pcMenuTitle = document.getElementById('pc-menu-title');
 
-        menuToggleBtn.addEventListener('click', () => {
+        // スマホ表示時のみ開閉機能を有効にする
+        if (window.innerWidth <= 768) {
+            // PC用のタイトルは非表示
+            pcMenuTitle.style.display = 'none';
+
+            // 初期状態でメニューは閉じている
+            navColumn.classList.remove('menu-open');
+            appList.style.height = '0'; // heightを0にする
+            appList.style.paddingTop = '0';
+            appList.style.paddingBottom = '0';
+            menuToggleOpenBtn.style.display = 'flex'; // 「開く」ボタン表示
+            menuToggleCloseBtn.style.display = 'none'; // 「閉じる」ボタン非表示
+            
+            // ナビゲーションの初期高さを設定してiframeの描画を調整
+            setAppHeight(); 
+        } else {
+            // PC表示の場合、開閉ボタンは常に非表示
+            menuToggleOpenBtn.style.display = 'none';
+            menuToggleCloseBtn.style.display = 'none';
+        }
+
+        const toggleMenu = () => {
+            if (window.innerWidth > 768) return; // PCでは機能させない
+
             navColumn.classList.toggle('menu-open');
-            if (navColumn.classList.contains('menu-open')) {
-                menuToggleBtn.textContent = 'メニューを閉じる ▲';
+            const isOpen = navColumn.classList.contains('menu-open');
+
+            if (isOpen) {
+                // メニューを開く
+                menuToggleOpenBtn.style.display = 'none';
+                menuToggleCloseBtn.style.display = 'flex';
+                // height: auto; を設定する前に一旦overflow: hidden;を解除し、scrollHeightを取得
+                appList.style.height = 'auto';
+                const scrollHeight = appList.scrollHeight;
+                appList.style.height = '0'; // heightを再度0に戻す
+                setTimeout(() => {
+                    appList.style.height = `${scrollHeight}px`; // スムーズに開く
+                    appList.style.paddingTop = '10px';
+                    appList.style.paddingBottom = '10px';
+                }, 10); // 短い遅延でアニメーションをトリガー
+                
             } else {
-                menuToggleBtn.textContent = 'メニューを開く ▼';
+                // メニューを閉じる
+                menuToggleOpenBtn.style.display = 'flex';
+                menuToggleCloseBtn.style.display = 'none';
+                appList.style.height = `${appList.scrollHeight}px`; // 現在の高さからアニメーションを開始
+                appList.style.paddingTop = '10px';
+                appList.style.paddingBottom = '10px';
+                setTimeout(() => {
+                    appList.style.height = '0'; // スムーズに閉じる
+                    appList.style.paddingTop = '0';
+                    appList.style.paddingBottom = '0';
+                }, 10);
             }
+            // メニュー開閉後にiframeの高さ再調整
+            setTimeout(setAppHeight, 300); // アニメーション終了後に高さを再計算
+        };
+
+        menuToggleOpenBtn.addEventListener('click', toggleMenu);
+        menuToggleCloseBtn.addEventListener('click', toggleMenu);
+
+        // iframe内のリンクをクリックしたときにもメニューを閉じる
+        const appLinks = document.querySelectorAll('#app-list a');
+        appLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (navColumn.classList.contains('menu-open')) {
+                    toggleMenu(); // メニューが開いていれば閉じる
+                }
+            });
         });
-        // ★★ここまで追加★★
+
+        // 画面サイズ変更時にメニューの状態をリセット（PC⇔スマホ切り替え時）
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                navColumn.classList.remove('menu-open');
+                appList.style.height = 'auto'; // PCでは常に開く
+                appList.style.paddingTop = '0';
+                appList.style.paddingBottom = '0';
+                menuToggleOpenBtn.style.display = 'none';
+                menuToggleCloseBtn.style.display = 'none';
+                pcMenuTitle.style.display = 'block'; // PC用タイトル表示
+            } else {
+                // スマホになった場合、メニューは閉じた状態から開始
+                navColumn.classList.remove('menu-open');
+                appList.style.height = '0';
+                appList.style.paddingTop = '0';
+                appList.style.paddingBottom = '0';
+                menuToggleOpenBtn.style.display = 'flex';
+                menuToggleCloseBtn.style.display = 'none';
+                pcMenuTitle.style.display = 'none'; // PC用タイトル非表示
+            }
+            setAppHeight(); // リサイズ時にも高さを再設定
+        });
+
     </script>
 
 </body>
