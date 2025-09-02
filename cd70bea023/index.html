@@ -20,21 +20,23 @@
         html, body {
             margin: 0; padding: 0; height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden; /* 全体のスクロールはiframeに任せる */
         }
         .container { 
             display: flex; 
             height: var(--app-height); 
         }
         .nav-column {
-            flex: 1; 
+            flex-shrink: 0; /* 縮まないようにする */
+            width: 250px; /* PCでの固定幅 */
             background-color: #f8f9fa; 
             padding: 15px;
             border-right: 2px solid #dee2e6; 
             overflow-y: auto;
-            min-width: 180px;
+            box-sizing: border-box;
         }
         .content-column { 
-            flex: 4; 
+            flex-grow: 1; /* 残りのスペースを全て使う */
             overflow: hidden; 
         }
         iframe { 
@@ -46,7 +48,13 @@
             margin-top: 0; 
             font-size: 1.3em; 
         }
-        .nav-column ul { list-style: none; padding: 0; }
+        .nav-column ul { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0;
+            transition: all 0.3s ease-out; /* メニューの表示/非表示アニメーション */
+            overflow: hidden; /* アニメーションのための必須 */
+        }
         .nav-column li { margin-bottom: 8px; }
         .nav-column a { 
             text-decoration: none; color: #007bff; font-size: 1.1em; 
@@ -63,26 +71,101 @@
             margin-left: 10px;
         }
         
+        .menu-toggle {
+            display: none; /* PCでは非表示 */
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            /* ★★ここから変更★★ */
+            background-color: #28a745; /* 緑色に変更 */
+            color: white; /* 文字色を白に変更 */
+            /* ★★ここまで変更★★ */
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: all 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-toggle.close-btn { 
+            border-top: 2px solid #dee2e6;
+            margin-top: 10px;
+        }
+        .menu-toggle .arrow {
+            display: inline-block;
+            margin-left: 8px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            vertical-align: middle;
+            transition: transform 0.3s ease-out;
+        }
+        .menu-toggle.open-btn .arrow {
+             /* ★★ここを変更★★ */
+            border-top: 6px solid white; /* 矢印の色を白に変更 */
+        }
+        .menu-toggle.close-btn .arrow {
+             /* ★★ここを変更★★ */
+            border-bottom: 6px solid white; /* 矢印の色を白に変更 */
+        }
+
         @media (max-width: 768px) {
             .container { 
                 flex-direction: column; 
-                height: auto;
+                height: var(--app-height); 
             }
             .nav-column { 
-                border-right: none; border-bottom: 2px solid #dee2e6; 
-                flex-grow: 0; min-width: 100%; box-sizing: border-box;
-                padding: 8px 0;
+                width: 100%; 
+                border-right: none; 
+                padding: 0; 
+                flex-basis: auto; 
+                overflow-y: hidden; 
+                transition: height 0.3s ease-out; 
+                background-color: #f8f9fa;
             }
             .nav-column h2 { display: none; }
-            .nav-column ul { display: flex; justify-content: center; flex-wrap: wrap; margin: 0; }
-            .nav-column li { margin-bottom: 0; }
-            .nav-column a { margin: 0 4px; font-size: 1em; padding: 5px 8px; }
+            
+            .menu-toggle {
+                display: flex; 
+            }
+            #menu-toggle-open { 
+                border-bottom: 2px solid #dee2e6;
+            }
+            #menu-toggle-close { 
+                display: none; 
+            }
+
+            .nav-column ul { 
+                height: 0; 
+                padding: 0 15px; 
+                flex-direction: column; 
+            }
+            .nav-column.menu-open ul {
+                height: auto; 
+                display: flex; 
+                padding: 10px 15px; 
+                border-bottom: 2px solid #dee2e6; 
+            }
+            .nav-column.menu-open #menu-toggle-open {
+                display: none; 
+            }
+            .nav-column.menu-open #menu-toggle-close {
+                display: flex; 
+            }
+
+            .nav-column li { margin-bottom: 5px; text-align: center; }
+            .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
+            
             .content-column { 
                 flex-grow: 1;
-                height: auto;
+                height: auto; 
             }
             iframe {
-                min-height: 100vh;
+                min-height: calc(var(--app-height) - var(--nav-height, 46px)); 
             }
         }
     </style>
@@ -90,14 +173,26 @@
 <body>
 
     <div class="container">
-        <div class="nav-column">
-            <h2>アプリ選択<span id="last-updated" class="update-info"></span></h2>
-            <ul>
+        <div class="nav-column" id="nav-column">
+            <h2 id="pc-menu-title">アプリ選択<span id="last-updated" class="update-info"></span></h2>
+            
+            <button class="menu-toggle open-btn" id="menu-toggle-open">
+                他のアプリを選択する <span class="arrow"></span>
+            </button>
+
+            <ul id="app-list">
                 <li><a href="timer-portrait.html" target="contentFrame">●タイマー(縦表示)</a></li>
                 <li><a href="timer-landscape.html" target="contentFrame">●タイマー(横表示)</a></li>
                 <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">●解剖学クイズ(全316問+過去問170問以上)</a></li>
                 <li><a href="quiz-iryougairon2025zenki/quiz-iryougairon2025zenki-kimatu.html" target="contentFrame">●医療概論クイズ(過去問55問+国試問題13問)</a></li>
-                </ul>
+                <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">●医療と社会クイズ(過去問21問)</a></li>
+                
+                <li>
+                    <button class="menu-toggle close-btn" id="menu-toggle-close">
+                        他のアプリ選択メニューを閉じる <span class="arrow"></span>
+                    </button>
+                </li>
+            </ul>
         </div>
         <div class="content-column">
             <iframe src="timer-portrait.html" name="contentFrame" title="コンテンツ表示エリア">
@@ -110,6 +205,14 @@
         const setAppHeight = () => {
             const doc = document.documentElement;
             doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+            
+            if (window.innerWidth <= 768) {
+                const navColumn = document.getElementById('nav-column');
+                const navHeight = navColumn.offsetHeight;
+                doc.style.setProperty('--nav-height', `${navHeight}px`);
+            } else {
+                doc.style.setProperty('--nav-height', '0px');
+            }
         };
         window.addEventListener('resize', setAppHeight);
         setAppHeight();
@@ -131,6 +234,92 @@
             }
         };
         displayLastUpdated();
+
+        const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
+        const menuToggleCloseBtn = document.getElementById('menu-toggle-close');
+        const navColumn = document.getElementById('nav-column');
+        const appList = document.getElementById('app-list');
+        const pcMenuTitle = document.getElementById('pc-menu-title');
+
+        if (window.innerWidth <= 768) {
+            pcMenuTitle.style.display = 'none';
+            navColumn.classList.remove('menu-open');
+            appList.style.height = '0';
+            appList.style.paddingTop = '0';
+            appList.style.paddingBottom = '0';
+            menuToggleOpenBtn.style.display = 'flex';
+            menuToggleCloseBtn.style.display = 'none';
+            setAppHeight(); 
+        } else {
+            menuToggleOpenBtn.style.display = 'none';
+            menuToggleCloseBtn.style.display = 'none';
+        }
+
+        const toggleMenu = () => {
+            if (window.innerWidth > 768) return;
+
+            navColumn.classList.toggle('menu-open');
+            const isOpen = navColumn.classList.contains('menu-open');
+
+            if (isOpen) {
+                menuToggleOpenBtn.style.display = 'none';
+                menuToggleCloseBtn.style.display = 'flex';
+                appList.style.height = 'auto';
+                const scrollHeight = appList.scrollHeight;
+                appList.style.height = '0';
+                setTimeout(() => {
+                    appList.style.height = `${scrollHeight}px`;
+                    appList.style.paddingTop = '10px';
+                    appList.style.paddingBottom = '10px';
+                }, 10);
+            } else {
+                menuToggleOpenBtn.style.display = 'flex';
+                menuToggleCloseBtn.style.display = 'none';
+                appList.style.height = `${appList.scrollHeight}px`;
+                appList.style.paddingTop = '10px';
+                appList.style.paddingBottom = '10px';
+                setTimeout(() => {
+                    appList.style.height = '0';
+                    appList.style.paddingTop = '0';
+                    appList.style.paddingBottom = '0';
+                }, 10);
+            }
+            setTimeout(setAppHeight, 300);
+        };
+
+        menuToggleOpenBtn.addEventListener('click', toggleMenu);
+        menuToggleCloseBtn.addEventListener('click', toggleMenu);
+
+        const appLinks = document.querySelectorAll('#app-list a');
+        appLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (navColumn.classList.contains('menu-open')) {
+                    toggleMenu();
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                navColumn.classList.remove('menu-open');
+                appList.style.height = 'auto';
+                appList.style.paddingTop = '0';
+                appList.style.paddingBottom = '0';
+                menuToggleOpenBtn.style.display = 'none';
+                menuToggleCloseBtn.style.display = 'none';
+                pcMenuTitle.style.display = 'block';
+            } else {
+                navColumn.classList.remove('menu-open');
+                appList.style.height = '0';
+                appList.style.paddingTop = '0';
+                appList.style.paddingBottom = '0';
+                menuToggleOpenBtn.style.display = 'flex';
+                menuToggleCloseBtn.style.display = 'none';
+                pcMenuTitle.style.display = 'none';
+            }
+            setAppHeight();
+        });
+
     </script>
 
 </body>
