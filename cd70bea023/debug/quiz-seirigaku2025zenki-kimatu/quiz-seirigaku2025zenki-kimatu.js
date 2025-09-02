@@ -31,6 +31,7 @@ async function setupQuiz() {
             pdfBtn.style.display = 'none';
         }
 
+        // ★★★ 読み込むファイル名を修正 ★★★
         const response = await fetch('quiz_data_seirigaku2025zenki_kimatu.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
@@ -127,14 +128,16 @@ function selectChoice(quizIndex, choiceIndex) {
     visibleChoiceButtons.forEach(btn => btn.classList.remove('selected'));
     
     let clickedButton;
-    // メモ: quiz.choices はシャッフルされているため、choiceIndexだけではどのボタンか特定できない。
-    // そのため、textContentを比較してクリックされたボタンを見つける。
+    // メモ: filter(c => c !== '-') を使って、表示されている選択肢のインデックスを正しく合わせる
+    const selectedChoiceText = quizzes[quizIndex].choices.filter(c => c !== '-')[choiceIndex];
+    
     for(let btn of choiceButtons){
-        if(btn.textContent === quizzes[quizIndex].choices[choiceIndex]){
+        if(btn.textContent === selectedChoiceText){
             clickedButton = btn;
             break;
         }
     }
+
     if(clickedButton) {
         clickedButton.classList.add('selected');
     }
@@ -262,13 +265,13 @@ finishBtn.addEventListener('click', () => {
 
 fontIncreaseBtn.addEventListener('click', () => {
     currentFontScale += 0.1;
-    quizBody.style.fontSize = `${currentFontScale}em`;
+    document.body.style.fontSize = `${currentFontScale * 100}%`;
 });
 
 fontDecreaseBtn.addEventListener('click', () => {
     if (currentFontScale > 0.7) {
         currentFontScale -= 0.1;
-        quizBody.style.fontSize = `${currentFontScale}em`;
+        document.body.style.fontSize = `${currentFontScale * 100}%`;
     }
 });
 
