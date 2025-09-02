@@ -20,15 +20,15 @@
         html, body {
             margin: 0; padding: 0; height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            overflow: hidden; /* 全体のスクロールはiframeに任せる */
+            overflow: hidden; 
         }
         .container { 
             display: flex; 
             height: var(--app-height); 
         }
         .nav-column {
-            flex-shrink: 0; /* 縮まないようにする */
-            width: 250px; /* PCでの固定幅 */
+            flex-shrink: 0; 
+            width: 250px; 
             background-color: #f8f9fa; 
             padding: 15px;
             border-right: 2px solid #dee2e6; 
@@ -36,7 +36,7 @@
             box-sizing: border-box;
         }
         .content-column { 
-            flex-grow: 1; /* 残りのスペースを全て使う */
+            flex-grow: 1; 
             overflow: hidden; 
         }
         iframe { 
@@ -52,8 +52,8 @@
             list-style: none; 
             padding: 0; 
             margin: 0;
-            transition: all 0.3s ease-out; /* メニューの表示/非表示アニメーション */
-            overflow: hidden; /* アニメーションのための必須 */
+            transition: all 0.3s ease-out; 
+            overflow: hidden; 
         }
         .nav-column li { margin-bottom: 8px; }
         .nav-column a { 
@@ -72,16 +72,14 @@
         }
         
         .menu-toggle {
-            display: none; /* PCでは非表示 */
+            display: none; 
             width: 100%;
             padding: 10px;
             font-size: 1.2em;
             font-weight: bold;
             text-align: center;
-            /* ★★ここから変更★★ */
-            background-color: #28a745; /* 緑色に変更 */
-            color: white; /* 文字色を白に変更 */
-            /* ★★ここまで変更★★ */
+            background-color: #28a745; 
+            color: white; 
             border: none;
             cursor: pointer;
             box-sizing: border-box;
@@ -105,12 +103,10 @@
             transition: transform 0.3s ease-out;
         }
         .menu-toggle.open-btn .arrow {
-             /* ★★ここを変更★★ */
-            border-top: 6px solid white; /* 矢印の色を白に変更 */
+            border-top: 6px solid white; 
         }
         .menu-toggle.close-btn .arrow {
-             /* ★★ここを変更★★ */
-            border-bottom: 6px solid white; /* 矢印の色を白に変更 */
+            border-bottom: 6px solid white; 
         }
 
         @media (max-width: 768px) {
@@ -186,8 +182,7 @@
                 <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">●解剖学クイズ(全316問+過去問170問以上)</a></li>
                 <li><a href="quiz-iryougairon2025zenki/quiz-iryougairon2025zenki-kimatu.html" target="contentFrame">●医療概論クイズ(過去問55問+国試問題13問)</a></li>
                 <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">●医療と社会クイズ(予想27問+過去問21問)</a></li>
-                
-                <li>
+                <li><a href="quiz-sizenkagaku2025zenki/quiz-sizenkagaku2025zenki-kimatu.html" target="contentFrame">●自然科学クイズ(過去問40問)</a></li>
                     <button class="menu-toggle close-btn" id="menu-toggle-close">
                         他のアプリ選択メニューを閉じる <span class="arrow"></span>
                     </button>
@@ -324,3 +319,5 @@
 
 </body>
 </html>
+
+
