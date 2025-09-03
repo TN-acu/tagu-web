@@ -5,6 +5,7 @@ const finishBtn = document.getElementById('finish-btn');
 const fontIncreaseBtn = document.getElementById('font-increase-btn');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
 const pdfBtn = document.getElementById('pdf-btn');
+const jumpMenu = document.getElementById('jump-menu');
 
 let quizzes = [];
 let userAnswers = {};
@@ -20,7 +21,7 @@ function isMobileDevice() {
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // 要素を入れ替え
+        [array[i], array[j]] = [array[j], array[i]];
     }
 }
 
@@ -34,73 +35,114 @@ async function setupQuiz() {
         const response = await fetch('quiz_data_kaibougaku.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
-        const textData = await response.text();
+        let textData = await response.text();
+        // BOMが含まれていれば削除
+        if (textData.charCodeAt(0) === 0xFEFF) {
+            textData = textData.slice(1);
+        }
+
         const lines = textData.split('\n').filter(line => line.trim() !== '');
 
-        for (let i = 0; i < lines.length; i += 5) {
-            const quizBlock = lines.slice(i, i + 5);
-            if (quizBlock.length < 5) continue;
-            let question = '';
-            const choicesRaw = [];
-            quizBlock.forEach(line => {
-                if (line.startsWith('?')) {
-                    let tempQuestion = line.trim();
-                    const match = tempQuestion.match(/^\?\d+\.\s*(.*)/);
-                    if (match && match[1]) {
-                        question = match[1].trim();
-                    } else {
-                        question = tempQuestion.substring(1).trim();
+        let currentQuizData = null;
+
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+            if (trimmedLine.startsWith('?')) {
+                if (currentQuizData) {
+                    quizzes.push(currentQuizData);
+                }
+                const questionMatch = trimmedLine.match(/^\?\d*\.?\s*(.*)/);
+                currentQuizData = {
+                    question: questionMatch ? questionMatch[1].trim() : '',
+                    choices: [],
+                    answer: ''
+                };
+            } else if (currentQuizData) {
+                if (trimmedLine.startsWith('*')) {
+                    const choice = trimmedLine.substring(1).trim();
+                    if (choice !== '-') {
+                        currentQuizData.choices.push(choice);
+                        currentQuizData.answer = choice;
                     }
                 } else {
-                    choicesRaw.push(line.trim());
+                    const choice = trimmedLine;
+                     if (choice !== '-') {
+                        currentQuizData.choices.push(choice);
+                    }
                 }
-            });
-            let correctAnswer = '';
-            const finalChoices = [];
-            choicesRaw.forEach(choice => {
-                if (choice.startsWith('*')) {
-                    const cleanChoice = choice.substring(1).trim();
-                    correctAnswer = cleanChoice;
-                    finalChoices.push(cleanChoice);
-                } else {
-                    finalChoices.push(choice);
-                }
-            });
-
-            shuffleArray(finalChoices);
-
-            if (question === '' || correctAnswer === '' || finalChoices.length !== 4) {
-                console.warn(`問題ブロック( ${i + 1}行目〜 )の形式が不正です。スキップします。`);
-                continue;
             }
-            quizzes.push({
-                question: question,
-                choices: finalChoices,
-                answer: correctAnswer
-            });
+        });
+        if (currentQuizData) {
+            quizzes.push(currentQuizData);
         }
         
+        // 選択肢をシャッフル
+        quizzes.forEach(quiz => {
+            shuffleArray(quiz.choices);
+        });
+
         renderAllQuizzes();
         updateScore();
+        populateJumpMenu();
 
     } catch (error) {
         quizBody.innerHTML = `<p style="color: red; font-weight: bold;">${error.message}</p>`;
+        console.error(error);
     }
 }
+
+
+// ジャンプメニューを作成する関数
+function populateJumpMenu() {
+    const jumpInterval = 20;
+    for (let i = 0; i < quizzes.length; i += jumpInterval) {
+        const startNum = i + 1;
+        const endNum = Math.min(i + jumpInterval, quizzes.length);
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `問 ${startNum} - ${endNum}`;
+        jumpMenu.appendChild(option);
+    }
+
+    jumpMenu.addEventListener('change', (event) => {
+        const quizIndex = event.target.value;
+        if (quizIndex !== "") {
+            const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
+            if (targetQuiz) {
+                const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
+                const elementPosition = targetQuiz.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        }
+    });
+}
+
 
 // 全てのクイズをHTMLとして描画する関数
 function renderAllQuizzes() {
     let quizHTML = '';
     quizzes.forEach((quiz, index) => {
+        // ★★ここから選択肢ボタンの生成ロジックを変更★★
+        let choicesHTML = '';
+        quiz.choices.forEach((choice, choiceIndex) => {
+             // 選択肢がハイフンでない場合のみボタンを生成
+            if (choice.trim() !== '-') {
+                choicesHTML += `<button class="choice-btn" onclick="selectChoice(${index}, ${choiceIndex})">${choice}</button>`;
+            }
+        });
+        // ★★ここまで変更★★
+
         quizHTML += `
             <div class="quiz-item" id="quiz-${index}">
                 <div class="question-content">
                     <p class="question-text"><strong>問題 ${index + 1}:</strong> ${quiz.question}</p>
                     <div class="choices-container">
-                        <button class="choice-btn" onclick="selectChoice(${index}, 0)">${quiz.choices[0]}</button>
-                        <button class="choice-btn" onclick="selectChoice(${index}, 1)">${quiz.choices[1]}</button>
-                        <button class="choice-btn" onclick="selectChoice(${index}, 2)">${quiz.choices[2]}</button>
-                        <button class="choice-btn" onclick="selectChoice(${index}, 3)">${quiz.choices[3]}</button>
+                        ${choicesHTML}
                     </div>
                     <p class="feedback-text"></p>
                 </div>
@@ -111,13 +153,17 @@ function renderAllQuizzes() {
     quizBody.innerHTML = quizHTML;
 }
 
+
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
     const quizItem = document.getElementById(`quiz-${quizIndex}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
-    const selectedBtn = choiceButtons[choiceIndex];
     
+    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent === quizzes[quizIndex].choices[choiceIndex]);
+
+    if (!selectedBtn) return;
+
     choiceButtons.forEach(btn => btn.classList.remove('selected'));
     selectedBtn.classList.add('selected');
 
@@ -196,11 +242,10 @@ function finishQuiz() {
     window.scrollTo(0, 0);
 }
 
-// ★★ここから変更★★ PDF印刷のメインロジック
+// PDF印刷のメインロジック
 function handlePdfPrint() {
     finishQuiz();
 
-    // ファイルの最終更新日時を取得して整形
     const lastModified = new Date(document.lastModified);
     const year = lastModified.getFullYear();
     const month = String(lastModified.getMonth() + 1).padStart(2, '0');
@@ -210,9 +255,8 @@ function handlePdfPrint() {
     const seconds = String(lastModified.getSeconds()).padStart(2, '0');
     const timestamp = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
 
-    // 印刷時のみ適用されるスタイル要素を動的に作成
     const printStyle = document.createElement('style');
-    printStyle.id = 'dynamic-print-style'; // 後で削除するためにIDを付与
+    printStyle.id = 'dynamic-print-style';
     printStyle.innerHTML = `
         @page {
             size: A4;
@@ -232,16 +276,10 @@ function handlePdfPrint() {
         }
     `;
 
-    // 作成したスタイルをheadに追加
     document.head.appendChild(printStyle);
-
-    // 印刷ダイアログを呼び出す
     window.print();
-
-    // 印刷ダイアログが閉じた後に、追加したスタイルを削除
     document.head.removeChild(printStyle);
 }
-// ★★ここまで変更★★
 
 // イベントリスナーを設定
 finishBtn.addEventListener('click', () => {
@@ -253,19 +291,19 @@ finishBtn.addEventListener('click', () => {
 
 fontIncreaseBtn.addEventListener('click', () => {
     currentFontScale += 0.1;
-    quizBody.style.fontSize = `${currentFontScale}em`;
+    document.body.style.fontSize = `${currentFontScale * 100}%`;
 });
 
 fontDecreaseBtn.addEventListener('click', () => {
     if (currentFontScale > 0.7) {
         currentFontScale -= 0.1;
-        quizBody.style.fontSize = `${currentFontScale}em`;
+        document.body.style.fontSize = `${currentFontScale * 100}%`;
     }
 });
 
 pdfBtn.addEventListener('click', () => {
     if (isReadyForPrint) {
-        handlePdfPrint(); // 準備完了なら直接印刷処理へ
+        handlePdfPrint();
         return;
     }
 
