@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生理学2025前期期末クイズ</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding-top: 70px; 
+        }
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 0 auto 20px auto;
+            box-sizing: border-box; 
+        }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .update-info {
+            font-size: 0.5em;
+            color: #999;
+            font-weight: normal;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        
+        #quiz-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 10px 20px;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 840px;
+            margin: 0 auto;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box; 
+            flex-wrap: nowrap; 
+        }
+        #score-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0;
+            text-align: left;
+            flex-grow: 1; 
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .controls {
+            display: flex; 
+            align-items: center;
+        }
+        .controls button, .controls select {
+            font-size: 1em;
+            padding: 5px 10px;
+            margin-left: 5px;
+            background-color: #e9ecef;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            white-space: nowrap; 
+        }
+        
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 32px;
+            padding: 0;
+        }
+        .icon-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #333;
+        }
+        
+        #pdf-btn {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        #pdf-btn.ready {
+            background-color: #28a745;
+        }
+
+        .quiz-item {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .answer-display {
+            display: none;
+        }
+
+        .question-text {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            background-color: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s, border-color 0.2s;
+            color: #333;
+        }
+        .choice-btn:hover:not(.selected) {
+            background-color: #e9ecef;
+        }
+        .choice-btn.selected {
+             border-color: #007bff;
+             background-color: #e7f1ff;
+        }
+        .choice-btn.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            font-weight: bold;
+        }
+        .choice-btn.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .choice-btn:disabled {
+            cursor: not-allowed;
+            color: #333 !important;
+            opacity: 1;
+        }
+        .feedback-text {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 25px;
+        }
+        #finish-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 60px;
+            }
+            .quiz-container {
+                padding: 15px;
+            }
+             #quiz-header {
+                padding: 8px 15px;
+            }
+            #score-text {
+                font-size: 1.0em;
+            }
+            .question-text {
+                font-size: 1.2em;
+            }
+            .choice-btn {
+                font-size: 1em;
+                padding: 12px;
+            }
+            .controls select {
+                max-width: 110px;
+            }
+        }
+
+        /* 印刷用スタイル */
+        @page {
+            size: A4;
+            margin: 0.8cm;
+            @bottom-left {
+                content: "last update";
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+                font-size: 8pt;
+                color: #666;
+            }
+            @bottom-right {
+                content: counter(page) " / " counter(pages);
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+                font-size: 8pt;
+                color: #666;
+            }
+        }
+
+        @media print {
+            body {
+                padding-top: 0;
+                background-color: white;
+                font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
+            }
+            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
+                display: none;
+            }
+            .quiz-container {
+                box-shadow: none; border: none;
+                margin: 0; padding: 0; max-width: 100%;
+            }
+            .quiz-item {
+                display: grid; 
+                grid-template-columns: 1fr 120px; 
+                gap: 10px; 
+                page-break-inside: avoid;
+                border-bottom: 1px solid #ddd;
+                margin-bottom: 5px;
+                padding-bottom: 5px;
+            }
+            .quiz-item:nth-child(6n):not(:last-child) {
+                page-break-after: always; 
+            }
+            .answer-display {
+                display: flex; 
+                align-items: center;
+                justify-content: center;
+                border-left: 1px solid #666; 
+                font-size: 10pt;
+                font-weight: bold;
+                padding: 0 8px;
+                text-align: left;
+            }
+            .question-text {
+                font-size: 11pt;
+                line-height: 1.2;
+                margin-bottom: 5px;
+            }
+            .choices-container {
+                gap: 1px;
+            }
+            .choice-btn {
+                font-size: 10pt;
+                padding: 2px 4px;
+                border: none;
+                border-radius: 0;
+            }
+            .choice-btn.correct, .choice-btn.incorrect, .choice-btn.selected {
+                background-color: transparent;
+                border: none;
+                font-weight: normal;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-header">
+        <p id="score-text">正解数: 0 / 0</p>
+        <div class="controls">
+            <select id="jump-menu">
+                <option value="">問題を選択</option>
+            </select>
+            <button id="font-decrease-btn" class="icon-btn" aria-label="文字を小さくする">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"/>
+                </svg>
+            </button>
+            <button id="font-increase-btn" class="icon-btn" aria-label="文字を大きくする">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM10 9h-1v-1H8v1H7v1h1v1h1v-1h1V9z"/>
+                </svg>
+            </button>
+            <button id="pdf-btn">正答PDF化</button>
+        </div>
+    </div>
+
+    <div class="quiz-container">
+        <h1>生理学2025前期期末クイズ<span id="last-updated" class="update-info"></span></h1>
+        
+        <div id="quiz-body">
+            <!-- JavaScriptによってクイズがここに生成されます -->
+        </div>
+
+        <button id="finish-btn">クイズ終了</button>
+    </div>
+
+    <script src="quiz-seirigaku2025zenki-kimatu.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastModified = new Date(document.lastModified);
+            const year = lastModified.getFullYear();
+            const month = String(lastModified.getMonth() + 1).padStart(2, '0');
+            const day = String(lastModified.getDate()).padStart(2, '0');
+            const hours = String(lastModified.getHours()).padStart(2, '0');
+            const minutes = String(lastModified.getMinutes()).padStart(2, '0');
+            const seconds = String(lastModified.getSeconds()).padStart(2, '0');
+            const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
+            const updateElement = document.getElementById('last-updated');
+            if (updateElement) {
+                updateElement.innerHTML = `last update ${formattedDate}`;
+            }
+        });
+    </script>
+</body>
+</html>
