@@ -76,7 +76,7 @@
             display: flex; 
             align-items: center;
         }
-        .controls button, .controls select { /* selectも対象に */
+        .controls button, .controls select {
             font-size: 1em;
             padding: 5px 10px;
             margin-left: 5px;
@@ -87,6 +87,22 @@
             cursor: pointer;
             white-space: nowrap; 
         }
+        
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px; /* ボタンの幅を固定 */
+            height: 32px; /* ボタンの高さを固定 */
+            padding: 0;
+        }
+        /* ★★アイコンのサイズを大きくする★★ */
+        .icon-btn svg {
+            width: 24px; /* 20pxから24pxに変更 */
+            height: 24px; /* 20pxから24pxに変更 */
+            fill: #333; /* アイコンの色 */
+        }
+        
         #pdf-btn {
             background-color: #007bff;
             color: white;
@@ -190,7 +206,6 @@
                 font-size: 1em;
                 padding: 12px;
             }
-            /* ★★スマホ表示でドロップダウンが場所を取りすぎないように調整★★ */
             .controls select {
                 max-width: 110px;
             }
@@ -278,18 +293,27 @@
         <div class="controls">
             <select id="jump-menu">
                 <option value="">問題を選択</option>
-                </select>
-            <button id="font-increase-btn">文字大</button>
-            <button id="font-decrease-btn">文字小</button>
+            </select>
+            <button id="font-increase-btn" class="icon-btn" aria-label="文字を大きくする">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM10 9h-1v-1H8v1H7v1h1v1h1v-1h1V9z"/>
+                </svg>
+            </button>
+            <button id="font-decrease-btn" class="icon-btn" aria-label="文字を小さくする">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"/>
+                </svg>
+            </button>
             <button id="pdf-btn">正答PDF化</button>
         </div>
-        </div>
+    </div>
 
     <div class="quiz-container">
         <h1>解剖学クイズ<span id="last-updated" class="update-info"></span></h1>
         
         <div id="quiz-body">
-            </div>
+            <!-- JavaScriptによってクイズがここに生成されます -->
+        </div>
 
         <button id="finish-btn">クイズ終了</button>
     </div>
@@ -314,3 +338,4 @@
     </script>
 </body>
 </html>
+
