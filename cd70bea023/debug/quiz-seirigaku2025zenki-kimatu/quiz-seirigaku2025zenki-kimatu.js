@@ -5,6 +5,7 @@ const finishBtn = document.getElementById('finish-btn');
 const fontIncreaseBtn = document.getElementById('font-increase-btn');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
 const pdfBtn = document.getElementById('pdf-btn');
+const jumpMenu = document.getElementById('jump-menu');
 
 let quizzes = [];
 let userAnswers = {};
@@ -20,7 +21,7 @@ function isMobileDevice() {
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // 要素を入れ替え
+        [array[i], array[j]] = [array[j], array[i]];
     }
 }
 
@@ -31,63 +32,96 @@ async function setupQuiz() {
             pdfBtn.style.display = 'none';
         }
 
-        // ★★★ 読み込むファイル名を修正 ★★★
         const response = await fetch('quiz_data_seirigaku2025zenki_kimatu.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
-        const textData = await response.text();
+        let textData = await response.text();
+        // BOMが含まれていれば削除
+        if (textData.charCodeAt(0) === 0xFEFF) {
+            textData = textData.slice(1);
+        }
+
         const lines = textData.split('\n').filter(line => line.trim() !== '');
 
-        for (let i = 0; i < lines.length; i += 5) {
-            const quizBlock = lines.slice(i, i + 5);
-            if (quizBlock.length < 5) continue;
-            let question = '';
-            const choicesRaw = [];
-            quizBlock.forEach(line => {
-                if (line.startsWith('?')) {
-                    let tempQuestion = line.trim();
-                    const match = tempQuestion.match(/^\?\d+\.\s*(.*)/);
-                    if (match && match[1]) {
-                        question = match[1].trim();
-                    } else {
-                        question = tempQuestion.substring(1).trim();
+        let currentQuizData = null;
+
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+            if (trimmedLine.startsWith('?')) {
+                if (currentQuizData) {
+                    quizzes.push(currentQuizData);
+                }
+                const questionMatch = trimmedLine.match(/^\?\d*\.?\s*(.*)/);
+                currentQuizData = {
+                    question: questionMatch ? questionMatch[1].trim() : '',
+                    choices: [],
+                    answer: ''
+                };
+            } else if (currentQuizData) {
+                if (trimmedLine.startsWith('*')) {
+                    const choice = trimmedLine.substring(1).trim();
+                    if (choice !== '-') {
+                        currentQuizData.choices.push(choice);
+                        currentQuizData.answer = choice;
                     }
                 } else {
-                    choicesRaw.push(line.trim());
+                    const choice = trimmedLine;
+                     if (choice !== '-') {
+                        currentQuizData.choices.push(choice);
+                    }
                 }
-            });
-            let correctAnswer = '';
-            const finalChoices = [];
-            choicesRaw.forEach(choice => {
-                if (choice.startsWith('*')) {
-                    const cleanChoice = choice.substring(1).trim();
-                    correctAnswer = cleanChoice;
-                    finalChoices.push(cleanChoice);
-                } else {
-                    finalChoices.push(choice);
-                }
-            });
-
-            shuffleArray(finalChoices);
-
-            if (question === '' || correctAnswer === '' || finalChoices.length < 2) { 
-                console.warn(`問題ブロック( ${i + 1}行目〜 )の形式が不正です。スキップします。`);
-                continue;
             }
-            quizzes.push({
-                question: question,
-                choices: finalChoices,
-                answer: correctAnswer
-            });
+        });
+        if (currentQuizData) {
+            quizzes.push(currentQuizData);
         }
         
+        // 選択肢をシャッフル
+        quizzes.forEach(quiz => {
+            shuffleArray(quiz.choices);
+        });
+
         renderAllQuizzes();
         updateScore();
+        populateJumpMenu();
 
     } catch (error) {
         quizBody.innerHTML = `<p style="color: red; font-weight: bold;">${error.message}</p>`;
+        console.error(error);
     }
 }
+
+
+// ジャンプメニューを作成する関数
+function populateJumpMenu() {
+    const jumpInterval = 20;
+    for (let i = 0; i < quizzes.length; i += jumpInterval) {
+        const startNum = i + 1;
+        const endNum = Math.min(i + jumpInterval, quizzes.length);
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `問 ${startNum} - ${endNum}`;
+        jumpMenu.appendChild(option);
+    }
+
+    jumpMenu.addEventListener('change', (event) => {
+        const quizIndex = event.target.value;
+        if (quizIndex !== "") {
+            const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
+            if (targetQuiz) {
+                const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
+                const elementPosition = targetQuiz.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        }
+    });
+}
+
 
 // 全てのクイズをHTMLとして描画する関数
 function renderAllQuizzes() {
@@ -95,7 +129,7 @@ function renderAllQuizzes() {
     quizzes.forEach((quiz, index) => {
         let choicesHTML = '';
         quiz.choices.forEach((choice, choiceIndex) => {
-            if (choice !== '-') { 
+            if (choice.trim() !== '-') {
                 choicesHTML += `<button class="choice-btn" onclick="selectChoice(${index}, ${choiceIndex})">${choice}</button>`;
             }
         });
@@ -123,26 +157,14 @@ function selectChoice(quizIndex, choiceIndex) {
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
-    const visibleChoiceButtons = Array.from(choiceButtons).filter(btn => btn.textContent !== '-');
-    
-    visibleChoiceButtons.forEach(btn => btn.classList.remove('selected'));
-    
-    let clickedButton;
-    // メモ: filter(c => c !== '-') を使って、表示されている選択肢のインデックスを正しく合わせる
-    const selectedChoiceText = quizzes[quizIndex].choices.filter(c => c !== '-')[choiceIndex];
-    
-    for(let btn of choiceButtons){
-        if(btn.textContent === selectedChoiceText){
-            clickedButton = btn;
-            break;
-        }
-    }
+    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent === quizzes[quizIndex].choices[choiceIndex]);
 
-    if(clickedButton) {
-        clickedButton.classList.add('selected');
-    }
+    if (!selectedBtn) return;
 
-    const selectedChoice = clickedButton.textContent;
+    choiceButtons.forEach(btn => btn.classList.remove('selected'));
+    selectedBtn.classList.add('selected');
+
+    const selectedChoice = selectedBtn.textContent;
     const currentQuiz = quizzes[quizIndex];
     
     userAnswers[quizIndex] = selectedChoice;
@@ -217,6 +239,7 @@ function finishQuiz() {
     window.scrollTo(0, 0);
 }
 
+// PDF印刷のメインロジック
 function handlePdfPrint() {
     finishQuiz();
 
@@ -234,17 +257,17 @@ function handlePdfPrint() {
     printStyle.innerHTML = `
         @page {
             size: A4;
-            margin: 1cm;
+            margin: 2cm;
             @bottom-left {
                 content: "last update ${timestamp}";
                 font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 8pt;
+                font-size: 10pt;
                 color: #666;
             }
             @bottom-right {
                 content: counter(page) " / " counter(pages);
                 font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 8pt;
+                font-size: 10pt;
                 color: #666;
             }
         }
@@ -294,3 +317,4 @@ pdfBtn.addEventListener('click', () => {
 
 // 最初にクイズをセットアップ
 setupQuiz();
+
