@@ -5,6 +5,7 @@ const finishBtn = document.getElementById('finish-btn');
 const fontIncreaseBtn = document.getElementById('font-increase-btn');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
 const pdfBtn = document.getElementById('pdf-btn');
+const jumpMenu = document.getElementById('jump-menu'); // ★★追加★★
 
 let quizzes = [];
 let userAnswers = {};
@@ -82,11 +83,47 @@ async function setupQuiz() {
         
         renderAllQuizzes();
         updateScore();
+        populateJumpMenu(); // ★★追加★★
 
     } catch (error) {
         quizBody.innerHTML = `<p style="color: red; font-weight: bold;">${error.message}</p>`;
     }
 }
+
+// ★★ここから追加★★
+// ジャンプメニューを作成する関数
+function populateJumpMenu() {
+    const jumpInterval = 20; // 20問ごとに区切る
+    for (let i = 0; i < quizzes.length; i += jumpInterval) {
+        const startNum = i + 1;
+        const endNum = Math.min(i + jumpInterval, quizzes.length);
+        const option = document.createElement('option');
+        option.value = i; // ジャンプ先のインデックス
+        option.textContent = `問 ${startNum} - ${endNum}`;
+        jumpMenu.appendChild(option);
+    }
+
+    // メニューが変更されたらスクロールするイベントを追加
+    jumpMenu.addEventListener('change', (event) => {
+        const quizIndex = event.target.value;
+        if (quizIndex !== "") {
+            const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
+            if (targetQuiz) {
+                // ヘッダーの高さを考慮してスクロール
+                const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
+                const elementPosition = targetQuiz.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        }
+    });
+}
+// ★★ここまで追加★★
+
 
 // 全てのクイズをHTMLとして描画する関数
 function renderAllQuizzes() {
@@ -196,11 +233,10 @@ function finishQuiz() {
     window.scrollTo(0, 0);
 }
 
-// ★★ここから変更★★ PDF印刷のメインロジック
+// PDF印刷のメインロジック
 function handlePdfPrint() {
     finishQuiz();
 
-    // ファイルの最終更新日時を取得して整形
     const lastModified = new Date(document.lastModified);
     const year = lastModified.getFullYear();
     const month = String(lastModified.getMonth() + 1).padStart(2, '0');
@@ -210,9 +246,8 @@ function handlePdfPrint() {
     const seconds = String(lastModified.getSeconds()).padStart(2, '0');
     const timestamp = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
 
-    // 印刷時のみ適用されるスタイル要素を動的に作成
     const printStyle = document.createElement('style');
-    printStyle.id = 'dynamic-print-style'; // 後で削除するためにIDを付与
+    printStyle.id = 'dynamic-print-style';
     printStyle.innerHTML = `
         @page {
             size: A4;
@@ -232,16 +267,10 @@ function handlePdfPrint() {
         }
     `;
 
-    // 作成したスタイルをheadに追加
     document.head.appendChild(printStyle);
-
-    // 印刷ダイアログを呼び出す
     window.print();
-
-    // 印刷ダイアログが閉じた後に、追加したスタイルを削除
     document.head.removeChild(printStyle);
 }
-// ★★ここまで変更★★
 
 // イベントリスナーを設定
 finishBtn.addEventListener('click', () => {
@@ -265,7 +294,7 @@ fontDecreaseBtn.addEventListener('click', () => {
 
 pdfBtn.addEventListener('click', () => {
     if (isReadyForPrint) {
-        handlePdfPrint(); // 準備完了なら直接印刷処理へ
+        handlePdfPrint();
         return;
     }
 

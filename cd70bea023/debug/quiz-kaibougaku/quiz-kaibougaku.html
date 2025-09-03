@@ -10,11 +10,10 @@
     <meta http-equiv="Expires" content="0">
     <style>
         body {
-            /* ★★ここを変更★★ 教科書体を優先的なフォントとして指定 */
             font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #f0f2f5;
             margin: 0;
-            padding-top: 70px; /* 固定ヘッダー分の余白を確保 */
+            padding-top: 70px; 
         }
         .quiz-container {
             width: 100%;
@@ -24,7 +23,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             margin: 0 auto 20px auto;
-            box-sizing: border-box; /* paddingを含めてwidthを計算 */
+            box-sizing: border-box; 
         }
         h1 {
             text-align: center;
@@ -59,8 +58,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-sizing: border-box; /* paddingを含めてwidthを計算 */
-            flex-wrap: nowrap; /* ヘッダーが回り込まないようにする */
+            box-sizing: border-box; 
+            flex-wrap: nowrap; 
         }
         #score-text {
             font-size: 1.5em;
@@ -68,16 +67,16 @@
             color: #007bff;
             margin: 0;
             text-align: left;
-            flex-grow: 1; /* スコア表示エリアを広げる */
-            white-space: nowrap; /* スコアテキストが改行しないようにする */
+            flex-grow: 1; 
+            white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .font-controls {
-            display: flex; /* ボタン同士が並ぶように */
+        .controls {
+            display: flex; 
             align-items: center;
         }
-        .font-controls button {
+        .controls button, .controls select { /* selectも対象に */
             font-size: 1em;
             padding: 5px 10px;
             margin-left: 5px;
@@ -86,7 +85,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             cursor: pointer;
-            white-space: nowrap; /* ボタンテキストが改行しないように */
+            white-space: nowrap; 
         }
         #pdf-btn {
             background-color: #007bff;
@@ -94,7 +93,7 @@
             font-weight: bold;
         }
         #pdf-btn.ready {
-            background-color: #28a745; /* 準備完了状態の色（緑） */
+            background-color: #28a745;
         }
 
         .quiz-item {
@@ -110,7 +109,7 @@
             font-size: 1.5em;
             margin-bottom: 20px;
             line-height: 1.6;
-            overflow-wrap: break-word; /* 長い単語でも折り返す */
+            overflow-wrap: break-word;
             word-wrap: break-word;
         }
         .choices-container {
@@ -128,7 +127,7 @@
             cursor: pointer;
             text-align: left;
             transition: background-color 0.2s, border-color 0.2s;
-            color: #333; /* 文字色を明示的に指定 */
+            color: #333;
         }
         .choice-btn:hover:not(.selected) {
             background-color: #e9ecef;
@@ -148,8 +147,8 @@
         }
         .choice-btn:disabled {
             cursor: not-allowed;
-            color: #333 !important; /* disabled状態でも文字色を黒に保つ */
-            opacity: 1; /* disabled状態でもボタンを薄くしない */
+            color: #333 !important;
+            opacity: 1;
         }
         .feedback-text {
             margin-top: 10px;
@@ -190,6 +189,10 @@
             .choice-btn {
                 font-size: 1em;
                 padding: 12px;
+            }
+            /* ★★スマホ表示でドロップダウンが場所を取りすぎないように調整★★ */
+            .controls select {
+                max-width: 110px;
             }
         }
 
@@ -272,12 +275,15 @@
 
     <div id="quiz-header">
         <p id="score-text">正解数: 0 / 0</p>
-        <div class="font-controls">
+        <div class="controls">
+            <select id="jump-menu">
+                <option value="">問題を選択</option>
+                </select>
             <button id="font-increase-btn">文字大</button>
             <button id="font-decrease-btn">文字小</button>
             <button id="pdf-btn">正答PDF化</button>
         </div>
-    </div>
+        </div>
 
     <div class="quiz-container">
         <h1>解剖学クイズ<span id="last-updated" class="update-info"></span></h1>
