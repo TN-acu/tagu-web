@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-T">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>経穴シューティング</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-area">
+            <div class="score-display">
+                <span>スコア: </span><span id="score-value">0</span>
+            </div>
+            <div id="question-area">
+                ターゲット: <span id="target-name">---</span>
+            </div>
+        </div>
+        <canvas id="game-canvas"></canvas>
+        <div id="controls">
+            <button id="btn-left">◀</button>
+            <button id="btn-shoot">発射</button>
+            <button id="btn-right">▶</button>
+        </div>
+        <div id="start-screen">
+            <h2>経穴レーンシューティング</h2>
+            <p>指示された経穴を正しいレーンで撃ち落とせ！</p>
+            <button id="start-button">ゲーム開始</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
