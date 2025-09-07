@@ -245,13 +245,10 @@
                 display: grid; 
                 grid-template-columns: 1fr 120px; 
                 gap: 10px; 
-                page-break-inside: avoid;
+                page-break-inside: avoid; /* === 変更点 1: 機能を有効化 === */
                 border-bottom: 1px solid #ddd;
-                margin-bottom: 5px;
-                padding-bottom: 5px;
-            }
-            .quiz-item:nth-child(6n):not(:last-child) {
-                page-break-after: always; 
+                margin-bottom: 3px; /* === 変更点 2: 余白を減らして密度を上げる === */
+                padding-bottom: 2px; /* === 変更点 2: 余白を減らして密度を上げる === */
             }
             .answer-display {
                 display: flex; 
