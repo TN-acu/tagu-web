@@ -32,7 +32,8 @@ async function setupQuiz() {
             pdfBtn.style.display = 'none';
         }
 
-        const response = await fetch('quiz_data_touyouigakugairon2025zenki_kimatu.txt');
+        // 注意: ファイル名を元の 'quiz_data_iryougairon2025zenki_kimatu.txt' に戻す必要がある
+        const response = await fetch('quiz_data_iryougairon2025zenki_kimatu.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
         let textData = await response.text();
@@ -107,7 +108,8 @@ function populateJumpMenu() {
     jumpMenu.addEventListener('change', (event) => {
         const quizIndex = event.target.value;
         if (quizIndex !== "") {
-            const targetQuiz = document.getElementById(`quiz-${index}`);
+            // ▼ 修正箇所: 変数名を index から quizIndex に修正
+            const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
             if (targetQuiz) {
                 const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
                 const elementPosition = targetQuiz.getBoundingClientRect().top;
@@ -153,7 +155,8 @@ function renderAllQuizzes() {
 
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
-    const quizItem = document.getElementById(`quiz-${index}`);
+    // ▼ 修正箇所: 変数名を index から quizIndex に修正
+    const quizItem = document.getElementById(`quiz-${quizIndex}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
@@ -318,8 +321,7 @@ pdfBtn.addEventListener('click', () => {
 // 最初にクイズをセットアップ
 setupQuiz();
 
-
-// --- カスタム検索機能 ---
+// --- ▼追加: カスタム検索機能 ---
 
 let searchState = {
     term: "",
@@ -376,8 +378,8 @@ function performHighlight(term) {
             const mark = document.createElement('mark');
             mark.className = 'search-highlight';
             mark.textContent = match;
-            fragment.appendChild(mark);
-            searchState.elements.push(mark); // ハイライト要素を保存
+            fragment.appendChild(mark); // ハイライト要素を保存
+            searchState.elements.push(mark);
             lastIndex = offset + match.length;
         });
         // マッチ後の残りのテキストを追加
@@ -433,3 +435,4 @@ window.handleSearch = function(term, direction) {
     }
     navigateToHighlight(direction);
 };
+// --- ▲追加: カスタム検索機能 ---
