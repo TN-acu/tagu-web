@@ -32,8 +32,7 @@ async function setupQuiz() {
             pdfBtn.style.display = 'none';
         }
 
-        // 注意: ファイル名を元の 'quiz_data_iryougairon2025zenki_kimatu.txt' に戻す必要がある
-        const response = await fetch('quiz_data_iryougairon2025zenki_kimatu.txt');
+        const response = await fetch('quiz_data_touyouigakugairon2025zenki_kimatu.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
         let textData = await response.text();
@@ -321,7 +320,8 @@ pdfBtn.addEventListener('click', () => {
 // 最初にクイズをセットアップ
 setupQuiz();
 
-// --- ▼追加: カスタム検索機能 ---
+
+// --- カスタム検索機能 ---
 
 let searchState = {
     term: "",
@@ -378,8 +378,8 @@ function performHighlight(term) {
             const mark = document.createElement('mark');
             mark.className = 'search-highlight';
             mark.textContent = match;
-            fragment.appendChild(mark); // ハイライト要素を保存
-            searchState.elements.push(mark);
+            fragment.appendChild(mark);
+            searchState.elements.push(mark); // ハイライト要素を保存
             lastIndex = offset + match.length;
         });
         // マッチ後の残りのテキストを追加
@@ -435,4 +435,3 @@ window.handleSearch = function(term, direction) {
     }
     navigateToHighlight(direction);
 };
-// --- ▲追加: カスタム検索機能 ---
