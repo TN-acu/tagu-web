@@ -42,11 +42,9 @@
             background-color: var(--bg-color-light);
             color: var(--text-color-light);
             transition: background-color 0.3s, color 0.3s;
-            
-            /* --- Layout Change: Flexbox for full height layout --- */
             display: flex;
             flex-direction: column;
-            height: var(--app-height); /* JS will set this based on window.innerHeight */
+            height: var(--app-height); 
         }
         body.dark-mode {
             background-color: var(--bg-color-dark);
@@ -55,9 +53,9 @@
 
         .container { 
             display: flex; 
-            flex-grow: 1; /* Occupy remaining space */
-            overflow: hidden; /* Prevent container overflow */
-            min-height: 0; /* Important for flex-shrink in some browsers */
+            flex-grow: 1; 
+            overflow: hidden; 
+            min-height: 0; 
         }
         .nav-column {
             flex-shrink: 0; 
@@ -77,12 +75,12 @@
         .content-column { 
             flex-grow: 1; 
             overflow: hidden; 
-            display: flex; /* To make iframe fill height */
-            flex-direction: column; /* Ensure proper stacking if elements added later */
+            display: flex; 
+            flex-direction: column; 
         }
         iframe { 
             width: 100%; 
-            flex-grow: 1; /* Fill available space in content-column */
+            flex-grow: 1; 
             border: none; 
         }
         .nav-column h2 { 
@@ -122,9 +120,8 @@
             margin-left: 10px;
         }
 
-        /* --- Footer Controls Styling --- */
         #footer-controls {
-            flex-shrink: 0; /* Do not shrink */
+            flex-shrink: 0; 
             height: var(--footer-height);
             background-color: var(--secondary-bg-light);
             border-top: 1px solid var(--border-color-light);
@@ -201,103 +198,55 @@
             color: var(--text-color-dark);
         }
 
-        /* --- Mobile Responsive Styling --- */
         @media (max-width: 768px) {
             .container { 
-                flex-direction: column; /* Stack nav above content on mobile */
+                flex-direction: column; 
             }
             .nav-column { 
                 width: 100%; 
                 border-right: none; 
                 padding: 0; 
-                flex-basis: auto; /* Let height be determined by content */
-                flex-shrink: 0; /* Prevent shrinking when menu collapses */
+                flex-basis: auto; 
+                flex-shrink: 0; 
                 overflow-y: hidden; 
                 transition: height 0.3s ease-out; 
             }
             body.dark-mode .nav-column {
                 background-color: var(--bg-color-dark);
             }
-
             .nav-column h2 { display: none; }
-            
-            .menu-toggle {
-                display: flex; 
-            }
-            #menu-toggle-open { 
-                border-bottom: 2px solid var(--border-color-light);
-            }
-            body.dark-mode #menu-toggle-open {
-                border-bottom-color: var(--border-color-dark);
-            }
-            #menu-toggle-close { 
-                display: none; 
-            }
-
-            .nav-column ul { 
-                height: 0; 
-                padding: 0 15px; 
-                flex-direction: column; 
-            }
+            .menu-toggle { display: flex; }
+            #menu-toggle-open { border-bottom: 2px solid var(--border-color-light); }
+            body.dark-mode #menu-toggle-open { border-bottom-color: var(--border-color-dark); }
+            #menu-toggle-close { display: none; }
+            .nav-column ul { height: 0; padding: 0 15px; flex-direction: column; }
             .nav-column.menu-open ul {
                 height: auto; 
                 display: flex; 
                 padding: 10px 15px; 
                 border-bottom: 2px solid var(--border-color-light); 
             }
-            body.dark-mode .nav-column.menu-open ul {
-                border-bottom-color: var(--border-color-dark);
-            }
-
+            body.dark-mode .nav-column.menu-open ul { border-bottom-color: var(--border-color-dark); }
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
-            
-            .content-column { 
-                flex-grow: 1;
-                min-height: 0; /* Ensure content column can shrink and grow properly */
-            }
-            /* iframe height calculation in mobile is now handled by flex-grow on content-column and iframe itself */
+            .content-column { flex-grow: 1; min-height: 0; }
         }
         
         .menu-toggle {
-            width: 100%;
-            padding: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: center;
-            background-color: #28a745; 
-            color: white; 
-            border: none;
-            cursor: pointer;
-            box-sizing: border-box;
-            transition: all 0.3s ease-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; padding: 10px; font-size: 1.2em; font-weight: bold;
+            text-align: center; background-color: #28a745; color: white; 
+            border: none; cursor: pointer; box-sizing: border-box;
+            transition: all 0.3s ease-out; display: flex; align-items: center; justify-content: center;
         }
-        .menu-toggle.close-btn { 
-            border-top: 2px solid var(--border-color-light);
-            margin-top: 10px;
-        }
-        body.dark-mode .menu-toggle.close-btn {
-            border-top-color: var(--border-color-dark);
-        }
+        .menu-toggle.close-btn { border-top: 2px solid var(--border-color-light); margin-top: 10px; }
+        body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dark); }
         .menu-toggle .arrow {
-            display: inline-block;
-            margin-left: 8px;
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            vertical-align: middle;
-            transition: transform 0.3s ease-out;
+            display: inline-block; margin-left: 8px; width: 0; height: 0;
+            border-left: 6px solid transparent; border-right: 6px solid transparent;
+            vertical-align: middle; transition: transform 0.3s ease-out;
         }
-        .menu-toggle.open-btn .arrow {
-            border-top: 6px solid white; 
-        }
-        .menu-toggle.close-btn .arrow {
-            border-bottom: 6px solid white; 
-        }
+        .menu-toggle.open-btn .arrow { border-top: 6px solid white; }
+        .menu-toggle.close-btn .arrow { border-bottom: 6px solid white; }
     </style>
 </head>
 <body>
@@ -305,11 +254,9 @@
     <div class="container">
         <div class="nav-column" id="nav-column">
             <h2 id="pc-menu-title">アプリ選択<span id="last-updated" class="update-info"></span></h2>
-            
             <button class="menu-toggle open-btn" id="menu-toggle-open">
                 他のアプリを選択する <span class="arrow"></span>
             </button>
-
             <ul id="app-list">
                 <li><a href="timer-portrait.html" target="contentFrame">●実技用タイマー(縦表示)</a></li>
                 <li><a href="timer-landscape.html" target="contentFrame">●実技用タイマー(横表示)</a></li>
@@ -346,16 +293,13 @@
         const iframe = document.getElementById('contentFrame');
         const bodyElement = document.body;
 
-        // --- Responsive Height Calculation (for mobile browser address bar) ---
         const setAppHeight = () => {
-            // window.innerHeight を CSS 変数として設定し、vh単位の問題を回避する
             document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
         };
         window.addEventListener('resize', setAppHeight);
         window.addEventListener('orientationchange', setAppHeight);
         setAppHeight();
 
-        // --- Last Updated Timestamp ---
         const displayLastUpdated = () => {
             const lastModified = new Date(document.lastModified);
             const year = lastModified.getFullYear();
@@ -372,7 +316,6 @@
         };
         displayLastUpdated();
 
-        // --- Mobile Menu Toggle Logic ---
         const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
         const menuToggleCloseBtn = document.getElementById('menu-toggle-close');
         const navColumn = document.getElementById('nav-column');
@@ -399,95 +342,59 @@
 
         const toggleMenu = () => {
             if (window.innerWidth > 768) return;
-
             navColumn.classList.toggle('menu-open');
             const isOpen = navColumn.classList.contains('menu-open');
-
             if (isOpen) {
                 menuToggleOpenBtn.style.display = 'none';
                 menuToggleCloseBtn.style.display = 'flex';
                 appList.style.height = 'auto';
                 const scrollHeight = appList.scrollHeight;
                 appList.style.height = '0';
-                setTimeout(() => {
-                    appList.style.height = `${scrollHeight}px`;
-                    appList.style.paddingTop = '10px';
-                    appList.style.paddingBottom = '10px';
-                }, 10);
+                setTimeout(() => { appList.style.height = `${scrollHeight}px`; appList.style.paddingTop = '10px'; appList.style.paddingBottom = '10px'; }, 10);
             } else {
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
                 appList.style.height = `${appList.scrollHeight}px`;
-                setTimeout(() => {
-                    appList.style.height = '0';
-                    appList.style.paddingTop = '0';
-                    appList.style.paddingBottom = '0';
-                }, 10);
+                setTimeout(() => { appList.style.height = '0'; appList.style.paddingTop = '0'; appList.style.paddingBottom = '0'; }, 10);
             }
-            // Recalculate full app height after animation finishes
             setTimeout(setAppHeight, 300); 
         };
 
         menuToggleOpenBtn.addEventListener('click', toggleMenu);
         menuToggleCloseBtn.addEventListener('click', toggleMenu);
-
         const appLinks = document.querySelectorAll('#app-list a');
         appLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (navColumn.classList.contains('menu-open')) {
-                    toggleMenu();
-                }
-            });
+            link.addEventListener('click', () => { if (navColumn.classList.contains('menu-open')) { toggleMenu(); } });
         });
-
         window.addEventListener('resize', setupMobileMenuLayout);
-        setupMobileMenuLayout(); // Initial setup on load
+        setupMobileMenuLayout(); 
 
-        // --- Dark Mode Toggle ---
         const darkModeButton = document.getElementById('dark-mode-toggle');
-        
         const applyDarkModeToIframe = (enable) => {
             try {
                 const iframeDoc = iframe.contentDocument;
-                if (!iframeDoc) return; // iframeがまだ読み込まれていない場合は終了
-                
+                if (!iframeDoc) return; 
                 const styleElementId = 'injected-dark-mode-style';
                 let styleElement = iframeDoc.getElementById(styleElementId);
-
                 if (enable) {
                     if (!styleElement) {
                         styleElement = iframeDoc.createElement('style');
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
-                    // スタイル注入: 基本的な色と検索ハイライトの色を設定
                     styleElement.textContent = `
-                        body { 
-                            background-color: #212529 !important; 
-                            color: #f8f9fa !important; 
-                        }
-                        /* 検索ハイライト用のスタイル */
-                        ::selection {
-                            background-color: #ffc107 !important; /* 黄色いハイライト */
-                            color: #000000 !important; /* 黒文字 */
-                        }
-                        /* 子ページのコンテナ要素の背景色を強制的に上書きする試み */
+                        body { background-color: #212529 !important; color: #f8f9fa !important; }
+                        ::selection { background-color: #ffc107 !important; color: #000000 !important; }
                         .quiz-container, .timer-container, div[style*="background"], section, main {
-                            background-color: transparent !important;
-                            color: inherit !important;
+                            background-color: transparent !important; color: inherit !important;
                         }
-                        /* 子ページのボタンやリンクの調整 */
                         button, input, select {
-                            background-color: #343a40 !important;
-                            color: #f8f9fa !important;
-                            border-color: #495057 !important;
+                            background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important;
                         }
                         a { color: #66bfff !important; }
                     `;
                 } else {
-                    if (styleElement) {
-                        styleElement.remove();
-                    }
+                    if (styleElement) { styleElement.remove(); }
                 }
             } catch (e) {
                 console.warn("Could not access iframe content for dark mode: ", e.message);
@@ -501,7 +408,6 @@
             applyDarkModeToIframe(isDarkModeEnabled);
         });
 
-        // --- Iframe Search Function ---
         const searchInput = document.getElementById('search-input');
         const searchPrevBtn = document.getElementById('search-prev');
         const searchNextBtn = document.getElementById('search-next');
@@ -512,11 +418,14 @@
 
             try {
                 const iframeWin = iframe.contentWindow;
-                // window.find parameters: find(string, caseSensitive, backwards, wrapAround)
+                
+                // --- iOS Highlight Fix Attempt ---
+                // 検索実行前にiframeにフォーカスを当てることで、iOSでのハイライト表示を試みる
+                iframeWin.focus();
+                
                 const found = iframeWin.find(searchTerm, false, direction === 'prev', true);
                 
                 if (!found) {
-                    // 見つからなかった場合、再度検索してラップアラウンド（末尾から先頭へ、またはその逆）を試みる
                     if (iframeWin.getSelection) {
                         iframeWin.getSelection().removeAllRanges();
                     }
@@ -537,11 +446,8 @@
             }
         });
         
-        // --- Iframe Load Event Handler ---
         iframe.addEventListener('load', () => {
-            // ページが切り替わったら、現在のダークモード設定をiframeに適用する
             applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-            // ページ切り替え時に高さを再計算
             setAppHeight();
         });
     </script>
