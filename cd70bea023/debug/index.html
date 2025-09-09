@@ -16,12 +16,32 @@
     <style>
         :root {
             --app-height: 100vh;
+            /* Light Mode Colors */
+            --bg-color-light: #f8f9fa;
+            --text-color-light: #212529;
+            --border-color-light: #dee2e6;
+            --link-color-light: #007bff;
+            --hover-bg-color-light: #e9ecef;
+            /* Dark Mode Colors */
+            --bg-color-dark: #212529;
+            --text-color-dark: #f8f9fa;
+            --border-color-dark: #495057;
+            --link-color-dark: #66bfff;
+            --hover-bg-color-dark: #343a40;
         }
         html, body {
             margin: 0; padding: 0; height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             overflow: hidden; 
+            background-color: var(--bg-color-light);
+            color: var(--text-color-light);
+            transition: background-color 0.3s, color 0.3s;
         }
+        body.dark-mode {
+            background-color: var(--bg-color-dark);
+            color: var(--text-color-dark);
+        }
+
         .container { 
             display: flex; 
             height: var(--app-height); 
@@ -29,12 +49,18 @@
         .nav-column {
             flex-shrink: 0; 
             width: 250px; 
-            background-color: #f8f9fa; 
+            background-color: var(--bg-color-light); 
             padding: 15px;
-            border-right: 2px solid #dee2e6; 
+            border-right: 2px solid var(--border-color-light); 
             overflow-y: auto;
             box-sizing: border-box;
+            transition: background-color 0.3s, border-color 0.3s;
         }
+        body.dark-mode .nav-column {
+            background-color: var(--bg-color-dark);
+            border-right-color: var(--border-color-dark);
+        }
+
         .content-column { 
             flex-grow: 1; 
             overflow: hidden; 
@@ -57,11 +83,21 @@
         }
         .nav-column li { margin-bottom: 8px; }
         .nav-column a { 
-            text-decoration: none; color: #007bff; font-size: 1.1em; 
+            text-decoration: none; 
+            color: var(--link-color-light); 
+            font-size: 1.1em; 
             display: block; padding: 6px 10px; border-radius: 5px; 
-            transition: background-color 0.2s; 
+            transition: background-color 0.2s, color 0.2s; 
         }
-        .nav-column a:hover { background-color: #e9ecef; }
+        body.dark-mode .nav-column a {
+            color: var(--link-color-dark);
+        }
+        .nav-column a:hover { 
+            background-color: var(--hover-bg-color-light); 
+        }
+        body.dark-mode .nav-column a:hover {
+             background-color: var(--hover-bg-color-dark);
+        }
         
         .update-info {
             font-size: 0.5em;
@@ -71,6 +107,77 @@
             margin-left: 10px;
         }
         
+        /* --- New Controls Styling --- */
+        .controls-container {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color-light);
+            transition: border-color 0.3s;
+        }
+        body.dark-mode .controls-container {
+            border-top-color: var(--border-color-dark);
+        }
+
+        .dark-mode-toggle {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid var(--border-color-light);
+            background-color: transparent;
+            color: var(--text-color-light);
+        }
+        body.dark-mode .dark-mode-toggle {
+            border-color: var(--border-color-dark);
+            color: var(--text-color-dark);
+            background-color: var(--hover-bg-color-dark);
+        }
+
+        .search-container {
+            display: flex;
+            width: 100%;
+        }
+        .search-container input[type="search"] {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color-light);
+            border-radius: 5px 0 0 5px;
+            font-size: 0.9em;
+            background-color: var(--bg-color-light);
+            color: var(--text-color-light);
+            min-width: 0; /* Fix flex overflow issue */
+        }
+        body.dark-mode .search-container input[type="search"] {
+            border-color: var(--border-color-dark);
+            background-color: var(--bg-color-dark);
+            color: var(--text-color-dark);
+        }
+        .search-container button {
+            flex-shrink: 0;
+            width: 36px;
+            padding: 0;
+            border: 1px solid var(--border-color-light);
+            background-color: var(--hover-bg-color-light);
+            color: var(--text-color-light);
+            cursor: pointer;
+            font-size: 1.1em;
+            line-height: 1;
+        }
+        .search-container button:first-of-type {
+            border-left: none;
+        }
+         .search-container button:last-of-type {
+            border-left: none;
+            border-radius: 0 5px 5px 0;
+        }
+        body.dark-mode .search-container button {
+            border-color: var(--border-color-dark);
+            background-color: var(--hover-bg-color-dark);
+            color: var(--text-color-dark);
+        }
+        /* --- End New Controls Styling --- */
+
         .menu-toggle {
             display: none; 
             width: 100%;
@@ -89,8 +196,11 @@
             justify-content: center;
         }
         .menu-toggle.close-btn { 
-            border-top: 2px solid #dee2e6;
+            border-top: 2px solid var(--border-color-light);
             margin-top: 10px;
+        }
+        body.dark-mode .menu-toggle.close-btn {
+            border-top-color: var(--border-color-dark);
         }
         .menu-toggle .arrow {
             display: inline-block;
@@ -121,15 +231,22 @@
                 flex-basis: auto; 
                 overflow-y: hidden; 
                 transition: height 0.3s ease-out; 
-                background-color: #f8f9fa;
+                background-color: var(--bg-color-light);
             }
+            body.dark-mode .nav-column {
+                background-color: var(--bg-color-dark);
+            }
+
             .nav-column h2 { display: none; }
             
             .menu-toggle {
                 display: flex; 
             }
             #menu-toggle-open { 
-                border-bottom: 2px solid #dee2e6;
+                border-bottom: 2px solid var(--border-color-light);
+            }
+            body.dark-mode #menu-toggle-open {
+                border-bottom-color: var(--border-color-dark);
             }
             #menu-toggle-close { 
                 display: none; 
@@ -144,13 +261,10 @@
                 height: auto; 
                 display: flex; 
                 padding: 10px 15px; 
-                border-bottom: 2px solid #dee2e6; 
+                border-bottom: 2px solid var(--border-color-light); 
             }
-            .nav-column.menu-open #menu-toggle-open {
-                display: none; 
-            }
-            .nav-column.menu-open #menu-toggle-close {
-                display: flex; 
+            body.dark-mode .nav-column.menu-open ul {
+                border-bottom-color: var(--border-color-dark);
             }
 
             .nav-column li { margin-bottom: 5px; text-align: center; }
@@ -162,6 +276,12 @@
             }
             iframe {
                 min-height: calc(var(--app-height) - var(--nav-height, 46px)); 
+            }
+
+            /* Move controls inside collapsible menu on mobile */
+            .controls-container {
+                padding: 10px 15px;
+                border-top: none;
             }
         }
     </style>
@@ -176,10 +296,18 @@
                 他のアプリを選択する <span class="arrow"></span>
             </button>
 
+            <div class="controls-container">
+                <button id="dark-mode-toggle" class="dark-mode-toggle">ダークモード切替</button>
+                <div class="search-container">
+                    <input type="search" id="search-input" placeholder="iframe内を検索...">
+                    <button id="search-prev" title="前を検索">△</button>
+                    <button id="search-next" title="次を検索">▽</button>
+                </div>
+            </div>
             <ul id="app-list">
                 <li><a href="timer-portrait.html" target="contentFrame">●実技用タイマー(縦表示)</a></li>
                 <li><a href="timer-landscape.html" target="contentFrame">●実技用タイマー(横表示)</a></li>
-                <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">●解剖学2025前期期末クイズ(全316問+過去問170問以上)</a></li>
+                <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">●解剖学2025前期期末クイズ(Forms全316問+過去問170問以上)</a></li>
                 <li><a href="quiz-iryougairon2025zenki/quiz-iryougairon2025zenki-kimatu.html" target="contentFrame">●医療概論2025前期期末クイズ(過去問55問+国試問題13問)</a></li>
                 <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">●医療と社会2025前期期末クイズ(予想27問+過去問21問)</a></li>
                 <li><a href="quiz-sizenkagaku2025zenki/quiz-sizenkagaku2025zenki-kimatu.html" target="contentFrame">●自然科学2025前期期末クイズ(過去問40問)</a></li>
@@ -192,13 +320,14 @@
             </ul>
         </div>
         <div class="content-column">
-            <iframe src="timer-portrait.html" name="contentFrame" title="コンテンツ表示エリア">
+            <iframe src="timer-portrait.html" name="contentFrame" id="contentFrame" title="コンテンツ表示エリア">
                 お使いのブラウザはiframeに対応していません。
             </iframe>
         </div>
     </div>
 
     <script>
+        // --- Responsive Height Calculation ---
         const setAppHeight = () => {
             const doc = document.documentElement;
             doc.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -214,6 +343,7 @@
         window.addEventListener('resize', setAppHeight);
         setAppHeight();
 
+        // --- Last Updated Timestamp ---
         const displayLastUpdated = () => {
             const lastModified = new Date(document.lastModified);
             const year = lastModified.getFullYear();
@@ -222,9 +352,7 @@
             const hours = String(lastModified.getHours()).padStart(2, '0');
             const minutes = String(lastModified.getMinutes()).padStart(2, '0');
             const seconds = String(lastModified.getSeconds()).padStart(2, '0');
-            
             const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
-            
             const updateElement = document.getElementById('last-updated');
             if (updateElement) {
                 updateElement.innerHTML = `last update ${formattedDate}`;
@@ -232,25 +360,34 @@
         };
         displayLastUpdated();
 
+        // --- Mobile Menu Toggle Logic ---
         const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
         const menuToggleCloseBtn = document.getElementById('menu-toggle-close');
         const navColumn = document.getElementById('nav-column');
         const appList = document.getElementById('app-list');
         const pcMenuTitle = document.getElementById('pc-menu-title');
+        const controlsContainer = document.querySelector('.controls-container');
 
-        if (window.innerWidth <= 768) {
-            pcMenuTitle.style.display = 'none';
-            navColumn.classList.remove('menu-open');
-            appList.style.height = '0';
-            appList.style.paddingTop = '0';
-            appList.style.paddingBottom = '0';
-            menuToggleOpenBtn.style.display = 'flex';
-            menuToggleCloseBtn.style.display = 'none';
-            setAppHeight(); 
-        } else {
-            menuToggleOpenBtn.style.display = 'none';
-            menuToggleCloseBtn.style.display = 'none';
-        }
+        const setupMobileMenu = () => {
+            if (window.innerWidth <= 768) {
+                pcMenuTitle.style.display = 'none';
+                navColumn.classList.remove('menu-open');
+                appList.style.height = '0';
+                appList.style.paddingTop = '0';
+                appList.style.paddingBottom = '0';
+                menuToggleOpenBtn.style.display = 'flex';
+                menuToggleCloseBtn.style.display = 'none';
+                // Move controls into app list area for mobile view aesthetics
+                appList.insertAdjacentElement('beforebegin', controlsContainer);
+                setAppHeight(); 
+            } else {
+                menuToggleOpenBtn.style.display = 'none';
+                menuToggleCloseBtn.style.display = 'none';
+                pcMenuTitle.style.display = 'block';
+                // Move controls back below title for desktop view aesthetics
+                pcMenuTitle.insertAdjacentElement('afterend', controlsContainer);
+            }
+        };
 
         const toggleMenu = () => {
             if (window.innerWidth > 768) return;
@@ -297,31 +434,121 @@
         });
 
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                navColumn.classList.remove('menu-open');
-                appList.style.height = 'auto';
-                appList.style.paddingTop = '0';
-                appList.style.paddingBottom = '0';
-                menuToggleOpenBtn.style.display = 'none';
-                menuToggleCloseBtn.style.display = 'none';
-                pcMenuTitle.style.display = 'block';
-            } else {
-                navColumn.classList.remove('menu-open');
-                appList.style.height = '0';
-                appList.style.paddingTop = '0';
-                appList.style.paddingBottom = '0';
-                menuToggleOpenBtn.style.display = 'flex';
-                menuToggleCloseBtn.style.display = 'none';
-                pcMenuTitle.style.display = 'none';
-            }
+            setupMobileMenu(); // Re-run setup logic on resize
             setAppHeight();
+        });
+        
+        setupMobileMenu(); // Initial setup on load
+
+        // --- NEW FEATURE: Dark Mode Toggle ---
+        document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            
+            // Attempt to toggle dark mode in iframe by injecting/removing styles
+            try {
+                const iframeDoc = document.getElementById('contentFrame').contentDocument;
+                const styleElementId = 'injected-dark-mode-style';
+                let styleElement = iframeDoc.getElementById(styleElementId);
+
+                if (document.body.classList.contains('dark-mode')) {
+                    // Turn dark mode on: create and inject style tag into iframe head
+                    if (!styleElement) {
+                        styleElement = iframeDoc.createElement('style');
+                        styleElement.id = styleElementId;
+                        // Basic dark mode styles. More complex child pages might need specific overrides here or in the child file itself.
+                        styleElement.textContent = `
+                            body { 
+                                background-color: #212529 !important; 
+                                color: #f8f9fa !important; 
+                            }
+                            /* Attempt to force background changes on common container elements */
+                            .quiz-container, .timer-container, div, section {
+                                background-color: inherit !important;
+                                color: inherit !important;
+                            }
+                            /* Adjust links in iframe */
+                            a { color: #66bfff !important; }
+                        `;
+                        iframeDoc.head.appendChild(styleElement);
+                    }
+                } else {
+                    // Turn dark mode off: remove injected style tag from iframe head
+                    if (styleElement) {
+                        styleElement.remove();
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not access iframe content for dark mode. If a new page just loaded, this might resolve on next toggle. Error: ", e.message);
+            }
+        });
+
+        // --- NEW FEATURE: Iframe Search Function ---
+        const searchInput = document.getElementById('search-input');
+        const searchPrevBtn = document.getElementById('search-prev');
+        const searchNextBtn = document.getElementById('search-next');
+        const iframe = document.getElementById('contentFrame');
+
+        const performSearch = (direction) => {
+            const searchTerm = searchInput.value;
+            if (!searchTerm) {
+                // Clear selection if search term is empty
+                try {
+                    iframe.contentWindow.getSelection().removeAllRanges();
+                } catch(e) {}
+                return;
+            }
+
+            try {
+                // Focus the iframe window before searching to ensure find works correctly
+                iframe.contentWindow.focus();
+                
+                // window.find parameters: find(string, caseSensitive, backwards, wrapAround)
+                const found = iframe.contentWindow.find(searchTerm, false, direction === 'prev', true);
+                
+                if (!found) {
+                    // If not found, reset search from top/bottom for wrap-around feel
+                    // Clear selection and try again from the start/end of document
+                    iframe.contentWindow.getSelection().removeAllRanges();
+                    iframe.contentWindow.find(searchTerm, false, direction === 'prev', true);
+                }
+            } catch (e) {
+                console.error("Error searching iframe content:", e.message);
+                alert("iframe内の検索中にエラーが発生しました。ページの読み込みが完了していないか、セキュリティ制限の可能性があります。");
+            }
+        };
+
+        searchNextBtn.addEventListener('click', () => performSearch('next'));
+        searchPrevBtn.addEventListener('click', () => performSearch('prev'));
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch('next');
+            }
+        });
+        
+        // Clear previous search results when changing pages in iframe
+        iframe.addEventListener('load', () => {
+            searchInput.value = '';
+            // Re-apply dark mode if active when iframe reloads
+            if (document.body.classList.contains('dark-mode')) {
+                 try {
+                    const iframeDoc = document.getElementById('contentFrame').contentDocument;
+                    const styleElementId = 'injected-dark-mode-style';
+                    let styleElement = iframeDoc.getElementById(styleElementId);
+                    if (!styleElement) {
+                        styleElement = iframeDoc.createElement('style');
+                        styleElement.id = styleElementId;
+                        styleElement.textContent = `
+                            body { background-color: #212529 !important; color: #f8f9fa !important; }
+                            .quiz-container, .timer-container, div, section { background-color: inherit !important; color: inherit !important; }
+                            a { color: #66bfff !important; }`;
+                        iframeDoc.head.appendChild(styleElement);
+                    }
+                } catch (e) {}
+            }
         });
 
     </script>
 
 </body>
 </html>
-
-
-
-
