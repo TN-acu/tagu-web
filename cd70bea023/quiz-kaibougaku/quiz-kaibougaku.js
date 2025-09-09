@@ -94,7 +94,8 @@ async function setupQuiz() {
 
 // ジャンプメニューを作成する関数
 function populateJumpMenu() {
-    const jumpInterval = 20;
+    // ▼ 修正箇所: 区切る問題数を20から30に変更
+    const jumpInterval = 30;
     for (let i = 0; i < quizzes.length; i += jumpInterval) {
         const startNum = i + 1;
         const endNum = Math.min(i + jumpInterval, quizzes.length);
