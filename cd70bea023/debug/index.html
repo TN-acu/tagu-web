@@ -412,69 +412,31 @@
         const searchPrevBtn = document.getElementById('search-prev');
         const searchNextBtn = document.getElementById('search-next');
 
+        /**
+         * 検索処理の実行（カスタムハイライト版）
+         * @param {string} direction 'next' または 'prev'
+         */
         const performSearch = (direction) => {
             const searchTerm = searchInput.value;
-            if (!searchTerm) return;
-
             try {
                 const iframeWin = iframe.contentWindow;
-                const iframeDoc = iframe.contentDocument;
-                const body = iframeDoc.body;
-
-                // --- iOS Highlighting Fix (Enhanced Version) ---
-                // 1. contentEditableの元の状態を保存する (getAttributeでnullも考慮)
-                const originalEditableState = body.getAttribute('contentEditable');
-
-                // 2. contentEditableをtrueに設定 (iOSハイライト描画のトリガー)
-                body.contentEditable = "true";
-
-                // 3. iframeにフォーカスを当てる
-                iframeWin.focus();
-                
-                // 4. 検索を実行する
-                const found = iframeWin.find(searchTerm, false, direction === 'prev', true);
-                
-                if (!found) {
-                    // 見つからない場合は折り返し検索
-                    if (iframeWin.getSelection) {
-                        iframeWin.getSelection().removeAllRanges();
-                    }
-                    iframeWin.find(searchTerm, false, direction === 'prev', true);
+                if (iframeWin && typeof iframeWin.handleSearch === 'function') {
+                    iframeWin.handleSearch(searchTerm, direction);
+                } else if (searchTerm) {
+                    alert("現在のページではカスタム検索機能がサポートされていません。");
                 }
-
-                // 5. contentEditableの状態を元に戻す
-                if (originalEditableState === null) {
-                    body.removeAttribute('contentEditable');
-                } else {
-                    body.setAttribute('contentEditable', originalEditableState);
-                }
-                // --- End Fix ---
-
             } catch (e) {
-                console.error("Error searching iframe content:", e.message);
-                alert("iframe内の検索中にエラーが発生しました。");
+                console.error("Error calling iframe search function:", e.message);
+                // クロスオリジンなどで失敗した場合のフォールバック
             }
         };
 
-        const blurInputOnSearch = () => {
-            // モバイルデバイス（特にiOS）では、入力フィールドからフォーカスを外すことで
-            // iframe内のハイライトが消えるのを防ぐ効果が期待できる。
-            searchInput.blur();
-        };
-
-        searchNextBtn.addEventListener('click', () => {
-            performSearch('next');
-            blurInputOnSearch();
-        });
-        searchPrevBtn.addEventListener('click', () => {
-            performSearch('prev');
-            blurInputOnSearch();
-        });
+        searchNextBtn.addEventListener('click', () => performSearch('next'));
+        searchPrevBtn.addEventListener('click', () => performSearch('prev'));
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 performSearch('next');
-                blurInputOnSearch();
             }
         });
         
