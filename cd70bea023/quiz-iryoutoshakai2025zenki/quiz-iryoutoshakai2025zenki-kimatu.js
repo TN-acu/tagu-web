@@ -153,7 +153,8 @@ function renderAllQuizzes() {
 
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
-    const quizItem = document.getElementById(`quiz-${index}`);
+    // ▼ 修正箇所: 変数名を index から quizIndex に修正
+    const quizItem = document.getElementById(`quiz-${quizIndex}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
