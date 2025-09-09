@@ -418,11 +418,18 @@
 
             try {
                 const iframeWin = iframe.contentWindow;
-                
-                // --- iOS Highlight Fix Attempt ---
-                // 検索実行前にiframeにフォーカスを当てることで、iOSでのハイライト表示を試みる
+                const iframeDoc = iframe.contentDocument;
+
+                // --- iOS Highlighting Fix ---
+                // 1. iframeウィンドウにフォーカスを当てる。
                 iframeWin.focus();
+
+                // 2. iOS/WebKit向けの回避策: contentEditableを一時的にtrueにする。
+                //    これにより、非アクティブなiframeでも選択範囲ハイライトが描画されるよう強制する。
+                const originalEditableState = iframeDoc.body.isContentEditable ? "true" : "false";
+                iframeDoc.body.contentEditable = "true";
                 
+                // 3. 検索を実行する。
                 const found = iframeWin.find(searchTerm, false, direction === 'prev', true);
                 
                 if (!found) {
@@ -431,6 +438,14 @@
                     }
                     iframeWin.find(searchTerm, false, direction === 'prev', true);
                 }
+
+                // 4. contentEditableの状態を元に戻す。
+                iframeDoc.body.contentEditable = originalEditableState;
+                
+                // 5. 念のため再度フォーカスを当てる（ハイライト維持に役立つ場合がある）。
+                iframeWin.focus();
+                // --- End Fix ---
+
             } catch (e) {
                 console.error("Error searching iframe content:", e.message);
                 alert("iframe内の検索中にエラーが発生しました。");
