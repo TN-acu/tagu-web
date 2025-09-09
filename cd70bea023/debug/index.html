@@ -419,31 +419,35 @@
             try {
                 const iframeWin = iframe.contentWindow;
                 const iframeDoc = iframe.contentDocument;
+                const body = iframeDoc.body;
 
-                // --- iOS Highlighting Fix ---
-                // 1. iframeウィンドウにフォーカスを当てる。
+                // --- iOS Highlighting Fix (Enhanced Version) ---
+                // 1. contentEditableの元の状態を保存する (getAttributeでnullも考慮)
+                const originalEditableState = body.getAttribute('contentEditable');
+
+                // 2. contentEditableをtrueに設定 (iOSハイライト描画のトリガー)
+                body.contentEditable = "true";
+
+                // 3. iframeにフォーカスを当てる
                 iframeWin.focus();
-
-                // 2. iOS/WebKit向けの回避策: contentEditableを一時的にtrueにする。
-                //    これにより、非アクティブなiframeでも選択範囲ハイライトが描画されるよう強制する。
-                const originalEditableState = iframeDoc.body.isContentEditable ? "true" : "false";
-                iframeDoc.body.contentEditable = "true";
                 
-                // 3. 検索を実行する。
+                // 4. 検索を実行する
                 const found = iframeWin.find(searchTerm, false, direction === 'prev', true);
                 
                 if (!found) {
+                    // 見つからない場合は折り返し検索
                     if (iframeWin.getSelection) {
                         iframeWin.getSelection().removeAllRanges();
                     }
                     iframeWin.find(searchTerm, false, direction === 'prev', true);
                 }
 
-                // 4. contentEditableの状態を元に戻す。
-                iframeDoc.body.contentEditable = originalEditableState;
-                
-                // 5. 念のため再度フォーカスを当てる（ハイライト維持に役立つ場合がある）。
-                iframeWin.focus();
+                // 5. contentEditableの状態を元に戻す
+                if (originalEditableState === null) {
+                    body.removeAttribute('contentEditable');
+                } else {
+                    body.setAttribute('contentEditable', originalEditableState);
+                }
                 // --- End Fix ---
 
             } catch (e) {
@@ -452,12 +456,25 @@
             }
         };
 
-        searchNextBtn.addEventListener('click', () => performSearch('next'));
-        searchPrevBtn.addEventListener('click', () => performSearch('prev'));
+        const blurInputOnSearch = () => {
+            // モバイルデバイス（特にiOS）では、入力フィールドからフォーカスを外すことで
+            // iframe内のハイライトが消えるのを防ぐ効果が期待できる。
+            searchInput.blur();
+        };
+
+        searchNextBtn.addEventListener('click', () => {
+            performSearch('next');
+            blurInputOnSearch();
+        });
+        searchPrevBtn.addEventListener('click', () => {
+            performSearch('prev');
+            blurInputOnSearch();
+        });
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 performSearch('next');
+                blurInputOnSearch();
             }
         });
         
