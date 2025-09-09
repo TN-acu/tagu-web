@@ -185,6 +185,20 @@
             cursor: pointer;
         }
 
+        /* --- ▼追加: 検索ハイライト用CSS --- */
+        mark.search-highlight {
+            background-color: #ff0; /* 黄色い背景 */
+            color: black;
+            border-radius: 3px;
+            padding: 1px 0;
+            box-shadow: 0 0 3px rgba(0,0,0,0.3);
+        }
+        mark.search-highlight.active {
+            background-color: #f90; /* オレンジ色の背景（現在位置） */
+            outline: 1px solid #c00;
+        }
+        /* --- ▲追加: 検索ハイライト用CSS --- */
+
         @media (max-width: 768px) {
             body {
                 padding-top: 60px;
@@ -234,7 +248,8 @@
                 background-color: white;
                 font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
             }
-            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
+            /* ▼変更: mark.search-highlight を非表示リストに追加 */
+            #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight {
                 display: none;
             }
             .quiz-container {
@@ -247,12 +262,11 @@
                 gap: 10px; 
                 page-break-inside: avoid;
                 border-bottom: 1px solid #ddd;
-                margin-bottom: 5px;
-                padding-bottom: 5px;
+                /* 印刷時の間隔調整 */
+                margin-bottom: 3px; 
+                padding-bottom: 2px; 
             }
-            .quiz-item:nth-child(6n):not(:last-child) {
-                page-break-after: always; 
-            }
+            /* ▲変更: 印刷時のレイアウト調整 */
             .answer-display {
                 display: flex; 
                 align-items: center;
@@ -283,8 +297,7 @@
                 font-weight: normal;
             }
         }
-    </style>
-</head>
+    </style>G</head>
 <body>
 
     <div id="quiz-header">
@@ -311,8 +324,7 @@
         <h1>医療概論2025前期期末クイズ<span id="last-updated" class="update-info"></span></h1>
         
         <div id="quiz-body">
-            <!-- JavaScriptによってクイズがここに生成されます -->
-        </div>
+            </div>
 
         <button id="finish-btn">クイズ終了</button>
     </div>
