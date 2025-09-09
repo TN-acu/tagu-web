@@ -28,7 +28,7 @@
             --bg-color-dark: #212529;
             --text-color-dark: #f8f9fa;
             --border-color-dark: #495057;
-            --link-color-dark: #f8f9fa; /* リンク色を白に変更 */
+            --link-color-dark: #f8f9fa; 
             --hover-bg-color-dark: #343a40;
             --secondary-bg-dark: #343a40;
         }
@@ -238,6 +238,14 @@
             border: none; cursor: pointer; box-sizing: border-box;
             transition: all 0.3s ease-out; display: flex; align-items: center; justify-content: center;
         }
+        
+        /* ▼▼▼ 追加箇所 ▼▼▼ */
+        body.dark-mode .menu-toggle {
+            background-color: #26422d;
+            color: #b8bbbf;
+        }
+        /* ▲▲▲ 追加ここまで ▲▲▲ */
+
         .menu-toggle.close-btn { border-top: 2px solid var(--border-color-light); margin-top: 10px; }
         body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dark); }
         .menu-toggle .arrow {
@@ -382,10 +390,11 @@
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
-                    // ▼▼▼ 修正箇所 ▼▼▼
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
                         h1 { color: #f8f9fa !important; }
+                        #quiz-header { background-color: #474a4d !important; }
+                        #score-text { color: #b8bbbf !important; }
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
                         .quiz-container, .timer-container, div[style*="background"], section, main {
                             background-color: transparent !important; color: inherit !important;
@@ -401,7 +410,6 @@
                             color: #ffffff !important;           
                         }
                     `;
-                    // ▲▲▲ 修正ここまで ▲▲▲
                 } else {
                     if (styleElement) { styleElement.remove(); }
                 }
