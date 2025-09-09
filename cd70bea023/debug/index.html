@@ -28,7 +28,7 @@
             --bg-color-dark: #212529;
             --text-color-dark: #f8f9fa;
             --border-color-dark: #495057;
-            --link-color-dark: #f8f9fa; /* リンク色を白に変更 */
+            --link-color-dark: #f8f9fa; 
             --hover-bg-color-dark: #343a40;
             --secondary-bg-dark: #343a40;
         }
@@ -382,10 +382,10 @@
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
-                    // ▼▼▼ 修正箇所 ▼▼▼
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
                         h1 { color: #f8f9fa !important; }
+                        #quiz-header { background-color: #5a6268 !important; }
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
                         .quiz-container, .timer-container, div[style*="background"], section, main {
                             background-color: transparent !important; color: inherit !important;
@@ -401,7 +401,6 @@
                             color: #ffffff !important;           
                         }
                     `;
-                    // ▲▲▲ 修正ここまで ▲▲▲
                 } else {
                     if (styleElement) { styleElement.remove(); }
                 }
