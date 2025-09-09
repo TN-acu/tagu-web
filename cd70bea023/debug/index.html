@@ -28,7 +28,9 @@
             --bg-color-dark: #212529;
             --text-color-dark: #f8f9fa;
             --border-color-dark: #495057;
-            --link-color-dark: #f8f9fa; /* 元の値: #66bfff */
+            /* ▼▼▼ 修正箇所 ▼▼▼ */
+            --link-color-dark: #f8f9fa; /* リンク色を白に変更 */
+            /* ▲▲▲ 修正ここまで ▲▲▲ */
             --hover-bg-color-dark: #343a40;
             --secondary-bg-dark: #343a40;
         }
@@ -393,13 +395,11 @@
                         }
                         a { color: #66bfff !important; }
 
-                        /* ▼▼▼ 修正箇所 ▼▼▼ */
                         .choice-btn.selected {
-                            background-color: #5a6268 !important; /* 目に優しいグレーに変更 */
-                            border-color: #adb5bd !important;     /* 境界線を少し明るくして区別 */
-                            color: #ffffff !important;           /* テキストを白にする */
+                            background-color: #5a6268 !important; 
+                            border-color: #adb5bd !important;     
+                            color: #ffffff !important;           
                         }
-                        /* ▲▲▲ 修正ここまで ▲▲▲ */
                     `;
                 } else {
                     if (styleElement) { styleElement.remove(); }
