@@ -390,8 +390,14 @@
                     }
                     // ▼▼▼ 修正箇所 ▼▼▼
                     styleElement.textContent = `
-                        body { background-color: #212529 !important; color: #000000 !important; }
-                        h1, h2 { color: #000000 !important; }
+                        body { background-color: #212529 !important; color: #f8f9fa !important; }
+                        
+                        /* クイズページのタイトル文字色 */
+                        .quiz-container h1 { color: #f8f9fa !important; }
+
+                        /* タイマーページのタイトル文字色 */
+                        .main-container h1, .main-container h2 { color: #000000 !important; }
+                        
                         #quiz-header { background-color: #474a4d !important; }
                         #score-text { color: #b8bbbf !important; }
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
