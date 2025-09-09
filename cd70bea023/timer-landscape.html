@@ -120,6 +120,13 @@
         .ios-volume-notice { display: none; font-size: 0.9em; color: var(--secondary-color); }
         #toggle-repeat-btn.on { background-color: var(--warning-color); color: #212529;}
         #toggle-repeat-btn.off { background-color: var(--secondary-color); }
+
+        #current-time-display {
+            font-size: 1.1em;
+            color: #555;
+            margin: 10px 0;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -149,6 +156,7 @@
             </div>
             <span class="unit">秒</span>
         </div>
+        <div id="current-time-display">--:--</div>
         <div id="timer-display">05:00</div>
         <div class="controls">
             <button id="start-btn">スタート</button>
@@ -226,6 +234,18 @@
     let currentZoom = 1.0;
     alarmSound.volume = volumeSlider.value;
     
+    function updateCurrentTime() {
+        const clockElement = document.getElementById('current-time-display');
+        if (clockElement) {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            // ▼ 修正箇所: テキストを追加
+            clockElement.textContent = `現在時刻： ${hours}時${minutes}分`;
+        }
+    }
+    setInterval(updateCurrentTime, 1000);
+
     const displayLastUpdated = () => {
         const lastModified = new Date(document.lastModified);
         const year = lastModified.getFullYear();
@@ -384,6 +404,7 @@
         secondsInput.value = String(initialSeconds).padStart(2, '0');
         updateInitialDisplay();
         displayLastUpdated();
+        updateCurrentTime();
 
         if (isIOS()) {
             const volumeControl = document.querySelector('.volume-control');
