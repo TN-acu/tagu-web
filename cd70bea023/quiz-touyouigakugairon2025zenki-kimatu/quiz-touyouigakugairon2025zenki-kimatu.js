@@ -107,7 +107,7 @@ function populateJumpMenu() {
     jumpMenu.addEventListener('change', (event) => {
         const quizIndex = event.target.value;
         if (quizIndex !== "") {
-            const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
+            const targetQuiz = document.getElementById(`quiz-${index}`);
             if (targetQuiz) {
                 const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
                 const elementPosition = targetQuiz.getBoundingClientRect().top;
@@ -153,7 +153,7 @@ function renderAllQuizzes() {
 
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
-    const quizItem = document.getElementById(`quiz-${quizIndex}`);
+    const quizItem = document.getElementById(`quiz-${index}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
@@ -317,3 +317,119 @@ pdfBtn.addEventListener('click', () => {
 
 // 最初にクイズをセットアップ
 setupQuiz();
+
+
+// --- カスタム検索機能 ---
+
+let searchState = {
+    term: "",
+    elements: [],
+    currentIndex: -1
+};
+
+/**
+ * 以前のハイライトをクリアする
+ */
+function clearHighlights() {
+    const searchArea = document.getElementById('quiz-body');
+    const highlights = searchArea.querySelectorAll('mark.search-highlight');
+    highlights.forEach(mark => {
+        const parent = mark.parentNode;
+        if (parent) {
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize(); // 隣接するテキストノードを結合する
+        }
+    });
+    searchState.elements = [];
+    searchState.currentIndex = -1;
+}
+
+/**
+ * テキストノードを探索し、検索語に一致する部分を<mark>タグで囲む
+ * @param {string} term - 検索キーワード
+ */
+function performHighlight(term) {
+    if (!term) return;
+
+    const searchArea = document.getElementById('quiz-body');
+    const regex = new RegExp(CSS.escape(term), 'gi'); // 大文字小文字を区別せず、グローバル検索
+
+    const walker = document.createTreeWalker(searchArea, NodeFilter.SHOW_TEXT, null, false);
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+        // スクリプトタグやスタイルタグ内のテキストは除外
+        if (node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE') {
+             if (regex.test(node.textContent)) {
+                 textNodes.push(node);
+             }
+        }
+    }
+
+    textNodes.forEach(textNode => {
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        textNode.textContent.replace(regex, (match, offset) => {
+            // マッチ前のテキストを追加
+            fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex, offset)));
+            // マッチした部分を<mark>タグで囲んで追加
+            const mark = document.createElement('mark');
+            mark.className = 'search-highlight';
+            mark.textContent = match;
+            fragment.appendChild(mark);
+            searchState.elements.push(mark); // ハイライト要素を保存
+            lastIndex = offset + match.length;
+        });
+        // マッチ後の残りのテキストを追加
+        fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex)));
+        textNode.parentNode.replaceChild(fragment, textNode);
+    });
+}
+
+/**
+ * 次または前のハイライトに移動する
+ * @param {string} direction - 'next' または 'prev'
+ */
+function navigateToHighlight(direction) {
+    if (searchState.elements.length === 0) return;
+
+    // 現在のハイライトから active クラスを削除
+    if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
+        searchState.elements[searchState.currentIndex].classList.remove('active');
+    }
+
+    // インデックスを更新
+    if (direction === 'next') {
+        searchState.currentIndex++;
+        if (searchState.currentIndex >= searchState.elements.length) {
+            searchState.currentIndex = 0; // 最後まで行ったら最初に戻る
+        }
+    } else if (direction === 'prev') {
+        searchState.currentIndex--;
+        if (searchState.currentIndex < 0) {
+            searchState.currentIndex = searchState.elements.length - 1; // 最初より前に行ったら最後に戻る
+        }
+    }
+
+    // 新しいハイライトに active クラスを追加し、画面中央にスクロール
+    const currentElement = searchState.elements[searchState.currentIndex];
+    if (currentElement) {
+        currentElement.classList.add('active');
+        currentElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+}
+
+/**
+ * 親フレームから呼び出される検索ハンドラ
+ * @param {string} term - 検索キーワード
+ * @param {string} direction - 'next' または 'prev'
+ */
+window.handleSearch = function(term, direction) {
+    // 検索語が変わった場合はハイライトを再生成する
+    if (term !== searchState.term) {
+        clearHighlights();
+        searchState.term = term;
+        performHighlight(term);
+    }
+    navigateToHighlight(direction);
+};
