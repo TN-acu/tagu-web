@@ -185,6 +185,20 @@
             cursor: pointer;
         }
 
+        /* --- 検索ハイライト用CSS (追加) --- */
+        mark.search-highlight {
+            background-color: #ff0; /* 黄色い背景 */
+            color: black;
+            border-radius: 3px;
+            padding: 1px 0;
+            box-shadow: 0 0 3px rgba(0,0,0,0.3);
+        }
+        mark.search-highlight.active {
+            background-color: #f90; /* オレンジ色の背景（現在位置） */
+            outline: 1px solid #c00;
+        }
+        /* --- ここまで --- */
+
         @media (max-width: 768px) {
             body {
                 padding-top: 60px;
@@ -234,7 +248,7 @@
                 background-color: white;
                 font-family: 'Hiragino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
             }
-            #quiz-header, #finish-btn, .update-info, h1, .feedback-text {
+            #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight {
                 display: none;
             }
             .quiz-container {
@@ -311,8 +325,7 @@
         <h1>自然科学2025前期期末クイズ<span id="last-updated" class="update-info"></span></h1>
         
         <div id="quiz-body">
-            <!-- JavaScriptによってクイズがここに生成されます -->
-        </div>
+            </div>
 
         <button id="finish-btn">クイズ終了</button>
     </div>
