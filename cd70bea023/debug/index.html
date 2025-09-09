@@ -382,10 +382,12 @@
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
+                    // ▼▼▼ 修正箇所 ▼▼▼
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
                         h1 { color: #f8f9fa !important; }
-                        #quiz-header { background-color: #5a6268 !important; }
+                        #quiz-header { background-color: #474a4d !important; }
+                        #score-text { color: #b8bbbf !important; }
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
                         .quiz-container, .timer-container, div[style*="background"], section, main {
                             background-color: transparent !important; color: inherit !important;
@@ -401,6 +403,7 @@
                             color: #ffffff !important;           
                         }
                     `;
+                    // ▲▲▲ 修正ここまで ▲▲▲
                 } else {
                     if (styleElement) { styleElement.remove(); }
                 }
