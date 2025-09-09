@@ -107,7 +107,8 @@ function populateJumpMenu() {
     jumpMenu.addEventListener('change', (event) => {
         const quizIndex = event.target.value;
         if (quizIndex !== "") {
-            const targetQuiz = document.getElementById(`quiz-${index}`);
+            // ▼ 修正箇所: 変数名を index から quizIndex に修正
+            const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
             if (targetQuiz) {
                 const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
                 const elementPosition = targetQuiz.getBoundingClientRect().top;
@@ -153,7 +154,8 @@ function renderAllQuizzes() {
 
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
-    const quizItem = document.getElementById(`quiz-${index}`);
+    // ▼ 修正箇所: 変数名を index から quizIndex に修正
+    const quizItem = document.getElementById(`quiz-${quizIndex}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
