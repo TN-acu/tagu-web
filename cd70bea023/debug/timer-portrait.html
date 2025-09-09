@@ -231,7 +231,7 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             // ▼ 修正箇所: テキストを追加
-            clockElement.textContent = `現在時刻 ${hours}:${minutes}`;
+            clockElement.textContent = `現在時刻 ${hours}時${minutes}分`;
         }
     }
     setInterval(updateCurrentTime, 1000);
