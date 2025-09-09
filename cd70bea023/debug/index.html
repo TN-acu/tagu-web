@@ -323,7 +323,7 @@
         const pcMenuTitle = document.getElementById('pc-menu-title');
 
         const setupMobileMenuLayout = () => {
-            if (window.innerWidth <= 768) {
+            if (window.innerWidth <= 768px) {
                 pcMenuTitle.style.display = 'none';
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
@@ -382,6 +382,7 @@
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
+                    // --- 修正箇所 ---
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
@@ -392,7 +393,16 @@
                             background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important;
                         }
                         a { color: #66bfff !important; }
+
+                        /* ▼▼▼ 修正: ダークモード時の選択中ボタンのスタイルを追加 ▼▼▼ */
+                        .choice-btn.selected {
+                            background-color: #0056b3 !important; /* ダークモード用の選択色 (例: 濃い青) */
+                            border-color: #007bff !important;     /* 境界線の色を明確にする */
+                            color: #ffffff !important;           /* 文字色を白にする */
+                        }
+                        /* ▲▲▲ 修正ここまで ▲▲▲ */
                     `;
+                    // --- 修正箇所ここまで ---
                 } else {
                     if (styleElement) { styleElement.remove(); }
                 }
