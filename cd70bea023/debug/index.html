@@ -521,8 +521,6 @@
 
                     } else if (targetElement.matches('.choice-btn')) {
                         textToSearch = originalTextContent.trim();
-                    } else if (targetElement.matches('h2')) { // タイマー画面のタイトル用
-                        textToSearch = originalTextContent.trim();
                     }
                     
                     if (!textToSearch) return;
@@ -573,7 +571,8 @@
                     }
                 };
                 
-                const elementsToProcess = Array.from(iframeDoc.querySelectorAll('.question-text, .choice-btn, .timer-section h2'));
+                // ▼▼▼ 修正箇所: ボタンを追加する対象をクイズ要素に限定 ▼▼▼
+                const elementsToProcess = Array.from(iframeDoc.querySelectorAll('.question-text, .choice-btn'));
                 elementsToProcess.forEach(createSearchButton);
                 
                 iframeDoc.body.classList.add('search-buttons-added');
@@ -583,11 +582,11 @@
             }
         }
         
-        // ▼▼▼ 修正箇所: タイミング問題を解決する新しいロジック ▼▼▼
+        // ▼▼▼ 修正箇所: 安定性を高めた実行ロジック ▼▼▼
         function setupIframeContent() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                // iframe内に特定の要素(.quiz-container または .main-container)が存在するか確認
+                // iframe内に特定の要素(.quiz-container または .main-container)が存在し、かつ本文が準備できているか確認
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.quiz-container') || iframeDoc.querySelector('.main-container'))) {
                     injectBaseStyles(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
@@ -598,7 +597,7 @@
                     setTimeout(setupIframeContent, 50);
                 }
             } catch (e) {
-                 // まだ準備ができていなければ、少し待ってから再試行
+                 // エラーが発生した場合も、少し待ってから再試行
                 setTimeout(setupIframeContent, 50);
             }
         }
