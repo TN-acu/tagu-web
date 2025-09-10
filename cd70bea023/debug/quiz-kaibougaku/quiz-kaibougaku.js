@@ -159,14 +159,15 @@ function selectChoice(quizIndex, choiceIndex) {
     
     // ▼ 修正箇所: ボタンのテキスト判定を完全一致から「後方一致」に変更
     const expectedChoiceText = quizzes[quizIndex].choices[choiceIndex];
-    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent.endsWith(expectedChoiceText));
+    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent.trim().endsWith(expectedChoiceText));
 
     if (!selectedBtn) return;
 
     choiceButtons.forEach(btn => btn.classList.remove('selected'));
     selectedBtn.classList.add('selected');
 
-    const selectedChoice = selectedBtn.textContent.slice(1).trim(); // 虫眼鏡アイコンを除外してテキストを取得
+    // 虫眼鏡アイコンを除いた純粋な選択肢テキストを取得
+    const selectedChoice = expectedChoiceText; 
     const currentQuiz = quizzes[quizIndex];
     
     userAnswers[quizIndex] = selectedChoice;
@@ -186,9 +187,7 @@ function selectChoice(quizIndex, choiceIndex) {
 function updateScore() {
     let score = 0;
     for (const quizIndex in userAnswers) {
-        // ▼ 修正箇所: ユーザーの回答もアイコンを除外して比較
-        const userAnswerText = userAnswers[quizIndex] || '';
-        if (userAnswerText === quizzes[quizIndex].answer) {
+        if (userAnswers[quizIndex] === quizzes[quizIndex].answer) {
             score++;
         }
     }
@@ -212,17 +211,20 @@ function finishQuiz() {
             if (userAnswer === quiz.answer) {
                 score++;
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent.endsWith(userAnswer)) btn.classList.add('correct');
+                    // ▼ 修正箇所: テキスト判定を後方一致に変更
+                    if (btn.textContent.trim().endsWith(userAnswer)) btn.classList.add('correct');
                 });
             } else {
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent.endsWith(userAnswer)) btn.classList.add('incorrect');
-                    if (btn.textContent.endsWith(quiz.answer)) btn.classList.add('correct');
+                    // ▼ 修正箇所: テキスト判定を後方一致に変更
+                    if (btn.textContent.trim().endsWith(userAnswer)) btn.classList.add('incorrect');
+                    if (btn.textContent.trim().endsWith(quiz.answer)) btn.classList.add('correct');
                 });
             }
         } else { 
             choiceButtons.forEach(btn => {
-                if (btn.textContent.endsWith(quiz.answer)) {
+                // ▼ 修正箇所: テキスト判定を後方一致に変更
+                if (btn.textContent.trim().endsWith(quiz.answer)) {
                     btn.classList.add('correct');
                 }
             });
