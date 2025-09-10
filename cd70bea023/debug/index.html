@@ -377,7 +377,6 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 追加: 虫眼鏡アイコンのスタイル定義を追加 ▼▼▼
         const applyDarkModeToIframe = (enable) => {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -419,7 +418,7 @@
                             cursor: pointer;
                             display: inline-block;
                             font-style: normal;
-                            user-select: none; /* テキスト選択を防ぐ */
+                            user-select: none;
                         }
                         .search-icon:hover {
                             opacity: 0.7;
@@ -473,7 +472,6 @@
                 const iframeDoc = iframe.contentDocument;
                 if (!iframeDoc) return;
 
-                // 既にアイコンが追加されているかチェック
                 if (iframeDoc.querySelector('.search-icon')) {
                     return; 
                 }
@@ -485,13 +483,12 @@
                     searchIcon.textContent = '🔍';
                     
                     searchIcon.addEventListener('click', (event) => {
-                        event.stopPropagation(); // ボタン本体のクリックイベントを発火させない
+                        event.stopPropagation(); 
                         
                         const buttonText = button.textContent.slice(1).trim();
                         const searchQuery = encodeURIComponent(buttonText);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
                         
-                        // ポップアップウィンドウでGoogle検索を開く
                         window.open(searchUrl, 'googleSearchWindow', 'width=800,height=600,scrollbars=yes,resizable=yes');
                     });
                     
@@ -504,7 +501,7 @@
 
         iframe.addEventListener('load', () => {
             applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-            addSearchIconsToIframe(); // iframe読み込み後に関数を実行
+            addSearchIconsToIframe(); 
             setAppHeight();
         });
     </script>
