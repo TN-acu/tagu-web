@@ -391,10 +391,8 @@
                     }
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
-                        
                         .quiz-container h1 { color: #f8f9fa !important; }
                         .main-container h1, .main-container h2 { color: #000000 !important; }
-                        
                         #quiz-header { background-color: #474a4d !important; }
                         #score-text { color: #b8bbbf !important; }
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
@@ -405,18 +403,16 @@
                             background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important;
                         }
                         a { color: #66bfff !important; }
-
                         .choice-btn.selected {
                             background-color: #5a6268 !important; 
                             border-color: #adb5bd !important;     
                             color: #ffffff !important;           
                         }
-
-                        /* ▼▼▼ 追加: 検索ボタンのスタイル ▼▼▼ */
+                        
+                        /* ▼▼▼ 修正: 検索ボタンのスタイル ▼▼▼ */
                         .search-button-wrapper {
                             display: flex;
                             align-items: center;
-                            margin-bottom: 10px; /* 選択肢との間隔 */
                         }
                         .search-btn {
                             flex-shrink: 0;
@@ -437,7 +433,6 @@
                         .search-btn:hover {
                             background-color: #e0e0e0;
                         }
-                        /* ▲▲▲ 追加ここまで ▲▲▲ */
                     `;
                 } else {
                     if (styleElement) { styleElement.remove(); }
@@ -481,20 +476,26 @@
             }
         });
         
-        // ▼▼▼ 追加: 虫眼鏡ボタンを追加し、クリックイベントを設定する関数 ▼▼▼
+        // ▼▼▼ 修正: 虫眼鏡ボタンを追加し、クリックイベントを設定する関数 ▼▼▼
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
                 if (!iframeDoc || !iframeDoc.body) return;
+                if (iframeDoc.body.classList.contains('search-buttons-added')) return;
 
-                // 既に処理済みかチェック
-                if (iframeDoc.body.classList.contains('search-buttons-added')) {
-                    return; 
-                }
-
-                // 検索ボタンを生成するヘルパー関数
                 const createSearchButton = (targetElement) => {
-                    const textToSearch = targetElement.textContent.replace(/^問題 \d+:/, '').trim();
+                    let textToSearch = targetElement.textContent;
+
+                    // 問題文の場合、不要なテキストを削除
+                    if (targetElement.matches('.question-text')) {
+                        textToSearch = textToSearch
+                            .replace(/^問題 \d+:\s*/, '')      // "問題 X: "を削除
+                            .replace(/（[^）]+）/g, '')     // （...）を削除
+                            .replace(/<[^>]+>/g, '')         // <...>を削除
+                            .replace(/※【[^】]+】/g, '')   // ※【...】を削除
+                            .trim();
+                    }
+                    
                     if (!textToSearch) return;
 
                     const searchBtn = iframeDoc.createElement('button');
@@ -506,27 +507,26 @@
                         window.open(searchUrl, 'googleSearchWindow', 'width=800,height=600,scrollbars=yes,resizable=yes');
                     };
                     
-                    // 新しいコンテナを作成してボタンと元の要素を入れる
                     const wrapper = iframeDoc.createElement('div');
                     wrapper.className = 'search-button-wrapper';
-                    wrapper.appendChild(searchBtn);
                     
-                    // 元の要素を親から切り離して、新しいコンテナに移動する
-                    targetElement.parentNode.replaceChild(wrapper, targetElement);
+                    // 問題文の場合、元のマージンを維持
+                    if (targetElement.matches('.question-text')) {
+                         wrapper.style.marginBottom = '20px';
+                         targetElement.style.margin = '0';
+                    }
+                    
+                    targetElement.parentNode.insertBefore(wrapper, targetElement);
+                    wrapper.appendChild(searchBtn);
                     wrapper.appendChild(targetElement);
 
-                    // 元の要素のスタイルを調整
                     if (targetElement.matches('.choice-btn')) {
                         targetElement.style.flexGrow = '1';
                         targetElement.style.margin = '0';
                     }
                 };
                 
-                // 問題文に検索ボタンを追加
-                iframeDoc.querySelectorAll('.question-text').forEach(createSearchButton);
-                
-                // 選択肢に検索ボタンを追加
-                iframeDoc.querySelectorAll('.choice-btn').forEach(createSearchButton);
+                iframeDoc.querySelectorAll('.question-text, .choice-btn').forEach(createSearchButton);
                 
                 iframeDoc.body.classList.add('search-buttons-added');
 
