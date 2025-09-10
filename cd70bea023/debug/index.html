@@ -377,6 +377,41 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
+        // ▼▼▼ 修正: 検索ボタン等の基本スタイルを注入する関数を分離 ▼▼▼
+        function injectBaseStyles(iframeDoc) {
+            const styleId = 'injected-base-style';
+            if (iframeDoc.getElementById(styleId)) return;
+
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.id = styleId;
+            styleElement.textContent = `
+                .search-button-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px; /* ボタンとテキストの間隔 */
+                }
+                .search-btn {
+                    flex-shrink: 0;
+                    width: 38px;
+                    height: 38px;
+                    font-size: 1.2em;
+                    padding: 0;
+                    border-radius: 50%;
+                    border: 1px solid #ccc;
+                    background-color: #f0f0f0;
+                    color: #333;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .search-btn:hover {
+                    background-color: #e0e0e0;
+                }
+            `;
+            iframeDoc.head.appendChild(styleElement);
+        }
+
         const applyDarkModeToIframe = (enable) => {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -402,36 +437,12 @@
                         button, input, select {
                             background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important;
                         }
+                        .search-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
                         a { color: #66bfff !important; }
                         .choice-btn.selected {
                             background-color: #5a6268 !important; 
                             border-color: #adb5bd !important;     
                             color: #ffffff !important;           
-                        }
-                        
-                        /* ▼▼▼ 修正: 検索ボタンのスタイル ▼▼▼ */
-                        .search-button-wrapper {
-                            display: flex;
-                            align-items: center;
-                        }
-                        .search-btn {
-                            flex-shrink: 0;
-                            width: 38px;
-                            height: 38px;
-                            font-size: 1.2em;
-                            padding: 0;
-                            margin-right: 10px;
-                            border-radius: 50%;
-                            border: 1px solid #ccc;
-                            background-color: #f0f0f0;
-                            color: #333;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        .search-btn:hover {
-                            background-color: #e0e0e0;
                         }
                     `;
                 } else {
@@ -476,7 +487,7 @@
             }
         });
         
-        // ▼▼▼ 修正: 虫眼鏡ボタンを追加し、クリックイベントを設定する関数 ▼▼▼
+        // ▼▼▼ 修正: 虫眼鏡ボタンの生成ロジックを改善 ▼▼▼
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -486,13 +497,12 @@
                 const createSearchButton = (targetElement) => {
                     let textToSearch = targetElement.textContent;
 
-                    // 問題文の場合、不要なテキストを削除
                     if (targetElement.matches('.question-text')) {
                         textToSearch = textToSearch
-                            .replace(/^問題 \d+:\s*/, '')      // "問題 X: "を削除
-                            .replace(/（[^）]+）/g, '')     // （...）を削除
-                            .replace(/<[^>]+>/g, '')         // <...>を削除
-                            .replace(/※【[^】]+】/g, '')   // ※【...】を削除
+                            .replace(/^問題 \d+:\s*/, '')
+                            .replace(/（[^）]*）/g, '')
+                            .replace(/<[^>]*>/g, '')
+                            .replace(/※【[^】]*】/g, '')
                             .trim();
                     }
                     
@@ -510,24 +520,24 @@
                     const wrapper = iframeDoc.createElement('div');
                     wrapper.className = 'search-button-wrapper';
                     
-                    // 問題文の場合、元のマージンを維持
-                    if (targetElement.matches('.question-text')) {
-                         wrapper.style.marginBottom = '20px';
-                         targetElement.style.margin = '0';
+                    const parent = targetElement.parentNode;
+                    if(parent) {
+                        parent.replaceChild(wrapper, targetElement);
+                        wrapper.appendChild(searchBtn);
+                        wrapper.appendChild(targetElement);
                     }
-                    
-                    targetElement.parentNode.insertBefore(wrapper, targetElement);
-                    wrapper.appendChild(searchBtn);
-                    wrapper.appendChild(targetElement);
 
                     if (targetElement.matches('.choice-btn')) {
                         targetElement.style.flexGrow = '1';
                         targetElement.style.margin = '0';
                     }
+                     if (targetElement.matches('.question-text')) {
+                        wrapper.style.marginBottom = '20px';
+                        targetElement.style.marginBottom = '0';
+                    }
                 };
                 
                 iframeDoc.querySelectorAll('.question-text, .choice-btn').forEach(createSearchButton);
-                
                 iframeDoc.body.classList.add('search-buttons-added');
 
             } catch (e) {
@@ -536,8 +546,12 @@
         }
 
         iframe.addEventListener('load', () => {
-            applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-            addSearchButtonsToIframe(); 
+            const iframeDoc = iframe.contentDocument;
+            if (iframeDoc) {
+                injectBaseStyles(iframeDoc); // 基本スタイルを常に注入
+                applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
+                addSearchButtonsToIframe(); 
+            }
             setAppHeight();
         });
     </script>
