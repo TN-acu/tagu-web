@@ -490,16 +490,19 @@
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
+        // ▼▼▼ 修正: 検索機能の全体的なロジックを修正 ▼▼▼
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
                 if (!iframeDoc || !iframeDoc.body || iframeDoc.body.classList.contains('search-buttons-added')) return;
 
                 const createSearchButton = (targetElement) => {
-                    let textToSearch = targetElement.textContent;
+                    let textToSearch = "";
+                    let originalTextContent = targetElement.textContent;
 
+                    // 問題文の場合、整形した問題文と全ての選択肢を結合
                     if (targetElement.matches('.question-text')) {
-                        textToSearch = textToSearch
+                        const cleanedQuestionText = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/<[^>]*>/g, '')
@@ -507,6 +510,21 @@
                             .replace(/『[^』]*』/g, '')
                             .replace(/予想問題/g, '')
                             .trim();
+                        
+                        const choicesContainer = targetElement.closest('.question-content').querySelector('.choices-container');
+                        let choiceTexts = '';
+                        if (choicesContainer) {
+                            const choiceButtons = choicesContainer.querySelectorAll('.choice-btn');
+                            choiceTexts = Array.from(choiceButtons)
+                                .map(btn => btn.textContent.trim())
+                                .join('\n');
+                        }
+                        
+                        textToSearch = `${cleanedQuestionText}\n${choiceTexts}`;
+
+                    } else if (targetElement.matches('.choice-btn')) {
+                        // 選択肢の場合は、そのテキストのみ
+                        textToSearch = originalTextContent.trim();
                     }
                     
                     if (!textToSearch) return;
@@ -515,7 +533,6 @@
                     searchBtn.className = 'search-btn';
                     searchBtn.textContent = '🔍';
                     
-                    // ▼▼▼ 修正箇所: PCでのみウィンドウを並べて表示するロジックを復活 ▼▼▼
                     searchBtn.onclick = () => {
                         if (!isMobile()) {
                             navigator.clipboard.writeText(textToSearch).catch(err => {
@@ -527,7 +544,6 @@
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
                         
                         if (!isMobile()) {
-                            // PCの場合：横に並べて表示
                             const width = window.innerWidth;
                             const height = window.innerHeight;
                             const top = window.screenY;
@@ -535,7 +551,6 @@
                             const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
                             window.open(searchUrl, 'googleSearchWindow', windowFeatures);
                         } else {
-                            // モバイルの場合：新しいタブで開く
                             window.open(searchUrl, '_blank');
                         }
                     };
