@@ -490,7 +490,6 @@
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
-        // ▼▼▼ 修正: 検索機能の全体的なロジックを修正 ▼▼▼
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -498,15 +497,15 @@
 
                 const createSearchButton = (targetElement) => {
                     let textToSearch = "";
-                    let originalTextContent = targetElement.textContent;
+                    const originalTextContent = targetElement.textContent;
 
-                    // 問題文の場合、整形した問題文と全ての選択肢を結合
                     if (targetElement.matches('.question-text')) {
-                        const cleanedQuestionText = originalTextContent
+                        // ▼▼▼ 修正箇所 ▼▼▼
+                        textToSearch = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/<[^>]*>/g, '')
-                            .replace(/※【[^】]*】/g, '')
+                            .replace(/※?【[^】]*】にも出題/g, '') // 「※」がなくても「【...】にも出題」のパターンを削除
                             .replace(/『[^』]*』/g, '')
                             .replace(/予想問題/g, '')
                             .trim();
@@ -519,11 +518,9 @@
                                 .map(btn => btn.textContent.trim())
                                 .join('\n');
                         }
-                        
-                        textToSearch = `${cleanedQuestionText}\n${choiceTexts}`;
+                        textToSearch = `${textToSearch}\n${choiceTexts}`;
 
                     } else if (targetElement.matches('.choice-btn')) {
-                        // 選択肢の場合は、そのテキストのみ
                         textToSearch = originalTextContent.trim();
                     }
                     
