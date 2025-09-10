@@ -486,7 +486,11 @@
             }
         });
         
-        // ▼▼▼ 修正: 検索機能の全体的なロジックを修正 ▼▼▼
+        // ▼▼▼ 追加: モバイル端末かどうかを判定する関数 ▼▼▼
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -495,14 +499,15 @@
                 const createSearchButton = (targetElement) => {
                     let textToSearch = targetElement.textContent;
 
-                    // 問題文の場合、不要なテキストを削除するロジックを強化
+                    // ▼▼▼ 修正: 「予想問題」も削除対象に追加 ▼▼▼
                     if (targetElement.matches('.question-text')) {
                         textToSearch = textToSearch
                             .replace(/^問題 \d+:\s*/, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/<[^>]*>/g, '')
                             .replace(/※【[^】]*】/g, '')
-                            .replace(/『[^』]*』/g, '') // 『...』を削除
+                            .replace(/『[^』]*』/g, '')
+                            .replace(/予想問題/g, '') // 「予想問題」を削除
                             .trim();
                     }
                     
@@ -512,19 +517,17 @@
                     searchBtn.className = 'search-btn';
                     searchBtn.textContent = '🔍';
                     
-                    // ウィンドウを横に並べて表示するロジック
                     searchBtn.onclick = () => {
+                        // ▼▼▼ 修正: PCでのみクリップボードにコピーする機能を追加 ▼▼▼
+                        if (!isMobile()) {
+                            navigator.clipboard.writeText(textToSearch).catch(err => {
+                                console.error('クリップボードへのコピーに失敗しました: ', err);
+                            });
+                        }
+
                         const searchQuery = encodeURIComponent(textToSearch);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-                        
-                        const width = window.innerWidth;
-                        const height = window.innerHeight;
-                        const top = window.screenY;
-                        const left = window.screenX + window.innerWidth;
-                        
-                        const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
-                        
-                        window.open(searchUrl, 'googleSearchWindow', windowFeatures);
+                        window.open(searchUrl, 'googleSearchWindow', 'width=800,height=600,scrollbars=yes,resizable=yes');
                     };
                     
                     const wrapper = iframeDoc.createElement('div');
