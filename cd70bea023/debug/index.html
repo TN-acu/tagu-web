@@ -571,7 +571,6 @@
                     }
                 };
                 
-                // ▼▼▼ 修正箇所: ボタンを追加する対象をクイズ要素に限定 ▼▼▼
                 const elementsToProcess = Array.from(iframeDoc.querySelectorAll('.question-text, .choice-btn'));
                 elementsToProcess.forEach(createSearchButton);
                 
@@ -586,8 +585,8 @@
         function setupIframeContent() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                // iframe内に特定の要素(.quiz-container または .main-container)が存在し、かつ本文が準備できているか確認
-                if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.quiz-container') || iframeDoc.querySelector('.main-container'))) {
+                // iframe内に特定の要素(.choice-btn)が存在し、かつ本文が準備できているか確認
+                if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
