@@ -377,7 +377,6 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 修正: 検索ボタン等の基本スタイルを注入する関数を分離 ▼▼▼
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -388,7 +387,7 @@
                 .search-button-wrapper {
                     display: flex;
                     align-items: center;
-                    gap: 8px; /* ボタンとテキストの間隔 */
+                    gap: 8px;
                 }
                 .search-btn {
                     flex-shrink: 0;
@@ -487,12 +486,10 @@
             }
         });
         
-        // ▼▼▼ 修正: 虫眼鏡ボタンの生成ロジックを改善 ▼▼▼
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                if (!iframeDoc || !iframeDoc.body) return;
-                if (iframeDoc.body.classList.contains('search-buttons-added')) return;
+                if (!iframeDoc || !iframeDoc.body || iframeDoc.body.classList.contains('search-buttons-added')) return;
 
                 const createSearchButton = (targetElement) => {
                     let textToSearch = targetElement.textContent;
@@ -537,7 +534,9 @@
                     }
                 };
                 
-                iframeDoc.querySelectorAll('.question-text, .choice-btn').forEach(createSearchButton);
+                const elementsToProcess = Array.from(iframeDoc.querySelectorAll('.question-text, .choice-btn'));
+                elementsToProcess.forEach(createSearchButton);
+                
                 iframeDoc.body.classList.add('search-buttons-added');
 
             } catch (e) {
@@ -545,14 +544,17 @@
             }
         }
 
+        // ▼▼▼ 修正箇所: 処理を0.1秒遅らせる ▼▼▼
         iframe.addEventListener('load', () => {
-            const iframeDoc = iframe.contentDocument;
-            if (iframeDoc) {
-                injectBaseStyles(iframeDoc); // 基本スタイルを常に注入
-                applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                addSearchButtonsToIframe(); 
-            }
-            setAppHeight();
+            setTimeout(() => {
+                const iframeDoc = iframe.contentDocument;
+                if (iframeDoc) {
+                    injectBaseStyles(iframeDoc);
+                    applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
+                    addSearchButtonsToIframe(); 
+                }
+                setAppHeight();
+            }, 100); // 100ミリ秒の遅延
         });
     </script>
 
