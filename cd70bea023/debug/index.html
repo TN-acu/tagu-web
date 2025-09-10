@@ -486,6 +486,7 @@
             }
         });
         
+        // ▼▼▼ 修正: 検索機能の全体的なロジックを修正 ▼▼▼
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -494,12 +495,14 @@
                 const createSearchButton = (targetElement) => {
                     let textToSearch = targetElement.textContent;
 
+                    // 問題文の場合、不要なテキストを削除するロジックを強化
                     if (targetElement.matches('.question-text')) {
                         textToSearch = textToSearch
                             .replace(/^問題 \d+:\s*/, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/<[^>]*>/g, '')
                             .replace(/※【[^】]*】/g, '')
+                            .replace(/『[^』]*』/g, '') // 『...』を削除
                             .trim();
                     }
                     
@@ -508,10 +511,20 @@
                     const searchBtn = iframeDoc.createElement('button');
                     searchBtn.className = 'search-btn';
                     searchBtn.textContent = '🔍';
+                    
+                    // ウィンドウを横に並べて表示するロジック
                     searchBtn.onclick = () => {
                         const searchQuery = encodeURIComponent(textToSearch);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-                        window.open(searchUrl, 'googleSearchWindow', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                        
+                        const width = window.innerWidth;
+                        const height = window.innerHeight;
+                        const top = window.screenY;
+                        const left = window.screenX + window.innerWidth;
+                        
+                        const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
+                        
+                        window.open(searchUrl, 'googleSearchWindow', windowFeatures);
                     };
                     
                     const wrapper = iframeDoc.createElement('div');
@@ -544,7 +557,6 @@
             }
         }
 
-        // ▼▼▼ 修正箇所: 処理を0.1秒遅らせる ▼▼▼
         iframe.addEventListener('load', () => {
             setTimeout(() => {
                 const iframeDoc = iframe.contentDocument;
@@ -554,7 +566,7 @@
                     addSearchButtonsToIframe(); 
                 }
                 setAppHeight();
-            }, 100); // 100ミリ秒の遅延
+            }, 200);
         });
     </script>
 
