@@ -376,6 +376,8 @@
         setupMobileMenuLayout(); 
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
+        
+        // ▼▼▼ 追加: 虫眼鏡アイコンのスタイル定義を追加 ▼▼▼
         const applyDarkModeToIframe = (enable) => {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -388,14 +390,10 @@
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
-                    // ▼▼▼ 修正箇所 ▼▼▼
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
                         
-                        /* クイズページのタイトル文字色 */
                         .quiz-container h1 { color: #f8f9fa !important; }
-
-                        /* タイマーページのタイトル文字色 */
                         .main-container h1, .main-container h2 { color: #000000 !important; }
                         
                         #quiz-header { background-color: #474a4d !important; }
@@ -414,8 +412,19 @@
                             border-color: #adb5bd !important;     
                             color: #ffffff !important;           
                         }
+
+                        /* 虫眼鏡アイコンのスタイル */
+                        .search-icon {
+                            margin-right: 8px;
+                            cursor: pointer;
+                            display: inline-block;
+                            font-style: normal;
+                            user-select: none; /* テキスト選択を防ぐ */
+                        }
+                        .search-icon:hover {
+                            opacity: 0.7;
+                        }
                     `;
-                    // ▲▲▲ 修正ここまで ▲▲▲
                 } else {
                     if (styleElement) { styleElement.remove(); }
                 }
@@ -458,8 +467,44 @@
             }
         });
         
+        // ▼▼▼ 追加: 虫眼鏡アイコンを追加し、クリックイベントを設定する関数 ▼▼▼
+        function addSearchIconsToIframe() {
+            try {
+                const iframeDoc = iframe.contentDocument;
+                if (!iframeDoc) return;
+
+                // 既にアイコンが追加されているかチェック
+                if (iframeDoc.querySelector('.search-icon')) {
+                    return; 
+                }
+
+                const choiceButtons = iframeDoc.querySelectorAll('.choice-btn');
+                choiceButtons.forEach(button => {
+                    const searchIcon = iframeDoc.createElement('span');
+                    searchIcon.className = 'search-icon';
+                    searchIcon.textContent = '🔍';
+                    
+                    searchIcon.addEventListener('click', (event) => {
+                        event.stopPropagation(); // ボタン本体のクリックイベントを発火させない
+                        
+                        const buttonText = button.textContent.slice(1).trim();
+                        const searchQuery = encodeURIComponent(buttonText);
+                        const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+                        
+                        // ポップアップウィンドウでGoogle検索を開く
+                        window.open(searchUrl, 'googleSearchWindow', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                    });
+                    
+                    button.prepend(searchIcon);
+                });
+            } catch (e) {
+                console.warn("Could not add search icons to iframe content: ", e.message);
+            }
+        }
+
         iframe.addEventListener('load', () => {
             applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
+            addSearchIconsToIframe(); // iframe読み込み後に関数を実行
             setAppHeight();
         });
     </script>
