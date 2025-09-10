@@ -16,7 +16,7 @@
     <style>
         :root {
             --app-height: 100vh;
-            --footer-height: 50px; /* フッターコントロールバーの高さ */
+            --footer-height: 50px;
             /* Light Mode Colors */
             --bg-color-light: #f8f9fa;
             --text-color-light: #212529;
@@ -376,6 +376,41 @@
         setupMobileMenuLayout(); 
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
+        
+        function injectBaseStyles(iframeDoc) {
+            const styleId = 'injected-base-style';
+            if (iframeDoc.getElementById(styleId)) return;
+
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.id = styleId;
+            styleElement.textContent = `
+                .search-button-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .search-btn {
+                    flex-shrink: 0;
+                    width: 38px;
+                    height: 38px;
+                    font-size: 1.2em;
+                    padding: 0;
+                    border-radius: 50%;
+                    border: 1px solid #ccc;
+                    background-color: #f0f0f0;
+                    color: #333;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .search-btn:hover {
+                    background-color: #e0e0e0;
+                }
+            `;
+            iframeDoc.head.appendChild(styleElement);
+        }
+
         const applyDarkModeToIframe = (enable) => {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -388,16 +423,10 @@
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
-                    // ▼▼▼ 修正箇所 ▼▼▼
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
-                        
-                        /* クイズページのタイトル文字色 */
                         .quiz-container h1 { color: #f8f9fa !important; }
-
-                        /* タイマーページのタイトル文字色 */
                         .main-container h1, .main-container h2 { color: #000000 !important; }
-                        
                         #quiz-header { background-color: #474a4d !important; }
                         #score-text { color: #b8bbbf !important; }
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
@@ -407,15 +436,14 @@
                         button, input, select {
                             background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important;
                         }
+                        .search-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
                         a { color: #66bfff !important; }
-
                         .choice-btn.selected {
                             background-color: #5a6268 !important; 
                             border-color: #adb5bd !important;     
                             color: #ffffff !important;           
                         }
                     `;
-                    // ▲▲▲ 修正ここまで ▲▲▲
                 } else {
                     if (styleElement) { styleElement.remove(); }
                 }
@@ -458,9 +486,123 @@
             }
         });
         
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        function addSearchButtonsToIframe() {
+            try {
+                const iframeDoc = iframe.contentDocument;
+                if (!iframeDoc || !iframeDoc.body || iframeDoc.body.classList.contains('search-buttons-added')) return;
+
+                const createSearchButton = (targetElement) => {
+                    let textToSearch = "";
+                    const originalTextContent = targetElement.textContent;
+
+                    if (targetElement.matches('.question-text')) {
+                        textToSearch = originalTextContent
+                            .replace(/^問題 \d+:\s*/, '')
+                            .replace(/※?【[^】]*】にも出題/g, '')
+                            .replace(/（[^）]*）/g, '')
+                            .replace(/<[^>]*>/g, '')
+                            .replace(/『[^』]*』/g, '')
+                            .replace(/予想問題/g, '')
+                            .trim();
+                        
+                        const choicesContainer = targetElement.closest('.question-content').querySelector('.choices-container');
+                        let choiceTexts = '';
+                        if (choicesContainer) {
+                            const choiceButtons = choicesContainer.querySelectorAll('.choice-btn');
+                            choiceTexts = Array.from(choiceButtons)
+                                .map(btn => btn.textContent.trim())
+                                .join('\n');
+                        }
+                        textToSearch = `${textToSearch}\n${choiceTexts}`;
+
+                    } else if (targetElement.matches('.choice-btn')) {
+                        textToSearch = originalTextContent.trim();
+                    }
+                    
+                    if (!textToSearch) return;
+
+                    const searchBtn = iframeDoc.createElement('button');
+                    searchBtn.className = 'search-btn';
+                    searchBtn.textContent = '🔍';
+                    
+                    searchBtn.onclick = () => {
+                        if (!isMobile()) {
+                            navigator.clipboard.writeText(textToSearch).catch(err => {
+                                console.error('クリップボードへのコピーに失敗しました: ', err);
+                            });
+                        }
+
+                        const searchQuery = encodeURIComponent(textToSearch);
+                        const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+                        
+                        if (!isMobile()) {
+                            const width = window.innerWidth;
+                            const height = window.innerHeight;
+                            const top = window.screenY;
+                            const left = window.screenX + window.innerWidth;
+                            const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
+                            window.open(searchUrl, 'googleSearchWindow', windowFeatures);
+                        } else {
+                            window.open(searchUrl, '_blank');
+                        }
+                    };
+                    
+                    const wrapper = iframeDoc.createElement('div');
+                    wrapper.className = 'search-button-wrapper';
+                    
+                    const parent = targetElement.parentNode;
+                    if(parent) {
+                        parent.replaceChild(wrapper, targetElement);
+                        wrapper.appendChild(searchBtn);
+                        wrapper.appendChild(targetElement);
+                    }
+
+                    if (targetElement.matches('.choice-btn')) {
+                        targetElement.style.flexGrow = '1';
+                        targetElement.style.margin = '0';
+                    }
+                     if (targetElement.matches('.question-text')) {
+                        wrapper.style.marginBottom = '20px';
+                        targetElement.style.marginBottom = '0';
+                    }
+                };
+                
+                const elementsToProcess = Array.from(iframeDoc.querySelectorAll('.question-text, .choice-btn'));
+                elementsToProcess.forEach(createSearchButton);
+                
+                iframeDoc.body.classList.add('search-buttons-added');
+
+            } catch (e) {
+                console.warn("Could not add search buttons to iframe content: ", e.message);
+            }
+        }
+        
+        // ▼▼▼ 修正箇所: 安定性を高めた実行ロジック ▼▼▼
+        function setupIframeContent() {
+            try {
+                const iframeDoc = iframe.contentDocument;
+                // iframe内に特定の要素(.choice-btn)が存在し、かつ本文が準備できているか確認
+                if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
+                    injectBaseStyles(iframeDoc);
+                    applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
+                    addSearchButtonsToIframe(); 
+                    setAppHeight();
+                } else {
+                    // まだ準備ができていなければ、少し待ってから再試行
+                    setTimeout(setupIframeContent, 50);
+                }
+            } catch (e) {
+                 // エラーが発生した場合も、少し待ってから再試行
+                setTimeout(setupIframeContent, 50);
+            }
+        }
+
         iframe.addEventListener('load', () => {
-            applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-            setAppHeight();
+            setupIframeContent();
         });
     </script>
 
