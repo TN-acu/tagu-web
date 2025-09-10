@@ -500,12 +500,11 @@
                     const originalTextContent = targetElement.textContent;
 
                     if (targetElement.matches('.question-text')) {
-                        // ▼▼▼ 修正箇所 ▼▼▼
                         textToSearch = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
+                            .replace(/※?【[^】]*】にも出題/g, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/<[^>]*>/g, '')
-                            .replace(/※?【[^】]*】にも出題/g, '') // 「※」がなくても「【...】にも出題」のパターンを削除
                             .replace(/『[^』]*』/g, '')
                             .replace(/予想問題/g, '')
                             .trim();
@@ -521,6 +520,8 @@
                         textToSearch = `${textToSearch}\n${choiceTexts}`;
 
                     } else if (targetElement.matches('.choice-btn')) {
+                        textToSearch = originalTextContent.trim();
+                    } else if (targetElement.matches('h2')) { // タイマー画面のタイトル用
                         textToSearch = originalTextContent.trim();
                     }
                     
@@ -572,7 +573,7 @@
                     }
                 };
                 
-                const elementsToProcess = Array.from(iframeDoc.querySelectorAll('.question-text, .choice-btn'));
+                const elementsToProcess = Array.from(iframeDoc.querySelectorAll('.question-text, .choice-btn, .timer-section h2'));
                 elementsToProcess.forEach(createSearchButton);
                 
                 iframeDoc.body.classList.add('search-buttons-added');
@@ -581,17 +582,29 @@
                 console.warn("Could not add search buttons to iframe content: ", e.message);
             }
         }
-
-        iframe.addEventListener('load', () => {
-            setTimeout(() => {
+        
+        // ▼▼▼ 修正箇所: タイミング問題を解決する新しいロジック ▼▼▼
+        function setupIframeContent() {
+            try {
                 const iframeDoc = iframe.contentDocument;
-                if (iframeDoc) {
+                // iframe内に特定の要素(.quiz-container または .main-container)が存在するか確認
+                if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.quiz-container') || iframeDoc.querySelector('.main-container'))) {
                     injectBaseStyles(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
+                    setAppHeight();
+                } else {
+                    // まだ準備ができていなければ、少し待ってから再試行
+                    setTimeout(setupIframeContent, 50);
                 }
-                setAppHeight();
-            }, 200);
+            } catch (e) {
+                 // まだ準備ができていなければ、少し待ってから再試行
+                setTimeout(setupIframeContent, 50);
+            }
+        }
+
+        iframe.addEventListener('load', () => {
+            setupIframeContent();
         });
     </script>
 
