@@ -16,7 +16,7 @@
     <style>
         :root {
             --app-height: 100vh;
-            --footer-height: 50px; /* フッターコントロールバーの高さ */
+            --footer-height: 50px;
             /* Light Mode Colors */
             --bg-color-light: #f8f9fa;
             --text-color-light: #212529;
@@ -412,17 +412,32 @@
                             color: #ffffff !important;           
                         }
 
-                        /* 虫眼鏡アイコンのスタイル */
-                        .search-icon {
-                            margin-right: 8px;
+                        /* ▼▼▼ 追加: 検索ボタンのスタイル ▼▼▼ */
+                        .search-button-wrapper {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 10px; /* 選択肢との間隔 */
+                        }
+                        .search-btn {
+                            flex-shrink: 0;
+                            width: 38px;
+                            height: 38px;
+                            font-size: 1.2em;
+                            padding: 0;
+                            margin-right: 10px;
+                            border-radius: 50%;
+                            border: 1px solid #ccc;
+                            background-color: #f0f0f0;
+                            color: #333;
                             cursor: pointer;
-                            display: inline-block;
-                            font-style: normal;
-                            user-select: none;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
-                        .search-icon:hover {
-                            opacity: 0.7;
+                        .search-btn:hover {
+                            background-color: #e0e0e0;
                         }
+                        /* ▲▲▲ 追加ここまで ▲▲▲ */
                     `;
                 } else {
                     if (styleElement) { styleElement.remove(); }
@@ -466,42 +481,63 @@
             }
         });
         
-        // ▼▼▼ 追加: 虫眼鏡アイコンを追加し、クリックイベントを設定する関数 ▼▼▼
-        function addSearchIconsToIframe() {
+        // ▼▼▼ 追加: 虫眼鏡ボタンを追加し、クリックイベントを設定する関数 ▼▼▼
+        function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                if (!iframeDoc) return;
+                if (!iframeDoc || !iframeDoc.body) return;
 
-                if (iframeDoc.querySelector('.search-icon')) {
+                // 既に処理済みかチェック
+                if (iframeDoc.body.classList.contains('search-buttons-added')) {
                     return; 
                 }
 
-                const choiceButtons = iframeDoc.querySelectorAll('.choice-btn');
-                choiceButtons.forEach(button => {
-                    const searchIcon = iframeDoc.createElement('span');
-                    searchIcon.className = 'search-icon';
-                    searchIcon.textContent = '🔍';
-                    
-                    searchIcon.addEventListener('click', (event) => {
-                        event.stopPropagation(); 
-                        
-                        const buttonText = button.textContent.slice(1).trim();
-                        const searchQuery = encodeURIComponent(buttonText);
+                // 検索ボタンを生成するヘルパー関数
+                const createSearchButton = (targetElement) => {
+                    const textToSearch = targetElement.textContent.replace(/^問題 \d+:/, '').trim();
+                    if (!textToSearch) return;
+
+                    const searchBtn = iframeDoc.createElement('button');
+                    searchBtn.className = 'search-btn';
+                    searchBtn.textContent = '🔍';
+                    searchBtn.onclick = () => {
+                        const searchQuery = encodeURIComponent(textToSearch);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-                        
                         window.open(searchUrl, 'googleSearchWindow', 'width=800,height=600,scrollbars=yes,resizable=yes');
-                    });
+                    };
                     
-                    button.prepend(searchIcon);
-                });
+                    // 新しいコンテナを作成してボタンと元の要素を入れる
+                    const wrapper = iframeDoc.createElement('div');
+                    wrapper.className = 'search-button-wrapper';
+                    wrapper.appendChild(searchBtn);
+                    
+                    // 元の要素を親から切り離して、新しいコンテナに移動する
+                    targetElement.parentNode.replaceChild(wrapper, targetElement);
+                    wrapper.appendChild(targetElement);
+
+                    // 元の要素のスタイルを調整
+                    if (targetElement.matches('.choice-btn')) {
+                        targetElement.style.flexGrow = '1';
+                        targetElement.style.margin = '0';
+                    }
+                };
+                
+                // 問題文に検索ボタンを追加
+                iframeDoc.querySelectorAll('.question-text').forEach(createSearchButton);
+                
+                // 選択肢に検索ボタンを追加
+                iframeDoc.querySelectorAll('.choice-btn').forEach(createSearchButton);
+                
+                iframeDoc.body.classList.add('search-buttons-added');
+
             } catch (e) {
-                console.warn("Could not add search icons to iframe content: ", e.message);
+                console.warn("Could not add search buttons to iframe content: ", e.message);
             }
         }
 
         iframe.addEventListener('load', () => {
             applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-            addSearchIconsToIframe(); 
+            addSearchButtonsToIframe(); 
             setAppHeight();
         });
     </script>
