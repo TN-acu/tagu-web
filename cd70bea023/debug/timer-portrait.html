@@ -236,7 +236,7 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             
-            clockElement.textContent = `現在時刻： ${year}年${month}月${day}日(${week}) ${hours}時${minutes}分`;
+            clockElement.textContent = `現刻： ${year}年${month}月${day}日(${week}) ${hours}時${minutes}分`;
         }
     }
     setInterval(updateCurrentTime, 1000);
@@ -413,4 +413,5 @@
 </script>
 
 </body>
+
 </html>
