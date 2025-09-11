@@ -499,14 +499,16 @@
                     let textToSearch = "";
                     const originalTextContent = targetElement.textContent;
 
+                    // ▼▼▼ 修正箇所 ▼▼▼
                     if (targetElement.matches('.question-text')) {
                         textToSearch = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
-                            .replace(/※?【[^】]*】にも出題/g, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/<[^>]*>/g, '')
+                            .replace(/※?【[^】]*】にも出題/g, '') // このルールで「【...】にも出題」を削除
                             .replace(/『[^』]*』/g, '')
                             .replace(/予想問題/g, '')
+                            .replace(/\(新規追加\)/g, '') // (新規追加) を削除
                             .trim();
                         
                         const choicesContainer = targetElement.closest('.question-content').querySelector('.choices-container');
@@ -581,22 +583,18 @@
             }
         }
         
-        // ▼▼▼ 修正箇所: 安定性を高めた実行ロジック ▼▼▼
         function setupIframeContent() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                // iframe内に特定の要素(.choice-btn)が存在し、かつ本文が準備できているか確認
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
                     setAppHeight();
                 } else {
-                    // まだ準備ができていなければ、少し待ってから再試行
                     setTimeout(setupIframeContent, 50);
                 }
             } catch (e) {
-                 // エラーが発生した場合も、少し待ってから再試行
                 setTimeout(setupIframeContent, 50);
             }
         }
