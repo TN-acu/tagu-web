@@ -32,7 +32,6 @@ async function setupQuiz() {
             pdfBtn.style.display = 'none';
         }
 
-        // 注意: ファイル名を元の 'quiz_data_iryougairon2025zenki_kimatu.txt' に戻す必要がある
         const response = await fetch('quiz_data_iryougairon2025zenki_kimatu.txt');
         if (!response.ok) throw new Error('クイズデータの読み込みに失敗しました。');
         
@@ -108,7 +107,6 @@ function populateJumpMenu() {
     jumpMenu.addEventListener('change', (event) => {
         const quizIndex = event.target.value;
         if (quizIndex !== "") {
-            // ▼ 修正箇所: 変数名を index から quizIndex に修正
             const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
             if (targetQuiz) {
                 const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
@@ -155,19 +153,21 @@ function renderAllQuizzes() {
 
 // 選択肢をクリックしたときの処理
 function selectChoice(quizIndex, choiceIndex) {
-    // ▼ 修正箇所: 変数名を index から quizIndex に修正
     const quizItem = document.getElementById(`quiz-${quizIndex}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
-    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent === quizzes[quizIndex].choices[choiceIndex]);
+    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較するための改善
+    const expectedChoiceText = quizzes[quizIndex].choices[choiceIndex];
+    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent.trim() === expectedChoiceText);
 
     if (!selectedBtn) return;
 
     choiceButtons.forEach(btn => btn.classList.remove('selected'));
     selectedBtn.classList.add('selected');
 
-    const selectedChoice = selectedBtn.textContent;
+    // ▼▼▼ 修正 ▼▼▼ 選択されたテキストは元のデータから取得する
+    const selectedChoice = expectedChoiceText;
     const currentQuiz = quizzes[quizIndex];
     
     userAnswers[quizIndex] = selectedChoice;
@@ -211,17 +211,20 @@ function finishQuiz() {
             if (userAnswer === quiz.answer) {
                 score++;
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent === userAnswer) btn.classList.add('correct');
+                    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('correct');
                 });
             } else {
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent === userAnswer) btn.classList.add('incorrect');
-                    if (btn.textContent === quiz.answer) btn.classList.add('correct');
+                    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('incorrect');
+                    if (btn.textContent.trim() === quiz.answer) btn.classList.add('correct');
                 });
             }
         } else { 
             choiceButtons.forEach(btn => {
-                if (btn.textContent === quiz.answer) {
+                // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                if (btn.textContent.trim() === quiz.answer) {
                     btn.classList.add('correct');
                 }
             });
@@ -321,7 +324,8 @@ pdfBtn.addEventListener('click', () => {
 // 最初にクイズをセットアップ
 setupQuiz();
 
-// --- ▼追加: カスタム検索機能 ---
+
+// --- カスタム検索機能 ---
 
 let searchState = {
     term: "",
@@ -334,12 +338,13 @@ let searchState = {
  */
 function clearHighlights() {
     const searchArea = document.getElementById('quiz-body');
+    if (!searchArea) return;
     const highlights = searchArea.querySelectorAll('mark.search-highlight');
     highlights.forEach(mark => {
         const parent = mark.parentNode;
         if (parent) {
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
-            parent.normalize(); // 隣接するテキストノードを結合する
+            parent.normalize();
         }
     });
     searchState.elements = [];
@@ -354,14 +359,18 @@ function performHighlight(term) {
     if (!term) return;
 
     const searchArea = document.getElementById('quiz-body');
-    const regex = new RegExp(CSS.escape(term), 'gi'); // 大文字小文字を区別せず、グローバル検索
+    if (!searchArea) return;
+
+    // ▼▼▼ 修正 ▼▼▼ 正規表現の特殊文字をエスケープする処理を追加
+    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedTerm, 'gi');
 
     const walker = document.createTreeWalker(searchArea, NodeFilter.SHOW_TEXT, null, false);
     const textNodes = [];
     let node;
     while (node = walker.nextNode()) {
-        // スクリプトタグやスタイルタグ内のテキストは除外
-        if (node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE') {
+        const parentTag = node.parentElement.tagName.toUpperCase();
+        if (parentTag !== 'SCRIPT' && parentTag !== 'STYLE') {
              if (regex.test(node.textContent)) {
                  textNodes.push(node);
              }
@@ -372,17 +381,14 @@ function performHighlight(term) {
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
         textNode.textContent.replace(regex, (match, offset) => {
-            // マッチ前のテキストを追加
             fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex, offset)));
-            // マッチした部分を<mark>タグで囲んで追加
             const mark = document.createElement('mark');
             mark.className = 'search-highlight';
             mark.textContent = match;
-            fragment.appendChild(mark); // ハイライト要素を保存
+            fragment.appendChild(mark);
             searchState.elements.push(mark);
             lastIndex = offset + match.length;
         });
-        // マッチ後の残りのテキストを追加
         fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex)));
         textNode.parentNode.replaceChild(fragment, textNode);
     });
@@ -395,25 +401,22 @@ function performHighlight(term) {
 function navigateToHighlight(direction) {
     if (searchState.elements.length === 0) return;
 
-    // 現在のハイライトから active クラスを削除
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
         searchState.elements[searchState.currentIndex].classList.remove('active');
     }
 
-    // インデックスを更新
     if (direction === 'next') {
         searchState.currentIndex++;
         if (searchState.currentIndex >= searchState.elements.length) {
-            searchState.currentIndex = 0; // 最後まで行ったら最初に戻る
+            searchState.currentIndex = 0;
         }
     } else if (direction === 'prev') {
         searchState.currentIndex--;
         if (searchState.currentIndex < 0) {
-            searchState.currentIndex = searchState.elements.length - 1; // 最初より前に行ったら最後に戻る
+            searchState.currentIndex = searchState.elements.length - 1;
         }
     }
 
-    // 新しいハイライトに active クラスを追加し、画面中央にスクロール
     const currentElement = searchState.elements[searchState.currentIndex];
     if (currentElement) {
         currentElement.classList.add('active');
@@ -427,7 +430,6 @@ function navigateToHighlight(direction) {
  * @param {string} direction - 'next' または 'prev'
  */
 window.handleSearch = function(term, direction) {
-    // 検索語が変わった場合はハイライトを再生成する
     if (term !== searchState.term) {
         clearHighlights();
         searchState.term = term;
@@ -435,4 +437,3 @@ window.handleSearch = function(term, direction) {
     }
     navigateToHighlight(direction);
 };
-// --- ▲追加: カスタム検索機能 ---
