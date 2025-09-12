@@ -94,6 +94,7 @@ async function setupQuiz() {
 
 // ジャンプメニューを作成する関数
 function populateJumpMenu() {
+    // ▼ 修正箇所: 区切る問題数を20から30に変更
     const jumpInterval = 30;
     for (let i = 0; i < quizzes.length; i += jumpInterval) {
         const startNum = i + 1;
@@ -127,12 +128,15 @@ function populateJumpMenu() {
 function renderAllQuizzes() {
     let quizHTML = '';
     quizzes.forEach((quiz, index) => {
+        // ★★ここから選択肢ボタンの生成ロジックを変更★★
         let choicesHTML = '';
         quiz.choices.forEach((choice, choiceIndex) => {
+             // 選択肢がハイフンでない場合のみボタンを生成
             if (choice.trim() !== '-') {
                 choicesHTML += `<button class="choice-btn" onclick="selectChoice(${index}, ${choiceIndex})">${choice}</button>`;
             }
         });
+        // ★★ここまで変更★★
 
         quizHTML += `
             <div class="quiz-item" id="quiz-${index}">
@@ -157,17 +161,17 @@ function selectChoice(quizIndex, choiceIndex) {
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
-    // ▼ 修正箇所: ボタンのテキスト判定を完全一致から「後方一致」に変更
+    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較するための改善
     const expectedChoiceText = quizzes[quizIndex].choices[choiceIndex];
-    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent.trim().endsWith(expectedChoiceText));
+    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent.trim() === expectedChoiceText);
 
     if (!selectedBtn) return;
 
     choiceButtons.forEach(btn => btn.classList.remove('selected'));
     selectedBtn.classList.add('selected');
 
-    // 虫眼鏡アイコンを除いた純粋な選択肢テキストを取得
-    const selectedChoice = expectedChoiceText; 
+    // ▼▼▼ 修正 ▼▼▼ 選択されたテキストは元のデータから取得する
+    const selectedChoice = expectedChoiceText;
     const currentQuiz = quizzes[quizIndex];
     
     userAnswers[quizIndex] = selectedChoice;
@@ -211,20 +215,20 @@ function finishQuiz() {
             if (userAnswer === quiz.answer) {
                 score++;
                 choiceButtons.forEach(btn => {
-                    // ▼ 修正箇所: テキスト判定を後方一致に変更
-                    if (btn.textContent.trim().endsWith(userAnswer)) btn.classList.add('correct');
+                    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('correct');
                 });
             } else {
                 choiceButtons.forEach(btn => {
-                    // ▼ 修正箇所: テキスト判定を後方一致に変更
-                    if (btn.textContent.trim().endsWith(userAnswer)) btn.classList.add('incorrect');
-                    if (btn.textContent.trim().endsWith(quiz.answer)) btn.classList.add('correct');
+                    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('incorrect');
+                    if (btn.textContent.trim() === quiz.answer) btn.classList.add('correct');
                 });
             }
         } else { 
             choiceButtons.forEach(btn => {
-                // ▼ 修正箇所: テキスト判定を後方一致に変更
-                if (btn.textContent.trim().endsWith(quiz.answer)) {
+                // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                if (btn.textContent.trim() === quiz.answer) {
                     btn.classList.add('correct');
                 }
             });
@@ -338,13 +342,13 @@ let searchState = {
  */
 function clearHighlights() {
     const searchArea = document.getElementById('quiz-body');
-    if (!searchArea) return;
+    if (!searchArea) return; // quiz-bodyが存在しない場合は何もしない
     const highlights = searchArea.querySelectorAll('mark.search-highlight');
     highlights.forEach(mark => {
         const parent = mark.parentNode;
         if (parent) {
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
-            parent.normalize(); 
+            parent.normalize(); // 隣接するテキストノードを結合する
         }
     });
     searchState.elements = [];
@@ -360,14 +364,16 @@ function performHighlight(term) {
 
     const searchArea = document.getElementById('quiz-body');
     if (!searchArea) return;
-    
+
+    // 正規表現のエスケープ処理
     const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(escapedTerm, 'gi');
+    const regex = new RegExp(escapedTerm, 'gi'); // 大文字小文字を区別せず、グローバル検索
 
     const walker = document.createTreeWalker(searchArea, NodeFilter.SHOW_TEXT, null, false);
     const textNodes = [];
     let node;
     while (node = walker.nextNode()) {
+        // スクリプトタグやスタイルタグ内のテキストは除外
         const parentTag = node.parentElement.tagName.toUpperCase();
         if (parentTag !== 'SCRIPT' && parentTag !== 'STYLE') {
              if (regex.test(node.textContent)) {
@@ -380,15 +386,17 @@ function performHighlight(term) {
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
         textNode.textContent.replace(regex, (match, offset) => {
+            // マッチ前のテキストを追加
             fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex, offset)));
-            
+            // マッチした部分を<mark>タグで囲んで追加
             const mark = document.createElement('mark');
             mark.className = 'search-highlight';
             mark.textContent = match;
             fragment.appendChild(mark);
-            searchState.elements.push(mark);
+            searchState.elements.push(mark); // ハイライト要素を保存
             lastIndex = offset + match.length;
         });
+        // マッチ後の残りのテキストを追加
         fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex)));
         textNode.parentNode.replaceChild(fragment, textNode);
     });
@@ -401,22 +409,25 @@ function performHighlight(term) {
 function navigateToHighlight(direction) {
     if (searchState.elements.length === 0) return;
 
+    // 現在のハイライトから active クラスを削除
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
         searchState.elements[searchState.currentIndex].classList.remove('active');
     }
 
+    // インデックスを更新
     if (direction === 'next') {
         searchState.currentIndex++;
         if (searchState.currentIndex >= searchState.elements.length) {
-            searchState.currentIndex = 0;
+            searchState.currentIndex = 0; // 最後まで行ったら最初に戻る
         }
     } else if (direction === 'prev') {
         searchState.currentIndex--;
         if (searchState.currentIndex < 0) {
-            searchState.currentIndex = searchState.elements.length - 1;
+            searchState.currentIndex = searchState.elements.length - 1; // 最初より前に行ったら最後に戻る
         }
     }
 
+    // 新しいハイライトに active クラスを追加し、画面中央にスクロール
     const currentElement = searchState.elements[searchState.currentIndex];
     if (currentElement) {
         currentElement.classList.add('active');
@@ -430,6 +441,7 @@ function navigateToHighlight(direction) {
  * @param {string} direction - 'next' または 'prev'
  */
 window.handleSearch = function(term, direction) {
+    // 検索語が変わった場合はハイライトを再生成する
     if (term !== searchState.term) {
         clearHighlights();
         searchState.term = term;
