@@ -164,7 +164,8 @@
             padding: 8px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
-            font-size: 0.9em;
+            /* */
+            font-size: 1.7em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
             min-width: 50px; 
@@ -411,6 +412,25 @@
             iframeDoc.head.appendChild(styleElement);
         }
 
+        // ▼▼▼ 追加 ▼▼▼ iframe内のフォントサイズを上書きする関数
+        function injectFontStylesToIframe(iframeDoc) {
+            const styleId = 'injected-font-style';
+            if (iframeDoc.getElementById(styleId)) return;
+
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.id = styleId;
+            // !important を使って、iframe内の既存のスタイルを強制的に上書きする
+            styleElement.textContent = `
+                .question-text {
+                    font-size: 1.7em !important;
+                }
+                .choice-btn {
+                    font-size: 1.7em !important;
+                }
+            `;
+            iframeDoc.head.appendChild(styleElement);
+        }
+
         const applyDarkModeToIframe = (enable) => {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -500,13 +520,11 @@
                     const originalTextContent = targetElement.textContent;
 
                     if (targetElement.matches('.question-text')) {
-                        // ▼▼▼ 修正箇所 ▼▼▼
                         textToSearch = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
                             .replace(/※?【[^】]*】にも出題/g, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/\([^)]*\)/g, (match) => {
-                                // 括弧の中身が数字だけの場合は残す
                                 const content = match.slice(1, -1);
                                 return /^\d+$/.test(content) ? match : '';
                             })
@@ -592,6 +610,8 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
+                    // ▼▼▼ 追加 ▼▼▼ フォント上書き関数を呼び出す
+                    injectFontStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
                     setAppHeight();
