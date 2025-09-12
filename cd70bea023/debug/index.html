@@ -165,7 +165,7 @@
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
             /* ▼▼▼ 修正 ▼▼▼ */
-            font-size: 1.2em;
+            font-size: 0.9em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
             min-width: 50px; 
@@ -378,7 +378,7 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 修正 ▼▼▼ 隙間問題を解決する最終版のCSS
+        // ▼▼▼ 修正 ▼▼▼ フォントサイズ指定を削除し、レイアウト修正のみに特化
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -386,10 +386,6 @@
             const styleElement = iframeDoc.createElement('style');
             styleElement.id = styleId;
             styleElement.textContent = `
-                /* フォントサイズの調整 */
-                .question-text { font-size: 1.7em !important; }
-                .choice-btn { font-size: 1.7em !important; }
-
                 /* スマホ表示時のレイアウト調整 */
                 @media (max-width: 768px) {
                     html, body {
@@ -407,10 +403,6 @@
                         margin-left: 0 !important;
                         margin-right: 0 !important;
                     }
-                    
-                    /* スマホ表示時のフォントサイズ調整 */
-                    .question-text { font-size: 1.4em !important; }
-                    .choice-btn { font-size: 1.4em !important; }
                 }
             `;
             iframeDoc.head.appendChild(styleElement);
