@@ -164,7 +164,7 @@
             padding: 8px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
-            /* */
+            /* ▼▼▼ 修正 ▼▼▼ */
             font-size: 1.7em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
@@ -412,20 +412,29 @@
             iframeDoc.head.appendChild(styleElement);
         }
 
-        // ▼▼▼ 追加 ▼▼▼ iframe内のフォントサイズを上書きする関数
-        function injectFontStylesToIframe(iframeDoc) {
+        // ▼▼▼ 修正 ▼▼▼ iframe内のフォントサイズを変更するスタイルを注入する関数を追加
+        function injectFontStyles(iframeDoc) {
             const styleId = 'injected-font-style';
+            // 既にスタイルが存在する場合は何もしない
             if (iframeDoc.getElementById(styleId)) return;
 
             const styleElement = iframeDoc.createElement('style');
             styleElement.id = styleId;
-            // !important を使って、iframe内の既存のスタイルを強制的に上書きする
+            // !important を使い、元のスタイルを確実に上書きする
             styleElement.textContent = `
-                .question-text {
-                    font-size: 1.7em !important;
+                .question-text { 
+                    font-size: 1.7em !important; 
                 }
                 .choice-btn {
                     font-size: 1.7em !important;
+                }
+                @media (max-width: 768px) {
+                    .question-text {
+                        font-size: 1.4em !important;
+                    }
+                    .choice-btn {
+                        font-size: 1.4em !important;
+                    }
                 }
             `;
             iframeDoc.head.appendChild(styleElement);
@@ -610,10 +619,10 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
-                    // ▼▼▼ 追加 ▼▼▼ フォント上書き関数を呼び出す
-                    injectFontStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
+                    // ▼▼▼ 修正 ▼▼▼ 作成したフォントスタイル注入関数を呼び出す
+                    injectFontStyles(iframeDoc);
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
