@@ -164,7 +164,8 @@
             padding: 8px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
-            font-size: 1.7em;
+            /* ▼▼▼ 修正 ▼▼▼ */
+            font-size: 1.2em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
             min-width: 50px; 
@@ -377,7 +378,7 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 修正 ▼▼▼ 依頼されたフォントサイズとレイアウト調整をiframeに適用する関数
+        // ▼▼▼ 修正 ▼▼▼ 隙間問題を解決する最終版のCSS
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -391,14 +392,20 @@
 
                 /* スマホ表示時のレイアウト調整 */
                 @media (max-width: 768px) {
-                    body {
-                        /* ブラウザのデフォルトマージンを削除して隙間をなくす */
+                    html, body {
+                        /* 根本原因の解決：マージン・パディングを0にし、幅を画面に固定 */
                         margin: 0 !important;
+                        padding: 0 !important;
+                        width: 100%;
+                        overflow-x: hidden; /* はみ出しを完全に隠す */
                     }
-                    .quiz-container {
-                        /* 左右の余白を調整して隙間をなくす */
-                        padding-left: 8px !important;
-                        padding-right: 8px !important;
+                    #quiz-header, .quiz-container {
+                        /* 主要な要素も画面幅に強制的に合わせる */
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        box-sizing: border-box !important;
+                        margin-left: 0 !important;
+                        margin-right: 0 !important;
                     }
                     
                     /* スマホ表示時のフォントサイズ調整 */
