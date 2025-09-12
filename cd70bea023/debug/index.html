@@ -499,16 +499,20 @@
                     let textToSearch = "";
                     const originalTextContent = targetElement.textContent;
 
-                    // ▼▼▼ 修正箇所 ▼▼▼
                     if (targetElement.matches('.question-text')) {
+                        // ▼▼▼ 修正箇所 ▼▼▼
                         textToSearch = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
+                            .replace(/※?【[^】]*】にも出題/g, '')
                             .replace(/（[^）]*）/g, '')
+                            .replace(/\([^)]*\)/g, (match) => {
+                                // 括弧の中身が数字だけの場合は残す
+                                const content = match.slice(1, -1);
+                                return /^\d+$/.test(content) ? match : '';
+                            })
                             .replace(/<[^>]*>/g, '')
-                            .replace(/※?【[^】]*】にも出題/g, '') // このルールで「【...】にも出題」を削除
                             .replace(/『[^』]*』/g, '')
                             .replace(/予想問題/g, '')
-                            .replace(/\(新規追加\)/g, '') // (新規追加) を削除
                             .trim();
                         
                         const choicesContainer = targetElement.closest('.question-content').querySelector('.choices-container');
