@@ -500,11 +500,13 @@
                     const originalTextContent = targetElement.textContent;
 
                     if (targetElement.matches('.question-text')) {
+                        // ▼▼▼ 修正箇所 ▼▼▼
                         textToSearch = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
                             .replace(/※?【[^】]*】にも出題/g, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/\([^)]*\)/g, (match) => {
+                                // 括弧の中身が数字だけの場合は残す
                                 const content = match.slice(1, -1);
                                 return /^\d+$/.test(content) ? match : '';
                             })
@@ -591,8 +593,7 @@
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    // Google検索ボタン追加機能は、パフォーマンス問題のため無効化を推奨
-                    // addSearchButtonsToIframe(); 
+                    addSearchButtonsToIframe(); 
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
