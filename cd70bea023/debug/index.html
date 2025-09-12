@@ -378,6 +378,39 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
+        // ▼▼▼ 追加 ▼▼▼ 依頼されたフォントサイズとレイアウト調整をiframeに適用する関数
+        function injectCustomStylesToIframe(iframeDoc) {
+            const styleId = 'injected-custom-font-style';
+            if (iframeDoc.getElementById(styleId)) return; // 既に適用済みの場合は何もしない
+
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.id = styleId;
+            styleElement.textContent = `
+                /* フォントサイズの調整 */
+                .question-text { font-size: 1.7em !important; }
+                .choice-btn { font-size: 1.7em !important; }
+
+                /* スマホ表示時のレイアウト調整 */
+                @media (max-width: 768px) {
+                    html, body {
+                        /* 横スクロールを防止 */
+                        overflow-x: hidden;
+                    }
+                    .quiz-container, #quiz-header {
+                        /* 要素が画面幅を超えないようにする */
+                        width: 100%;
+                        max-width: 100%;
+                        box-sizing: border-box; 
+                    }
+                    
+                    /* スマホ表示時のフォントサイズ調整 */
+                    .question-text { font-size: 1.4em !important; }
+                    .choice-btn { font-size: 1.4em !important; }
+                }
+            `;
+            iframeDoc.head.appendChild(styleElement);
+        }
+
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -407,34 +440,6 @@
                 }
                 .search-btn:hover {
                     background-color: #e0e0e0;
-                }
-            `;
-            iframeDoc.head.appendChild(styleElement);
-        }
-
-        // ▼▼▼ 修正 ▼▼▼ iframe内のフォントサイズを変更するスタイルを注入する関数を追加
-        function injectFontStyles(iframeDoc) {
-            const styleId = 'injected-font-style';
-            // 既にスタイルが存在する場合は何もしない
-            if (iframeDoc.getElementById(styleId)) return;
-
-            const styleElement = iframeDoc.createElement('style');
-            styleElement.id = styleId;
-            // !important を使い、元のスタイルを確実に上書きする
-            styleElement.textContent = `
-                .question-text { 
-                    font-size: 1.7em !important; 
-                }
-                .choice-btn {
-                    font-size: 1.7em !important;
-                }
-                @media (max-width: 768px) {
-                    .question-text {
-                        font-size: 1.4em !important;
-                    }
-                    .choice-btn {
-                        font-size: 1.4em !important;
-                    }
                 }
             `;
             iframeDoc.head.appendChild(styleElement);
@@ -619,10 +624,10 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
+                    // ▼▼▼ 修正 ▼▼▼ カスタムスタイル適用関数を呼び出す
+                    injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
-                    // ▼▼▼ 修正 ▼▼▼ 作成したフォントスタイル注入関数を呼び出す
-                    injectFontStyles(iframeDoc);
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
