@@ -107,7 +107,6 @@ function populateJumpMenu() {
     jumpMenu.addEventListener('change', (event) => {
         const quizIndex = event.target.value;
         if (quizIndex !== "") {
-            // ▼ 修正箇所: 変数名を index から quizIndex に修正
             const targetQuiz = document.getElementById(`quiz-${quizIndex}`);
             if (targetQuiz) {
                 const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
@@ -159,14 +158,15 @@ function selectChoice(quizIndex, choiceIndex) {
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
-    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent === quizzes[quizIndex].choices[choiceIndex]);
+    const expectedChoiceText = quizzes[quizIndex].choices[choiceIndex];
+    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent.trim() === expectedChoiceText);
 
     if (!selectedBtn) return;
 
     choiceButtons.forEach(btn => btn.classList.remove('selected'));
     selectedBtn.classList.add('selected');
 
-    const selectedChoice = selectedBtn.textContent;
+    const selectedChoice = expectedChoiceText;
     const currentQuiz = quizzes[quizIndex];
     
     userAnswers[quizIndex] = selectedChoice;
@@ -210,17 +210,17 @@ function finishQuiz() {
             if (userAnswer === quiz.answer) {
                 score++;
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent === userAnswer) btn.classList.add('correct');
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('correct');
                 });
             } else {
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent === userAnswer) btn.classList.add('incorrect');
-                    if (btn.textContent === quiz.answer) btn.classList.add('correct');
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('incorrect');
+                    if (btn.textContent.trim() === quiz.answer) btn.classList.add('correct');
                 });
             }
         } else { 
             choiceButtons.forEach(btn => {
-                if (btn.textContent === quiz.answer) {
+                if (btn.textContent.trim() === quiz.answer) {
                     btn.classList.add('correct');
                 }
             });
@@ -339,7 +339,7 @@ function clearHighlights() {
         const parent = mark.parentNode;
         if (parent) {
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
-            parent.normalize(); // 隣接するテキストノードを結合する
+            parent.normalize();
         }
     });
     searchState.elements = [];
@@ -354,13 +354,12 @@ function performHighlight(term) {
     if (!term) return;
 
     const searchArea = document.getElementById('quiz-body');
-    const regex = new RegExp(CSS.escape(term), 'gi'); // 大文字小文字を区別せず、グローバル検索
+    const regex = new RegExp(CSS.escape(term), 'gi');
 
     const walker = document.createTreeWalker(searchArea, NodeFilter.SHOW_TEXT, null, false);
     const textNodes = [];
     let node;
     while (node = walker.nextNode()) {
-        // スクリプトタグやスタイルタグ内のテキストは除外
         if (node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE') {
              if (regex.test(node.textContent)) {
                  textNodes.push(node);
@@ -372,17 +371,14 @@ function performHighlight(term) {
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
         textNode.textContent.replace(regex, (match, offset) => {
-            // マッチ前のテキストを追加
             fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex, offset)));
-            // マッチした部分を<mark>タグで囲んで追加
             const mark = document.createElement('mark');
             mark.className = 'search-highlight';
             mark.textContent = match;
             fragment.appendChild(mark);
-            searchState.elements.push(mark); // ハイライト要素を保存
+            searchState.elements.push(mark);
             lastIndex = offset + match.length;
         });
-        // マッチ後の残りのテキストを追加
         fragment.appendChild(document.createTextNode(textNode.textContent.substring(lastIndex)));
         textNode.parentNode.replaceChild(fragment, textNode);
     });
@@ -395,25 +391,22 @@ function performHighlight(term) {
 function navigateToHighlight(direction) {
     if (searchState.elements.length === 0) return;
 
-    // 現在のハイライトから active クラスを削除
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
         searchState.elements[searchState.currentIndex].classList.remove('active');
     }
 
-    // インデックスを更新
     if (direction === 'next') {
         searchState.currentIndex++;
         if (searchState.currentIndex >= searchState.elements.length) {
-            searchState.currentIndex = 0; // 最後まで行ったら最初に戻る
+            searchState.currentIndex = 0;
         }
     } else if (direction === 'prev') {
         searchState.currentIndex--;
         if (searchState.currentIndex < 0) {
-            searchState.currentIndex = searchState.elements.length - 1; // 最初より前に行ったら最後に戻る
+            searchState.currentIndex = searchState.elements.length - 1;
         }
     }
 
-    // 新しいハイライトに active クラスを追加し、画面中央にスクロール
     const currentElement = searchState.elements[searchState.currentIndex];
     if (currentElement) {
         currentElement.classList.add('active');
@@ -427,7 +420,6 @@ function navigateToHighlight(direction) {
  * @param {string} direction - 'next' または 'prev'
  */
 window.handleSearch = function(term, direction) {
-    // 検索語が変わった場合はハイライトを再生成する
     if (term !== searchState.term) {
         clearHighlights();
         searchState.term = term;
