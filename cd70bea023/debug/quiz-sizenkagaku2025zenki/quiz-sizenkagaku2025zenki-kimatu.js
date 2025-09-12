@@ -157,14 +157,17 @@ function selectChoice(quizIndex, choiceIndex) {
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text');
     
-    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent === quizzes[quizIndex].choices[choiceIndex]);
+    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較するための改善
+    const expectedChoiceText = quizzes[quizIndex].choices[choiceIndex];
+    const selectedBtn = Array.from(choiceButtons).find(btn => btn.textContent.trim() === expectedChoiceText);
 
     if (!selectedBtn) return;
 
     choiceButtons.forEach(btn => btn.classList.remove('selected'));
     selectedBtn.classList.add('selected');
 
-    const selectedChoice = selectedBtn.textContent;
+    // ▼▼▼ 修正 ▼▼▼ 選択されたテキストは元のデータから取得する
+    const selectedChoice = expectedChoiceText;
     const currentQuiz = quizzes[quizIndex];
     
     userAnswers[quizIndex] = selectedChoice;
@@ -208,17 +211,20 @@ function finishQuiz() {
             if (userAnswer === quiz.answer) {
                 score++;
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent === userAnswer) btn.classList.add('correct');
+                    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('correct');
                 });
             } else {
                 choiceButtons.forEach(btn => {
-                    if (btn.textContent === userAnswer) btn.classList.add('incorrect');
-                    if (btn.textContent === quiz.answer) btn.classList.add('correct');
+                    // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                    if (btn.textContent.trim() === userAnswer) btn.classList.add('incorrect');
+                    if (btn.textContent.trim() === quiz.answer) btn.classList.add('correct');
                 });
             }
         } else { 
             choiceButtons.forEach(btn => {
-                if (btn.textContent === quiz.answer) {
+                // ▼▼▼ 修正 ▼▼▼ 空白を除去して比較
+                if (btn.textContent.trim() === quiz.answer) {
                     btn.classList.add('correct');
                 }
             });
