@@ -276,6 +276,7 @@
             opacity: 1;
         }
         
+        /* ▼▼▼ 修正: カスタム検索履歴のスタイル ▼▼▼ */
         #search-history-container {
             display: none;
             position: absolute;
@@ -352,7 +353,7 @@
     <div id="footer-controls">
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
         <div class="search-container">
-             <input type="search" id="search-input" placeholder="表示画面内を検索...(履歴)">
+            <input type="search" id="search-input" placeholder="表示画面内を検索...(履歴)">
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -364,7 +365,6 @@
         const iframe = document.getElementById('contentFrame');
         const bodyElement = document.body;
         const toastElement = document.getElementById('toast-notification');
-        // ▼▼▼ 修正: 履歴コンテナの要素を取得 ▼▼▼
         const searchHistoryContainer = document.getElementById('search-history-container');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
@@ -391,16 +391,16 @@
         };
         displayLastUpdated();
         
-        // ▼▼▼ 修正: カスタム履歴ポップアップを生成するロジックに変更 ▼▼▼
+        // ▼▼▼ 修正: カスタム履歴ポップアップのロジック ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
-            searchHistoryContainer.innerHTML = ''; // 中身をクリア
+            searchHistoryContainer.innerHTML = '';
             if (history.length > 0) {
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
                     item.textContent = term;
-                    item.addEventListener('mousedown', (e) => { // clickではなくmousedownを使う
+                    item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
                         performSearch('next');
@@ -445,14 +445,20 @@
             styleElement.id = styleId;
             styleElement.textContent = `
                 /* 通常時のフォントサイズ調整 */
-                .question-text, .choice-btn { 
+                .question-text { 
                     font-size: 1.7em !important; 
+                }
+                .choice-btn {
+                    font-size: 1.7em !important;
                 }
 
                 /* スマホ表示時のフォントサイズ調整 */
                 @media (max-width: 768px) {
-                    .question-text, .choice-btn { 
+                    .question-text { 
                         font-size: 1.4em !important; 
+                    }
+                    .choice-btn { 
+                        font-size: 1.2em !important; 
                     }
                 }
             `;
@@ -609,12 +615,12 @@
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
                     iframeWin.handleSearch(searchTerm, direction);
                     
-                    // ▼▼▼ 修正: タイミングを調整してポップアップ表示を確実にする ▼▼▼
+                    // ▼▼▼ 修正: ポップアップ表示のタイミングを調整 ▼▼▼
                     setTimeout(() => {
                         if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                             showToast('検索結果無し');
                         }
-                    }, 100); // 0.1秒待ってからチェック
+                    }, 100);
 
                 } else if (searchTerm) {
                     alert("現在のページではカスタム検索機能がサポートされていません。");
@@ -630,11 +636,11 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 performSearch('next');
-                searchHistoryContainer.style.display = 'none'; // 検索実行後、履歴を閉じる
+                searchHistoryContainer.style.display = 'none';
             }
         });
         
-        // ▼▼▼ 修正: 履歴表示のロジック ▼▼▼
+        // ▼▼▼ 修正: 履歴表示のイベントリスナー ▼▼▼
         searchInput.addEventListener('focus', () => {
             loadSearchHistory();
             if (searchHistoryContainer.children.length > 0) {
@@ -642,7 +648,6 @@
             }
         });
         searchInput.addEventListener('blur', () => {
-            // マウスが履歴項目上にある場合を考慮して少し遅らせて非表示にする
             setTimeout(() => {
                 searchHistoryContainer.style.display = 'none';
             }, 200);
