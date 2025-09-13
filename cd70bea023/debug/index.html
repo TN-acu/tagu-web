@@ -521,7 +521,6 @@
             }
         };
 
-        // ▼▼▼ 修正: saveSearchTerm 関数を新しい仕様（FIFO・重複無視）に変更 ▼▼▼
         const saveSearchTerm = (term) => {
             if (!term || term.trim() === '') return;
             let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
@@ -539,7 +538,6 @@
             localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
             loadSearchHistory(); 
         };
-        // ▲▲▲ 修正ここまで ▲▲▲
 
         let toastTimer;
         const showToast = (message) => {
@@ -571,7 +569,7 @@
         }
 
         // ▼▼▼ 修正: clearIframeChoice をスコア再計算ロジック強制実行版に変更 ▼▼▼
-        function clearIframeChoice(quizIndex) {
+        function clearIframeChoice(quizIndex) { // quizIndex は解除対象のインデックス (例: 5 (数値))
             try {
                 const iframeWin = iframe.contentWindow;
                 const iframeDoc = iframe.contentDocument;
@@ -595,26 +593,33 @@
                 // 3. スクロール
                 quizItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // 4. スコア計算不具合の根本対策：
-                // iframeのJS変数(userAnswers)からデータを削除し、
-                // iframeのupdateScore()を呼び出すのではなく、親フレーム側でスコア計算を再実行し、DOMに直接書き込む。
-                
-                let answerDeleted = false;
-                if (iframeWin.userAnswers && typeof iframeWin.userAnswers === 'object' && iframeWin.userAnswers.hasOwnProperty(quizIndex)) {
-                    
-                    delete iframeWin.userAnswers[quizIndex]; // iframeのJSデータを直接削除
-                    answerDeleted = true;
+                // 4. データの削除（試行）
+                // hasOwnPropertyチェックを外し、数値キーと文字列キーの両方で削除を試みる
+                if (iframeWin.userAnswers && typeof iframeWin.userAnswers === 'object') {
+                    delete iframeWin.userAnswers[quizIndex];         // 数値キーで削除 (内部的に '5' と同じ)
+                    delete iframeWin.userAnswers[quizIndex.toString()]; // 文字列キーでも念のため削除
                 }
 
-                // iframe側の updateScore() と同等のロジックをここで実行
-                if (answerDeleted && iframeWin.quizzes && iframeWin.userAnswers && iframeDoc.getElementById('score-text')) {
+                // 5. スコアの再計算と強制上書き
+                // 判定フラグを外し、常にスコア計算を実行する
+                if (iframeWin.quizzes && iframeWin.userAnswers && iframeDoc.getElementById('score-text')) {
                     let score = 0;
-                    const quizzes = iframeWin.quizzes; // iframeのクイズデータ配列
-                    const userAnswers = iframeWin.userAnswers; // delete 済みの回答オブジェクト
+                    const quizzes = iframeWin.quizzes; 
+                    const userAnswers = iframeWin.userAnswers; 
                     
-                    for (const idx in userAnswers) { 
-                        // userAnswersに存在するキー（削除された正解キーはもうない）だけをループ
-                        if (userAnswers[idx] && quizzes[idx] && userAnswers[idx] === quizzes[idx].answer) {
+                    for (const idxStr in userAnswers) { // idxStr は "0", "1", "5" などの「文字列」キー
+                        
+                        const currentIdxNum = parseInt(idxStr, 10); // "5" を 5 (数値) に変換
+                        
+                        // ★★★ここが修正の核★★★
+                        // ループ中のインデックス(数値化済み)が、今回解除対象の quizIndex (数値) と一致したら
+                        // それは「今削除した（あるいは削除しようとした）」キーなので、スコア計算から除外する
+                        if (currentIdxNum === quizIndex) {
+                            continue; // この問題はスキップ (正解でもカウントしない)
+                        }
+
+                        // 解除対象以外のキーで、かつ解答が存在し(undefined等でない)、それが正解と一致する場合のみスコアを加算
+                        if (userAnswers[idxStr] && quizzes[currentIdxNum] && userAnswers[idxStr] === quizzes[currentIdxNum].answer) {
                             score++; 
                         }
                     }
