@@ -522,17 +522,28 @@
             }
         };
 
+        // ▼▼▼ 修正: saveSearchTerm 関数を新しい仕様（FIFO・重複無視）に変更 ▼▼▼
         const saveSearchTerm = (term) => {
             if (!term || term.trim() === '') return;
             let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
-            history = history.filter(item => item !== term);
-            history.unshift(term);
-            if (history.length > 10) {
-                history = history.slice(0, 10);
+
+            // 要件1: 既に履歴に存在する場合、順番を変えずに終了する
+            if (history.includes(term)) {
+                return; // DOMの再構築も不要
             }
+
+            // 要件2: 新しい単語の場合、末尾に追加する (UI上は一番下に追加される)
+            history.push(term); 
+            
+            // 最大数(10件)を超えた場合、先頭（＝最も古い履歴）から削除する
+            while (history.length > 10) {
+                history.shift(); // 配列の0番目を削除
+            }
+            
             localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-            loadSearchHistory();
+            loadSearchHistory(); // DOMを更新して新しい項目をリストの最後に追加
         };
+        // ▲▲▲ 修正ここまで ▲▲▲
 
         let toastTimer;
         const showToast = (message) => {
@@ -544,7 +555,7 @@
             }, 1000);
         };
 
-        // ▼▼▼ 追加: スマホ戻るボタン機能のための新関数群 ▼▼▼
+        // ▼▼▼ 修正: スマホ戻るボタン機能のための新関数群 ▼▼▼
 
         /**
          * iframe内のクイズ選択肢がクリックされた時に呼び出されるリスナー関数。
@@ -621,7 +632,7 @@
             }
         }
         
-        // ▲▲▲ 追加ここまで ▲▲▲
+        // ▲▲▲ 修正ここまで ▲▲▲
 
 
         function injectCustomStylesToIframe(iframeDoc) {
@@ -846,9 +857,8 @@
             if (searchHistoryContainer.style.display !== 'block') {
                  showSearchHistoryIfNeeded();
                  // 注: 既にフォーカスがあたっている場合のクリックでは、focusイベントが発火しないため履歴が重複しない
-                 // もしfocusが外れた状態からクリックした場合は、focusイベントとclickイベント両方が発火する可能性があるが
-                 // 内部スタックに 'search' が連続で積まれる。popstate側で連続する同一イベントは処理スキップする等の考慮が将来的に必要かもしれないが
-                 // 現状のpopstateロジック（LIFO）では問題ない。
+                 // もしfocusが外れた状態からクリックした場合は、focusイベントで既にスタックに積まれているため、
+                 // ここで追加のスタック操作は不要（または重複を許容してもpopstateで処理される）
             }
         });
         
@@ -885,7 +895,7 @@
                 } 
                 else if (lastStateToPop === 'search') {
                     // 「戻る」ボタンで押された場合（＝UIがまだ開いている/フォーカスされている場合）のみ、閉じるDOM操作を実行
-                    // (blurで閉じた場合は、DOM操作はblurリスナー側で行われているため、このifはfalseになる)
+                    // (blurで閉じた場合は、DOM操作はblurリスナー側で行われているため、このifはfalseか、既に閉じられている)
                     if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
                         if (searchHistoryContainer.style.display === 'block') {
                              searchHistoryContainer.style.display = 'none';
@@ -1016,7 +1026,7 @@
         function setupIframeContent() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                // ▼▼▼ 修正: if条件を不具合のあった 'readyState' を削除し、元の状態に戻す ▼▼▼
+                // ▼▼▼ 修正: if条件を不具合のあった 'readyState' を削除し、元の状態（JSによるDOM構築完了を待つ）に戻す ▼▼▼
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                 // ▲▲▲ 修正ここまで ▲▲▲
                     
