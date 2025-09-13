@@ -163,7 +163,7 @@
             flex-grow: 1;
             padding: 8px;
             border: 1px solid var(--border-color-light);
-            border-radius: 5px;
+            border-radius: 5px 0 0 5px; /* ▼▼▼ 修正: 角丸を元に戻す ▼▼▼ */
             font-size: 0.9em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
@@ -174,6 +174,7 @@
             background-color: var(--secondary-bg-dark);
             color: var(--text-color-dark);
         }
+
         .search-container button {
             flex-shrink: 0;
             width: 36px;
@@ -184,7 +185,6 @@
             cursor: pointer;
             font-size: 1.1em;
             line-height: 1;
-            border-radius: 5px;
         }
         body.dark-mode .search-container button {
             background-color: #2a4832;
@@ -193,8 +193,14 @@
         }
         
         #search-prev {
-            margin-left: 5px;
+            margin-left: 0; /* ▼▼▼ 修正: 不要なマージンを削除 ▼▼▼ */
             margin-right: 10px;
+            border-left: none; /* ▼▼▼ 修正: 左枠線を削除 ▼▼▼ */
+            border-radius: 0; /* ▼▼▼ 修正: 角丸を削除 ▼▼▼ */
+        }
+        /* ▼▼▼ 修正: nextボタンのスタイルを元に戻す ▼▼▼ */
+        #search-next {
+             border-radius: 0 5px 5px 0;
         }
 
         @media (max-width: 768px) {
@@ -229,6 +235,10 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
+            #footer-controls {
+                width: calc(100% - 100px);
+                border-top-right-radius: 8px;
+            }
         }
         
         .menu-toggle {
@@ -299,6 +309,10 @@
             cursor: pointer;
             border-bottom: 1px solid #e6e6c3;
             color: var(--text-color-light);
+            /* ▼▼▼ 追加: 履歴削除ボタンのレイアウト ▼▼▼ */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         body.dark-mode .history-item {
             border-bottom-color: #6c6c4c;
@@ -312,6 +326,26 @@
         }
         .history-item:last-child {
             border-bottom: none;
+        }
+        /* ▼▼▼ 追加: 履歴削除ボタンのスタイル ▼▼▼ */
+        .history-delete-btn {
+            font-size: 1.2em;
+            padding: 2px 8px;
+            border-radius: 50%;
+            line-height: 1;
+            font-weight: bold;
+            color: #aaa;
+        }
+        .history-delete-btn:hover {
+            background-color: rgba(0,0,0,0.1);
+            color: #555;
+        }
+        body.dark-mode .history-delete-btn {
+            color: #888;
+        }
+        body.dark-mode .history-delete-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #ccc;
         }
     </style>
 </head>
@@ -351,7 +385,7 @@
     <div id="footer-controls">
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
         <div class="search-container">
-            <input type="search" id="search-input" placeholder="表示画面内を検索...">
+             <input type="search" id="search-input" placeholder="表示画面内を検索...">
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -364,6 +398,9 @@
         const bodyElement = document.body;
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
+        const searchInput = document.getElementById('search-input');
+        // ▼▼▼ 削除: クリアボタンの要素取得を削除 ▼▼▼
+        // const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
         const setAppHeight = () => {
@@ -389,6 +426,15 @@
         };
         displayLastUpdated();
         
+        // ▼▼▼ 追加: 検索履歴を個別削除する関数 ▼▼▼
+        const deleteSearchTerm = (termToDelete) => {
+            let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
+            history = history.filter(item => item !== termToDelete);
+            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+            loadSearchHistory(); // 表示を更新
+        };
+        
+        // ▼▼▼ 修正: 履歴削除ボタンの生成とイベント処理を追加 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
@@ -396,13 +442,29 @@
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
-                    item.textContent = term;
+
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = term;
+                    textSpan.style.flexGrow = '1';
+
+                    const deleteBtn = document.createElement('span');
+                    deleteBtn.className = 'history-delete-btn';
+                    deleteBtn.textContent = '×';
+                    
+                    deleteBtn.addEventListener('mousedown', (e) => {
+                        e.stopPropagation(); // 親要素のイベント発火を阻止
+                        deleteSearchTerm(term);
+                    });
+
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
+
+                    item.appendChild(textSpan);
+                    item.appendChild(deleteBtn);
                     searchHistoryContainer.appendChild(item);
                 });
             }
@@ -430,30 +492,19 @@
             }, 1000);
         };
 
-        // ▼▼▼ 修正: iframe内のフォントサイズを調整する関数 ▼▼▼
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
             const existingStyle = iframeDoc.getElementById(styleId);
             if (existingStyle) {
                 existingStyle.remove();
             }
-
             const styleElement = iframeDoc.createElement('style');
             styleElement.id = styleId;
             styleElement.textContent = `
-                /* 通常時のフォントサイズ調整 */
-                .question-text, .choice-btn { 
-                    font-size: 1.8em !important; 
-                }
-
-                /* スマホ表示時のフォントサイズ調整 */
+                .question-text, .choice-btn { font-size: 1.8em !important; }
                 @media (max-width: 768px) {
-                    .question-text { 
-                        font-size: 1.3em !important; 
-                    }
-                    .choice-btn { 
-                        font-size: 1.2em !important; 
-                    }
+                    .question-text { font-size: 1.3em !important; }
+                    .choice-btn { font-size: 1.2em !important; }
                 }
             `;
             iframeDoc.head.appendChild(styleElement);
@@ -486,9 +537,7 @@
         const toggleMenu = () => {
             if (window.innerWidth > 768) return;
             const isOpening = !navColumn.classList.contains('menu-open');
-            
             navColumn.classList.toggle('menu-open');
-
             if (isOpening) {
                 history.pushState({navMenuOpen: true}, '');
                 menuToggleOpenBtn.style.display = 'none';
@@ -601,7 +650,6 @@
             applyDarkModeToIframe(isDarkModeEnabled);
         });
 
-        const searchInput = document.getElementById('search-input');
         const searchPrevBtn = document.getElementById('search-prev');
         const searchNextBtn = document.getElementById('search-next');
 
@@ -612,9 +660,7 @@
             try {
                 const iframeWin = iframe.contentWindow;
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-                    
                     iframeWin.handleSearch(searchTerm, direction);
-                    
                     setTimeout(() => {
                         if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                             showToast('検索結果無し');
@@ -646,7 +692,6 @@
                 history.pushState({historyMenuOpen: true}, '');
             }
         });
-
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
@@ -657,6 +702,8 @@
                 }
             }, 200);
         });
+        
+        // ▼▼▼ 削除: クリアボタン関連のイベントリスナーを削除 ▼▼▼
 
         window.addEventListener('popstate', (event) => {
             if (searchHistoryContainer.style.display === 'block') {
