@@ -131,19 +131,10 @@
             align-items: center;
             z-index: 100;
             transition: background-color 0.3s, border-color 0.3s;
-            /* ▼▼▼ 修正 ▼▼▼ */
-            max-width: 840px;
-            margin: 0 auto;
-            border-left: 1px solid var(--border-color-light);
-            border-right: 1px solid var(--border-color-light);
-            border-radius: 10px 10px 0 0;
         }
         body.dark-mode #footer-controls {
             background-color: var(--secondary-bg-dark);
             border-top-color: var(--border-color-dark);
-            /* ▼▼▼ 修正 ▼▼▼ */
-            border-left-color: var(--border-color-dark);
-            border-right-color: var(--border-color-dark);
         }
 
         .dark-mode-toggle {
@@ -240,13 +231,6 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
-            /* ▼▼▼ 修正 ▼▼▼ スマホではフッターを全幅に戻す */
-            #footer-controls {
-                max-width: 100%;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-            }
         }
         
         .menu-toggle {
@@ -394,27 +378,20 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 修正 ▼▼▼ フォントサイズとレイアウト調整をiframeに適用する関数
+        // ▼▼▼ 追加: 依頼されたフォントサイズとレイアウト調整をiframeに適用する関数
         function injectCustomStylesToIframe(iframeDoc) {
-            const styleId = 'injected-custom-style';
+            const styleId = 'injected-custom-styles';
             if (iframeDoc.getElementById(styleId)) return;
 
             const styleElement = iframeDoc.createElement('style');
             styleElement.id = styleId;
             styleElement.textContent = `
                 /* フォントサイズの調整 */
-                .question-text, .choice-btn {
-                    font-size: 1.7em !important;
-                }
+                .question-text { font-size: 1.7em !important; }
+                .choice-btn { font-size: 1.7em !important; }
 
                 /* スマホ表示時のレイアウト調整 */
                 @media (max-width: 768px) {
-                    /* フォントサイズの調整 */
-                    .question-text, .choice-btn {
-                        font-size: 1.4em !important;
-                    }
-                    
-                    /* 隙間問題の解決 */
                     html, body {
                         margin: 0 !important;
                         padding: 0 !important;
@@ -428,11 +405,27 @@
                         margin-left: 0 !important;
                         margin-right: 0 !important;
                     }
+                    
+                    /* スマホ表示時のフォントサイズ調整 */
+                    .question-text { font-size: 1.4em !important; }
+                    .choice-btn { font-size: 1.4em !important; }
                 }
             `;
             iframeDoc.head.appendChild(styleElement);
         }
-        
+
+        // ▼▼▼ 追加: Android端末でフッターの幅を調整する関数
+        function adjustFooterForAndroid() {
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (isAndroid) {
+                const footer = document.getElementById('footer-controls');
+                if (footer) {
+                    footer.style.width = '98%';
+                    footer.style.margin = '0 auto';
+                }
+            }
+        }
+
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -645,10 +638,16 @@
             try {
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
-                    injectCustomStylesToIframe(iframeDoc); // ← 修正したスタイルを適用
                     injectBaseStyles(iframeDoc);
+                    injectCustomStylesToIframe(iframeDoc); // フォントとレイアウトのカスタムCSSを注入
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    addSearchButtonsToIframe(); // ← 機能を有効化
+                    
+                    // ▼▼▼ 修正: 検索ボタン機能の呼び出しを再度有効化 ▼▼▼
+                    addSearchButtonsToIframe(); 
+                    
+                    // ▼▼▼ 修正: Androidでのフッター調整関数を呼び出し ▼▼▼
+                    adjustFooterForAndroid();
+                    
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
