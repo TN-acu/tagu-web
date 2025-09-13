@@ -492,12 +492,25 @@
                         e.stopPropagation();
                         deleteSearchTerm(term);
                     });
+                    
+                    // ▼▼▼ 修正: 履歴項目クリック時の動作 ▼▼▼
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
+                        
+                        // 検索実行前に、iframe内の検索ハイライトをクリアする
+                        try {
+                            const iframeWin = iframe.contentWindow;
+                            if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+                                iframeWin.clearHighlights();
+                            }
+                        } catch(err) {}
+
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
+                    // ▲▲▲ 修正ここまで ▲▲▲
+
                     item.appendChild(textSpan);
                     item.appendChild(deleteBtn);
                     searchHistoryContainer.appendChild(item);
@@ -720,13 +733,8 @@
             }
         });
         
-        // ▼▼▼ 修正: フォーカス時に必ず履歴エントリを追加するよう修正 ▼▼▼
         searchInput.addEventListener('focus', () => {
-            // 履歴メニューやナビメニューが開いていない場合のみ、新しい履歴エントリを追加
-            if (!history.state || (!history.state.navMenuOpen && !history.state.searchInputFocused)) {
-                 history.pushState({searchInputFocused: true}, '');
-            }
-
+            history.pushState({searchInputFocused: true}, '');
             loadSearchHistory();
             if (searchHistoryContainer.children.length > 0) {
                 searchHistoryContainer.style.display = 'block';
@@ -735,7 +743,7 @@
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
-                    if (history.state && history.state.searchInputFocused) {
+                    if (history.state && (history.state.historyMenuOpen || history.state.searchInputFocused)) {
                         history.back();
                     }
                     searchHistoryContainer.style.display = 'none';
@@ -743,16 +751,8 @@
             }, 200);
         });
         
-        // ▼▼▼ 削除: クリアボタン関連のイベントリスナーを削除 ▼▼▼
-        /*
-        searchClearBtn.addEventListener('click', () => { ... });
-        searchInput.addEventListener('input', () => { ... });
-        */
-
-        // ▼▼▼ 修正: popstateのロジックを更新 ▼▼▼
         window.addEventListener('popstate', (event) => {
             if (navColumn.classList.contains('menu-open')) {
-                // 最優先: ナビゲーションメニューを閉じる
                 navColumn.classList.remove('menu-open');
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
@@ -761,14 +761,9 @@
                 appList.style.paddingBottom = '0';
             } 
             else if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
-                // 次: 履歴メニューが開いている、または検索フォームがフォーカスされている場合
-                
-                // 1. 履歴メニューを閉じる
                 if (searchHistoryContainer.style.display === 'block') {
                      searchHistoryContainer.style.display = 'none';
                 }
-
-                // 2. ご要望の動作（テキストクリアとフォーカス解除）を実行
                 if (searchInput.value !== '') {
                     searchInput.value = '';
                     try {
