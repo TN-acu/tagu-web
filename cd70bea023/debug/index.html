@@ -130,7 +130,7 @@
             display: flex;
             align-items: center;
             z-index: 100;
-            transition: background-color 0.3s, border-color 0.3s;
+            transition: background-color 0.3s, border-color 0.3s, width 0.3s;
         }
         body.dark-mode #footer-controls {
             background-color: var(--secondary-bg-dark);
@@ -159,19 +159,15 @@
             width: 100%;
             flex-grow: 1; 
         }
-
-        /* ▼▼▼ 追加: 検索フォームとクリアボタンを内包するラッパー ▼▼▼ */
         .input-wrapper {
             position: relative;
             display: flex;
             flex-grow: 1;
             align-items: center;
         }
-
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
-            /* ▼▼▼ 修正: クリアボタンの表示領域確保のため右のパディングを増やす ▼▼▼ */
             padding-right: 30px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px;
@@ -186,9 +182,8 @@
             color: var(--text-color-dark);
         }
         
-        /* ▼▼▼ 追加: フォーム内クリアボタンのスタイル ▼▼▼ */
         #search-clear-btn {
-            display: none; /* 初期状態は非表示 */
+            display: none;
             position: absolute;
             right: 5px;
             top: 50%;
@@ -260,6 +255,15 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
+
+            /* ▼▼▼ 追加: スマホ用のフッターと履歴メニューの幅を調整 ▼▼▼ */
+            #footer-controls {
+                width: 80%;
+            }
+            #search-history-container {
+                width: 80%;
+                right: auto; /* rightプロパティを解除してwidthを有効にする */
+            }
         }
         
         .menu-toggle {
@@ -320,6 +324,7 @@
             border-radius: 5px 5px 0 0;
             box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
             z-index: 99;
+            transition: width 0.3s;
         }
         body.dark-mode #search-history-container {
              background-color: #4d4d33;
@@ -330,7 +335,6 @@
             cursor: pointer;
             border-bottom: 1px solid #e6e6c3;
             color: var(--text-color-light);
-            /* ▼▼▼ 追加: 履歴削除ボタンのレイアウト ▼▼▼ */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -348,7 +352,6 @@
         .history-item:last-child {
             border-bottom: none;
         }
-        /* ▼▼▼ 追加: 履歴削除ボタンのスタイル ▼▼▼ */
         .history-delete-btn {
             font-size: 1.2em;
             padding: 2px 8px;
@@ -423,7 +426,6 @@
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
-        // ▼▼▼ 追加: クリアボタンの要素を取得 ▼▼▼
         const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
@@ -450,7 +452,6 @@
         };
         displayLastUpdated();
         
-        // ▼▼▼ 修正: 履歴削除ボタンの生成とイベント処理を追加 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
@@ -468,7 +469,7 @@
                     deleteBtn.textContent = '×';
                     
                     deleteBtn.addEventListener('mousedown', (e) => {
-                        e.stopPropagation(); // 親要素のイベント発火を阻止
+                        e.stopPropagation();
                         deleteSearchTerm(term);
                     });
 
@@ -486,12 +487,11 @@
             }
         };
 
-        // ▼▼▼ 追加: 検索履歴を個別削除する関数 ▼▼▼
         const deleteSearchTerm = (termToDelete) => {
             let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             history = history.filter(item => item !== termToDelete);
             localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-            loadSearchHistory(); // 表示を更新
+            loadSearchHistory();
         };
 
         const saveSearchTerm = (term) => {
@@ -727,7 +727,6 @@
             }, 200);
         });
         
-        // ▼▼▼ 追加: 検索フォームクリアボタンのイベント ▼▼▼
         searchClearBtn.addEventListener('click', () => {
             searchInput.value = '';
             try {
@@ -740,7 +739,6 @@
             searchInput.focus();
         });
 
-        // ▼▼▼ 追加: 検索フォーム入力時のクリアボタン表示/非表示制御 ▼▼▼
         searchInput.addEventListener('input', () => {
             searchClearBtn.style.display = searchInput.value ? 'block' : 'none';
         });
