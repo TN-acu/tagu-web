@@ -16,8 +16,8 @@
     <style>
         :root {
             --app-height: 100vh;
-            /* ▼▼▼ 修正: フッターの高さを30pxに変更 ▼▼▼ */
-            --footer-height: 30px;
+            /* ▼▼▼ 修正: フッターの高さを65pxに変更 ▼▼▼ */
+            --footer-height: 65px;
             /* Light Mode Colors */
             --bg-color-light: #f8f9fa;
             --text-color-light: #212529;
@@ -377,23 +377,29 @@
         setupMobileMenuLayout(); 
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
-
+        
         // ▼▼▼ 追加: フォントサイズ調整用のCSSをiframeに注入する関数 ▼▼▼
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-style';
-            if (iframeDoc.getElementById(styleId)) {
-                iframeDoc.getElementById(styleId).remove();
+            // 既存のスタイルがあれば一旦削除して作り直す
+            const existingStyle = iframeDoc.getElementById(styleId);
+            if (existingStyle) {
+                existingStyle.remove();
             }
+
             const styleElement = iframeDoc.createElement('style');
             styleElement.id = styleId;
             styleElement.textContent = `
-                /* Injected Font Styles */
-                .question-text { font-size: 1.7em !important; }
-                .choice-btn { font-size: 1.7em !important; }
+                /* 通常時のフォントサイズ調整 */
+                .question-text, .choice-btn { 
+                    font-size: 1.7em !important; 
+                }
 
+                /* スマホ表示時のフォントサイズ調整 */
                 @media (max-width: 768px) {
-                    .question-text { font-size: 1.4em !important; }
-                    .choice-btn { font-size: 1.4em !important; }
+                    .question-text, .choice-btn { 
+                        font-size: 1.4em !important; 
+                    }
                 }
             `;
             iframeDoc.head.appendChild(styleElement);
