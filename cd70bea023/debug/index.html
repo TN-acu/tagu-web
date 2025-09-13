@@ -156,7 +156,6 @@
 
         .search-container {
             display: flex;
-            align-items: center;
             width: 100%;
             flex-grow: 1; 
         }
@@ -258,9 +257,9 @@
             .content-column { flex-grow: 1; min-height: 0; }
             
             /* ▼▼▼ 追加: スマホ表示時の検索フォーム幅を調整 ▼▼▼ */
-            .input-wrapper {
-                flex-grow: 0; /* 幅が広がるのを防ぐ */
-                width: 10ch;  /* 幅を約10文字分に設定 */
+            .search-container input[type="search"] {
+                flex-grow: 0; /* 自動で伸びるのをやめる */
+                width: 30ch;  /* ch単位で約30文字分の幅を指定 */
             }
         }
         
@@ -346,7 +345,9 @@
         body.dark-mode .history-item:hover {
             background-color: #6c6c4c;
         }
-        
+        .history-item:last-child {
+            border-bottom: none;
+        }
         .history-clear-all-btn {
             padding: 8px 12px;
             text-align: left;
@@ -365,7 +366,6 @@
         body.dark-mode .history-clear-all-btn:hover {
             background-color: #5c3b3b;
         }
-
         .history-delete-btn {
             font-size: 1.2em;
             padding: 2px 8px;
@@ -467,11 +467,9 @@
         displayLastUpdated();
         
         const clearAllHistory = () => {
-            if (confirm('すべての検索履歴を消去しますか？')) {
-                localStorage.removeItem(SEARCH_HISTORY_KEY);
-                loadSearchHistory();
-                searchHistoryContainer.style.display = 'none';
-            }
+            localStorage.removeItem(SEARCH_HISTORY_KEY);
+            loadSearchHistory();
+            searchHistoryContainer.style.display = 'none';
         };
         
         const deleteSearchTerm = (termToDelete) => {
