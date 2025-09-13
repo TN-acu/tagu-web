@@ -998,8 +998,8 @@
         function setupIframeContent() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                // ▼▼▼ 修正: 読み込み完了判定を強化 ▼▼▼
-                if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display') || iframeDoc.readyState === 'complete')) {
+                // ▼▼▼ 修正: if条件を元の状態に戻す（JSによるDOM構築完了を待つため） ▼▼▼
+                if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                 // ▲▲▲ 修正ここまで ▲▲▲
                     
                     injectBaseStyles(iframeDoc);
@@ -1040,7 +1040,7 @@
                     // ▲▲▲ 追加ここまで ▲▲▲
                     
                 } else {
-                    setTimeout(setupIframeContent, 50);
+                    setTimeout(setupIframeContent, 50); // DOM構築がまだならリトライ
                 }
             } catch (e) {
                 // クロスオリジンエラー等をキャッチ
