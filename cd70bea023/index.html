@@ -163,7 +163,7 @@
             flex-grow: 1;
             padding: 8px;
             border: 1px solid var(--border-color-light);
-            border-radius: 5px 0 0 5px; /* ▼▼▼ 修正: 角丸を元に戻す ▼▼▼ */
+            border-radius: 5px 0 0 5px;
             font-size: 0.9em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
@@ -193,12 +193,10 @@
         }
         
         #search-prev {
-            margin-left: 0; /* ▼▼▼ 修正: 不要なマージンを削除 ▼▼▼ */
             margin-right: 10px;
-            border-left: none; /* ▼▼▼ 修正: 左枠線を削除 ▼▼▼ */
-            border-radius: 0; /* ▼▼▼ 修正: 角丸を削除 ▼▼▼ */
+            border-left: none;
+            border-radius: 0;
         }
-        /* ▼▼▼ 修正: nextボタンのスタイルを元に戻す ▼▼▼ */
         #search-next {
              border-radius: 0 5px 5px 0;
         }
@@ -309,7 +307,6 @@
             cursor: pointer;
             border-bottom: 1px solid #e6e6c3;
             color: var(--text-color-light);
-            /* ▼▼▼ 追加: 履歴削除ボタンのレイアウト ▼▼▼ */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -324,29 +321,27 @@
         body.dark-mode .history-item:hover {
             background-color: #6c6c4c;
         }
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        /* ▼▼▼ 追加: 履歴削除ボタンのスタイル ▼▼▼ */
-        .history-delete-btn {
-            font-size: 1.2em;
-            padding: 2px 8px;
-            border-radius: 50%;
-            line-height: 1;
+        
+        /* ▼▼▼ 追加: 履歴全削除ボタンのスタイル ▼▼▼ */
+        .history-clear-all-btn {
+            padding: 10px;
+            text-align: center;
             font-weight: bold;
-            color: #aaa;
+            color: #d9534f; /* 赤色 */
+            cursor: pointer;
+            border-bottom: 1px solid #e6e6c3;
         }
-        .history-delete-btn:hover {
-            background-color: rgba(0,0,0,0.1);
-            color: #555;
+        .history-clear-all-btn:hover {
+            background-color: #f2dede;
         }
-        body.dark-mode .history-delete-btn {
-            color: #888;
+        body.dark-mode .history-clear-all-btn {
+            color: #ff8a8a;
+            border-bottom-color: #6c6c4c;
         }
-        body.dark-mode .history-delete-btn:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: #ccc;
+        body.dark-mode .history-clear-all-btn:hover {
+            background-color: #5c3b3b;
         }
+
     </style>
 </head>
 <body>
@@ -399,8 +394,6 @@
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
-        // ▼▼▼ 削除: クリアボタンの要素取得を削除 ▼▼▼
-        // const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
         const setAppHeight = () => {
@@ -426,45 +419,41 @@
         };
         displayLastUpdated();
         
-        // ▼▼▼ 追加: 検索履歴を個別削除する関数 ▼▼▼
-        const deleteSearchTerm = (termToDelete) => {
-            let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
-            history = history.filter(item => item !== termToDelete);
-            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-            loadSearchHistory(); // 表示を更新
+        // ▼▼▼ 追加: 履歴を全削除する関数 ▼▼▼
+        const clearAllHistory = () => {
+            if (confirm('すべての検索履歴を消去しますか？')) {
+                localStorage.removeItem(SEARCH_HISTORY_KEY);
+                loadSearchHistory();
+                searchHistoryContainer.style.display = 'none';
+            }
         };
         
-        // ▼▼▼ 修正: 履歴削除ボタンの生成とイベント処理を追加 ▼▼▼
+        // ▼▼▼ 修正: 履歴全削除ボタンの生成を追加 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
             if (history.length > 0) {
+                // 全削除ボタンを作成
+                const clearAllBtn = document.createElement('div');
+                clearAllBtn.className = 'history-clear-all-btn';
+                clearAllBtn.textContent = '【検索履歴を全て消去】';
+                clearAllBtn.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    clearAllHistory();
+                });
+                searchHistoryContainer.appendChild(clearAllBtn);
+
+                // 各履歴項目を作成
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
-
-                    const textSpan = document.createElement('span');
-                    textSpan.textContent = term;
-                    textSpan.style.flexGrow = '1';
-
-                    const deleteBtn = document.createElement('span');
-                    deleteBtn.className = 'history-delete-btn';
-                    deleteBtn.textContent = '×';
-                    
-                    deleteBtn.addEventListener('mousedown', (e) => {
-                        e.stopPropagation(); // 親要素のイベント発火を阻止
-                        deleteSearchTerm(term);
-                    });
-
+                    item.textContent = term;
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
-
-                    item.appendChild(textSpan);
-                    item.appendChild(deleteBtn);
                     searchHistoryContainer.appendChild(item);
                 });
             }
@@ -703,8 +692,6 @@
             }, 200);
         });
         
-        // ▼▼▼ 削除: クリアボタン関連のイベントリスナーを削除 ▼▼▼
-
         window.addEventListener('popstate', (event) => {
             if (searchHistoryContainer.style.display === 'block') {
                 searchHistoryContainer.style.display = 'none';
