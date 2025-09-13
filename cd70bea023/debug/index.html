@@ -168,7 +168,7 @@
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
-            /* padding-right: 30px;  <-- クリアボタン用の余白を削除 */
+            padding-right: 30px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px;
             font-size: 0.9em;
@@ -182,7 +182,23 @@
             color: var(--text-color-dark);
         }
         
-        /* 削除: #search-clear-btn のスタイル */
+        #search-clear-btn {
+            display: none;
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.5em;
+            line-height: 1;
+            color: #888;
+            padding: 0 5px;
+        }
+        body.dark-mode #search-clear-btn {
+            color: #aaa;
+        }
 
         .search-container button {
             flex-shrink: 0;
@@ -203,8 +219,18 @@
         }
         
         #search-prev {
-            margin-left: 10px;
-            margin-right: 10px;
+            margin-left: 5px;
+            margin-right: 5px;
+            border-left: 1px solid #c3e6cb;
+        }
+        body.dark-mode #search-prev {
+            border-left-color: #3b6145;
+        }
+        #search-next {
+             border-left: 1px solid #c3e6cb;
+        }
+         body.dark-mode #search-next {
+            border-left-color: #3b6145;
         }
 
         @media (max-width: 768px) {
@@ -407,7 +433,8 @@
         <div class="search-container">
             <div class="input-wrapper">
                 <input type="search" id="search-input" placeholder="表示画面内を検索...">
-                </div>
+                <button id="search-clear-btn">×</button>
+            </div>
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -421,8 +448,7 @@
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
-        // ▼▼▼ 削除: クリアボタンの変数を削除 ▼▼▼
-        // const searchClearBtn = document.getElementById('search-clear-btn');
+        const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
         const setAppHeight = () => {
@@ -733,16 +759,21 @@
             }, 200);
         });
         
-        // ▼▼▼ 削除: クリアボタン関連のイベントリスナーを削除 ▼▼▼
-        /*
         searchClearBtn.addEventListener('click', () => {
-            ...
+            searchInput.value = '';
+            try {
+                const iframeWin = iframe.contentWindow;
+                if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+                    iframeWin.clearHighlights();
+                }
+            } catch(e) {}
+            searchClearBtn.style.display = 'none';
+            searchInput.focus();
         });
 
         searchInput.addEventListener('input', () => {
-            ...
+            searchClearBtn.style.display = searchInput.value ? 'block' : 'none';
         });
-        */
 
         window.addEventListener('popstate', (event) => {
             if (searchHistoryContainer.style.display === 'block') {
