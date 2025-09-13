@@ -430,6 +430,7 @@
             }, 1000);
         };
 
+        // ▼▼▼ 修正: iframe内のフォントサイズを調整する関数 ▼▼▼
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
             const existingStyle = iframeDoc.getElementById(styleId);
@@ -442,13 +443,13 @@
             styleElement.textContent = `
                 /* 通常時のフォントサイズ調整 */
                 .question-text, .choice-btn { 
-                    font-size: 1.7em !important; 
+                    font-size: 1.8em !important; 
                 }
 
                 /* スマホ表示時のフォントサイズ調整 */
                 @media (max-width: 768px) {
                     .question-text { 
-                        font-size: 1.4em !important; 
+                        font-size: 1.3em !important; 
                     }
                     .choice-btn { 
                         font-size: 1.2em !important; 
@@ -482,7 +483,6 @@
             }
         };
 
-        // ▼▼▼ 修正: 「戻る」ボタン対応を追加 ▼▼▼
         const toggleMenu = () => {
             if (window.innerWidth > 768) return;
             const isOpening = !navColumn.classList.contains('menu-open');
@@ -614,8 +614,7 @@
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
                     
                     iframeWin.handleSearch(searchTerm, direction);
-
-                    // ▼▼▼ 修正: ポップアップ表示のタイミングをsetTimeout(..., 0)で調整 ▼▼▼
+                    
                     setTimeout(() => {
                         if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                             showToast('検索結果無し');
@@ -644,7 +643,6 @@
             loadSearchHistory();
             if (searchHistoryContainer.children.length > 0) {
                 searchHistoryContainer.style.display = 'block';
-                // 履歴メニュー表示時に履歴エントリを追加
                 history.pushState({historyMenuOpen: true}, '');
             }
         });
@@ -660,13 +658,10 @@
             }, 200);
         });
 
-        // ▼▼▼ 修正: 「戻る」ボタンの処理を統合 ▼▼▼
         window.addEventListener('popstate', (event) => {
-            // 履歴メニューが表示されていれば、閉じる
             if (searchHistoryContainer.style.display === 'block') {
                 searchHistoryContainer.style.display = 'none';
             }
-            // ナビゲーションメニューが表示されていれば、閉じる
             if (navColumn.classList.contains('menu-open')) {
                 navColumn.classList.remove('menu-open');
                 menuToggleOpenBtn.style.display = 'flex';
