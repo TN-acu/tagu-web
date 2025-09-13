@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>taguアプリ</title>
     
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -16,7 +16,8 @@
     <style>
         :root {
             --app-height: 100vh;
-            --footer-height: 50px;
+            /* ▼▼▼ 修正: フッターの高さを30pxに変更 ▼▼▼ */
+            --footer-height: 30px;
             /* Light Mode Colors */
             --bg-color-light: #f8f9fa;
             --text-color-light: #212529;
@@ -156,23 +157,12 @@
 
         .search-container {
             display: flex;
-            align-items: center;
             width: 100%;
             flex-grow: 1; 
         }
-        
-        /* ▼▼▼ 追加: 検索フォームとカウンターを内包するラッパー ▼▼▼ */
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            flex-grow: 1;
-        }
-
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
-            /* ▼▼▼ 修正: カウンター表示領域確保のため右のパディングを増やす ▼▼▼ */
-            padding-right: 80px; 
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
             font-size: 0.9em;
@@ -185,26 +175,6 @@
             background-color: var(--secondary-bg-dark);
             color: var(--text-color-dark);
         }
-        
-        /* ▼▼▼ 追加: フォーム内右側に配置するカウンターのスタイル ▼▼▼ */
-        #search-counter {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.1em;
-            font-weight: bold;
-            color: var(--text-color-light);
-            white-space: nowrap;
-            pointer-events: none; /* クリックを下の入力フォームに透過させる */
-        }
-        #search-current {
-            color: orange;
-        }
-        body.dark-mode #search-counter {
-            color: var(--text-color-dark);
-        }
-        
         .search-container button {
             flex-shrink: 0;
             width: 36px;
@@ -216,19 +186,10 @@
             font-size: 1.1em;
             line-height: 1;
         }
-        
-        #search-prev {
-            /* ▼▼▼ 修正: ボタン間のスペース ▼▼▼ */
-            margin-right: 5px;
-            /* ▼▼▼ 修正: 入力フォームと隣接しなくなったため角丸を調整 ▼▼▼ */
-            border-radius: 5px;
-            border-left: 1px solid var(--border-color-light);
+        .search-container button:first-of-type {
+            border-left: none;
         }
-        body.dark-mode #search-prev {
-            border-left-color: var(--border-color-dark);
-        }
-         
-        .search-container button:last-of-type {
+         .search-container button:last-of-type {
             border-left: none;
             border-radius: 0 5px 5px 0;
         }
@@ -329,12 +290,7 @@
     <div id="footer-controls">
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
         <div class="search-container">
-            <div class="input-wrapper">
-                <input type="search" id="search-input" placeholder="表示画面内を検索...">
-                <span id="search-counter">
-                    <span id="search-current">0</span> / <span id="search-total">0</span>
-                </span>
-            </div>
+            <input type="search" id="search-input" placeholder="表示画面内を検索...">
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -343,8 +299,6 @@
     <script>
         const iframe = document.getElementById('contentFrame');
         const bodyElement = document.body;
-        const searchCurrentEl = document.getElementById('search-current');
-        const searchTotalEl = document.getElementById('search-total');
 
         const setAppHeight = () => {
             document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -423,6 +377,27 @@
         setupMobileMenuLayout(); 
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
+
+        // ▼▼▼ 追加: フォントサイズ調整用のCSSをiframeに注入する関数 ▼▼▼
+        function injectCustomStylesToIframe(iframeDoc) {
+            const styleId = 'injected-custom-style';
+            if (iframeDoc.getElementById(styleId)) {
+                iframeDoc.getElementById(styleId).remove();
+            }
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.id = styleId;
+            styleElement.textContent = `
+                /* Injected Font Styles */
+                .question-text { font-size: 1.7em !important; }
+                .choice-btn { font-size: 1.7em !important; }
+
+                @media (max-width: 768px) {
+                    .question-text { font-size: 1.4em !important; }
+                    .choice-btn { font-size: 1.4em !important; }
+                }
+            `;
+            iframeDoc.head.appendChild(styleElement);
+        }
         
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
@@ -510,34 +485,17 @@
         const searchPrevBtn = document.getElementById('search-prev');
         const searchNextBtn = document.getElementById('search-next');
 
-        // ▼▼▼ 修正: カウンター更新ロジックを改善 ▼▼▼
-        function updateSearchCounter(state) {
-            if (state && state.elements) {
-                const total = state.elements.length;
-                const current = total > 0 ? state.currentIndex + 1 : 0;
-                searchCurrentEl.textContent = current;
-                searchTotalEl.textContent = total;
-            } else {
-                searchCurrentEl.textContent = 0;
-                searchTotalEl.textContent = 0;
-            }
-        }
-
         const performSearch = (direction) => {
             const searchTerm = searchInput.value;
             try {
                 const iframeWin = iframe.contentWindow;
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
                     iframeWin.handleSearch(searchTerm, direction);
-                    // 検索実行直後にiframe内の状態を読み取ってカウンターを更新
-                    updateSearchCounter(iframeWin.searchState);
                 } else if (searchTerm) {
                     alert("現在のページではカスタム検索機能がサポートされていません。");
-                    updateSearchCounter(null);
                 }
             } catch (e) {
                 console.error("Error calling iframe search function:", e.message);
-                updateSearchCounter(null);
             }
         };
 
@@ -547,20 +505,6 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 performSearch('next');
-            }
-        });
-        
-        searchInput.addEventListener('input', () => {
-            if (searchInput.value === '') {
-                 try {
-                    const iframeWin = iframe.contentWindow;
-                    if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                        iframeWin.clearHighlights();
-                    }
-                    updateSearchCounter(iframeWin.searchState); // クリア後もstateを反映
-                } catch(e) {
-                    updateSearchCounter(null);
-                }
             }
         });
         
@@ -668,11 +612,10 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
+                    // ▼▼▼ 修正: フォント調整関数を呼び出す ▼▼▼
+                    injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    
-                    // ▼▼▼ 修正: 検索ボタン機能を再度有効化 ▼▼▼
                     addSearchButtonsToIframe(); 
-                    
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
@@ -684,7 +627,6 @@
 
         iframe.addEventListener('load', () => {
             setupIframeContent();
-            updateSearchCounter(null); // ページが新しく読み込まれたらカウンターをリセット
         });
     </script>
 
