@@ -159,18 +159,11 @@
             width: 100%;
             flex-grow: 1; 
         }
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            flex-grow: 1;
-            align-items: center;
-        }
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
-            padding-right: 30px;
             border: 1px solid var(--border-color-light);
-            border-radius: 5px;
+            border-radius: 5px 0 0 5px; /* ▼▼▼ 修正: 角丸を元に戻す ▼▼▼ */
             font-size: 0.9em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
@@ -180,24 +173,6 @@
             border-color: var(--border-color-dark);
             background-color: var(--secondary-bg-dark);
             color: var(--text-color-dark);
-        }
-        
-        #search-clear-btn {
-            display: none;
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 1.5em;
-            line-height: 1;
-            color: #888;
-            padding: 0 5px;
-        }
-        body.dark-mode #search-clear-btn {
-            color: #aaa;
         }
 
         .search-container button {
@@ -210,7 +185,6 @@
             cursor: pointer;
             font-size: 1.1em;
             line-height: 1;
-            border-radius: 5px;
         }
         body.dark-mode .search-container button {
             background-color: #2a4832;
@@ -219,8 +193,14 @@
         }
         
         #search-prev {
-            margin-left: 5px;
+            margin-left: 0; /* ▼▼▼ 修正: 不要なマージンを削除 ▼▼▼ */
             margin-right: 10px;
+            border-left: none; /* ▼▼▼ 修正: 左枠線を削除 ▼▼▼ */
+            border-radius: 0; /* ▼▼▼ 修正: 角丸を削除 ▼▼▼ */
+        }
+        /* ▼▼▼ 修正: nextボタンのスタイルを元に戻す ▼▼▼ */
+        #search-next {
+             border-radius: 0 5px 5px 0;
         }
 
         @media (max-width: 768px) {
@@ -255,6 +235,10 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
+            #footer-controls {
+                width: calc(100% - 100px);
+                border-top-right-radius: 8px;
+            }
         }
         
         .menu-toggle {
@@ -401,10 +385,7 @@
     <div id="footer-controls">
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
         <div class="search-container">
-             <div class="input-wrapper">
-                <input type="search" id="search-input" placeholder="表示画面内を検索...">
-                <button id="search-clear-btn">×</button>
-            </div>
+             <input type="search" id="search-input" placeholder="表示画面内を検索...">
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -418,8 +399,8 @@
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
-        // ▼▼▼ 追加: クリアボタンの要素を取得 ▼▼▼
-        const searchClearBtn = document.getElementById('search-clear-btn');
+        // ▼▼▼ 削除: クリアボタンの要素取得を削除 ▼▼▼
+        // const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
         const setAppHeight = () => {
@@ -722,23 +703,7 @@
             }, 200);
         });
         
-        // ▼▼▼ 追加: 検索フォームクリアボタンのイベント ▼▼▼
-        searchClearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            try {
-                const iframeWin = iframe.contentWindow;
-                if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                    iframeWin.clearHighlights();
-                }
-            } catch(e) {}
-            searchClearBtn.style.display = 'none';
-            searchInput.focus();
-        });
-
-        // ▼▼▼ 追加: 検索フォーム入力時のクリアボタン表示/非表示制御 ▼▼▼
-        searchInput.addEventListener('input', () => {
-            searchClearBtn.style.display = searchInput.value ? 'block' : 'none';
-        });
+        // ▼▼▼ 削除: クリアボタン関連のイベントリスナーを削除 ▼▼▼
 
         window.addEventListener('popstate', (event) => {
             if (searchHistoryContainer.style.display === 'block') {
