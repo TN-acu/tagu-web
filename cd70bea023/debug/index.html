@@ -430,9 +430,9 @@
         const searchInput = document.getElementById('search-input');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
-        // ▼▼▼ 追加: スマホ戻るボタンによるクイズ選択解除機能のための内部スタック ▼▼▼
-        let quizChoiceHistoryStack = []; // [index, index, ...] 選択された問題インデックスの履歴
-        // ▲▲▲ 追加ここまで ▲▲▲
+        // ▼▼▼ 修正: すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
+        let customHistoryStack = []; 
+        // ▲▲▲ 修正ここまで ▲▲▲
 
         const setAppHeight = () => {
             document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -554,20 +554,23 @@
             const quizIndex = parseInt(quizIndexStr, 10);
             if (isNaN(quizIndex)) return;
 
-            // 直前の履歴が同じ問題でない場合のみ、新しい履歴をプッシュ
-            // (同じ問題で選び直した場合、履歴スタックは増やさない)
-            if (quizChoiceHistoryStack.length === 0 || quizChoiceHistoryStack[quizChoiceHistoryStack.length - 1] !== quizIndex) {
-                history.pushState({ quizChoiceSelected: true, quizIndex: quizIndex }, '');
-                quizChoiceHistoryStack.push(quizIndex);
+            const newState = {type: 'quiz', index: quizIndex};
+            const lastHistory = customHistoryStack.length > 0 ? customHistoryStack[customHistoryStack.length - 1] : null;
+
+            // 直前の履歴が、今選択したのと同じクイズ問題 *でない* 場合のみ、履歴をプッシュ
+            if (!lastHistory || !(lastHistory.type === 'quiz' && lastHistory.index === quizIndex)) {
+                 history.pushState({uiState: 'quiz', quizIndex: quizIndex}, '');
+                 customHistoryStack.push(newState);
             }
         }
+
 
         /**
          * iframe内のクイズ終了ボタンが押された時、またはページ移動時に呼び出される。
          * 内部のカスタム履歴スタックをクリアし、「戻る」による選択解除機能を停止する。
          */
         function handleQuizFinished() {
-            quizChoiceHistoryStack = [];
+            customHistoryStack = [];
         }
 
         /**
@@ -599,8 +602,7 @@
                     feedbackText.textContent = '';
                 }
                 
-                // 3. ★新要件: 解除した問題へスクロール
-                // iframe内の要素に対してscrollIntoViewを実行すると、iframe内でスクロールする
+                // 3. スクロール
                 quizItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
                 // 4. iframeのJS変数を操作: 回答データを削除し、スコアを更新
@@ -669,15 +671,19 @@
             const isOpening = !navColumn.classList.contains('menu-open');
             navColumn.classList.toggle('menu-open');
             if (isOpening) {
-                history.pushState({navMenuOpen: true}, '');
+                // history.pushState({navMenuOpen: true}, ''); // ★古いコード
+                history.pushState({uiState: 'menu'}, ''); // ▼修正: 一元管理用のstate
+                customHistoryStack.push('menu');          // ▼修正: 内部スタックに追加
+                
                 menuToggleOpenBtn.style.display = 'none';
                 menuToggleCloseBtn.style.display = 'flex';
                 const scrollHeight = appList.scrollHeight;
                 appList.style.height = '0';
                 setTimeout(() => { appList.style.height = `${scrollHeight}px`; appList.style.paddingTop = '10px'; appList.style.paddingBottom = '10px'; }, 10);
             } else {
-                if (history.state && history.state.navMenuOpen) {
-                    history.back();
+                // if (history.state && history.state.navMenuOpen) { // ★古いコード
+                if (history.state && history.state.uiState === 'menu') { // ▼修正: 新しいstateキーで判定
+                    history.back(); // これがpopstateをトリガーする
                 }
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
@@ -691,16 +697,14 @@
         menuToggleCloseBtn.addEventListener('click', toggleMenu);
         const appLinks = document.querySelectorAll('#app-list a');
         
-        // ▼▼▼ 修正: ナビゲーションクリック時にもクイズ履歴スタックをクリアする ▼▼▼
         appLinks.forEach(link => {
             link.addEventListener('click', () => { 
-                handleQuizFinished(); // クイズ履歴スタックをクリアする関数を流用
+                handleQuizFinished(); // ▼修正: クイズ履歴スタックをクリア
                 if (navColumn.classList.contains('menu-open')) { 
                     toggleMenu(); 
                 } 
             });
         });
-        // ▲▲▲ 修正ここまで ▲▲▲
         
         window.addEventListener('resize', setupMobileMenuLayout);
         setupMobileMenuLayout(); 
@@ -832,66 +836,80 @@
         };
         
         searchInput.addEventListener('focus', () => {
-            history.pushState({searchInputFocused: true}, '');
+            // history.pushState({searchInputFocused: true}, ''); // ★古いコード
+            history.pushState({uiState: 'search'}, ''); // ▼修正: 一元管理用のstate
+            customHistoryStack.push('search');          // ▼修正: 内部スタックに追加
             showSearchHistoryIfNeeded();
         });
         
         searchInput.addEventListener('click', () => {
             if (searchHistoryContainer.style.display !== 'block') {
                  showSearchHistoryIfNeeded();
+                 // 注: 既にフォーカスがあたっている場合のクリックでは、focusイベントが発火しないため履歴が重複しない
+                 // もしfocusが外れた状態からクリックした場合は、focusイベントとclickイベント両方が発火する可能性があるが
+                 // 内部スタックに 'search' が連続で積まれる。popstate側で連続する同一イベントは処理スキップする等の考慮が将来的に必要かもしれないが
+                 // 現状のpopstateロジック（LIFO）では問題ない。
             }
         });
         
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
-                    if (history.state && (history.state.historyMenuOpen || history.state.searchInputFocused)) {
-                        history.back();
+                    // if (history.state && (history.state.historyMenuOpen || history.state.searchInputFocused)) { // ★古いコード
+                    if (history.state && history.state.uiState === 'search') { // ▼修正: 新しいstateキーで判定
+                        history.back(); // これがpopstateをトリガーする
                     }
                     searchHistoryContainer.style.display = 'none';
                 }
             }, 200);
         });
         
-        // ▼▼▼ 修正: 既存のpopstateリスナーを、クイズ解除ロジックを含むものに「置き換え」る ▼▼▼
+        // ▼▼▼ 修正: popstateリスナーを、すべての状態を一元管理するロジックに「置き換え」る ▼▼▼
         window.addEventListener('popstate', (event) => {
             
-            // 優先度1: クイズの選択解除 (内部スタックに履歴がある場合)
-            if (quizChoiceHistoryStack.length > 0) {
-                const quizIndexToClear = quizChoiceHistoryStack.pop(); // スタックから最後の選択を取り出す
-                
-                // iframeのDOMとJS状態を操作して、その問題の選択を解除する (スクロールも含む)
-                clearIframeChoice(quizIndexToClear);
-                
-                // この「戻る」操作は選択解除のために消費されたため、以降の処理は行わない。
-                return; 
-            }
+            if (customHistoryStack.length > 0) {
+                const lastStateToPop = customHistoryStack.pop(); // 内部スタックから最後のアクションを取り出す
 
-            // 優先度2: モバイルナビメニューが開いている場合
-            if (navColumn.classList.contains('menu-open')) {
-                navColumn.classList.remove('menu-open');
-                menuToggleOpenBtn.style.display = 'flex';
-                menuToggleCloseBtn.style.display = 'none';
-                appList.style.height = '0'; 
-                appList.style.paddingTop = '0';
-                appList.style.paddingBottom = '0';
-            } 
-            // 優先度3: 検索UIが開いている、またはフォーカスされている場合
-            else if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
-                if (searchHistoryContainer.style.display === 'block') {
-                     searchHistoryContainer.style.display = 'none';
-                }
-                if (searchInput.value !== '') {
-                    searchInput.value = '';
-                    try {
-                        const iframeWin = iframe.contentWindow;
-                        if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                            iframeWin.clearHighlights();
+                if (lastStateToPop === 'menu') {
+                    // 「戻る」ボタンで押された場合（＝UIがまだ開いている場合）のみ、閉じるDOM操作を実行
+                    // (ボタンで閉じた場合は、DOM操作はtoggleMenu側で行われているため、このifはfalseになる)
+                    if (navColumn.classList.contains('menu-open')) {
+                        navColumn.classList.remove('menu-open');
+                        menuToggleOpenBtn.style.display = 'flex';
+                        menuToggleCloseBtn.style.display = 'none';
+                        appList.style.height = '0'; 
+                        appList.style.paddingTop = '0';
+                        appList.style.paddingBottom = '0';
+                    }
+                    return; // このpopstateは消費した
+                } 
+                else if (lastStateToPop === 'search') {
+                    // 「戻る」ボタンで押された場合（＝UIがまだ開いている/フォーカスされている場合）のみ、閉じるDOM操作を実行
+                    // (blurで閉じた場合は、DOM操作はblurリスナー側で行われているため、このifはfalseになる)
+                    if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
+                        if (searchHistoryContainer.style.display === 'block') {
+                             searchHistoryContainer.style.display = 'none';
                         }
-                    } catch(e) {}
+                        if (searchInput.value !== '') {
+                            searchInput.value = '';
+                            try {
+                                const iframeWin = iframe.contentWindow;
+                                if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+                                    iframeWin.clearHighlights();
+                                }
+                            } catch(e) {}
+                        }
+                        searchInput.blur();
+                    }
+                    return; // このpopstateは消費した
                 }
-                searchInput.blur();
+                else if (lastStateToPop && lastStateToPop.type === 'quiz') {
+                    // クイズ解除は「戻る」ボタンでしかトリガーされないので、必ず実行
+                    clearIframeChoice(lastStateToPop.index);
+                    return; // このpopstateは消費した
+                }
             }
+            // 内部スタックが空の場合は、通常のブラウザバック動作（ページ遷移）となる
         });
         // ▲▲▲ 修正ここまで ▲▲▲
         
@@ -998,7 +1016,7 @@
         function setupIframeContent() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                // ▼▼▼ 修正: if条件を元の状態に戻す（JSによるDOM構築完了を待つため） ▼▼▼
+                // ▼▼▼ 修正: if条件を不具合のあった 'readyState' を削除し、元の状態に戻す ▼▼▼
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                 // ▲▲▲ 修正ここまで ▲▲▲
                     
@@ -1017,11 +1035,9 @@
                             quizButtons.forEach(btn => {
                                 // 既存の onclick 属性 (selectChoice) の *後* で実行されるように addEventListener を使用
                                 btn.addEventListener('click', (e) => {
-                                    // e.targetはiframe内の要素 (.choice-btn)
                                     const quizItem = e.target.closest('.quiz-item');
                                     if (quizItem && quizItem.id) {
                                         const quizIndex = quizItem.id.split('-')[1];
-                                        // 親フレーム（index.html）側の関数を呼び出す
                                         handleQuizChoiceMade(quizIndex);
                                     }
                                 });
@@ -1049,10 +1065,8 @@
         }
 
         iframe.addEventListener('load', () => {
-            // ▼▼▼ 修正: iframeの 'load' イベント発火時にスタックをリセットする ▼▼▼
-            handleQuizFinished(); // ページが新しく読み込まれたら必ず履歴スタックをクリア
+            handleQuizFinished(); // ▼修正: ページが新しく読み込まれたら必ず履歴スタックをクリア
             setupIframeContent();
-            // ▲▲▲ 修正ここまで ▲▲▲
         });
         
         loadSearchHistory();
