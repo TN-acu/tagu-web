@@ -549,7 +549,8 @@
             }, 1000);
         };
 
-        // ▼▼▼ すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
+        // ▼▼▼ 追加: スマホ戻るボタン機能のための新関数群 ▼▼▼
+
         function handleQuizChoiceMade(quizIndexStr) {
             const quizIndex = parseInt(quizIndexStr, 10);
             if (isNaN(quizIndex)) return;
@@ -930,7 +931,6 @@
                     searchBtn.className = 'search-btn';
                     searchBtn.textContent = '🔍';
                     
-                    // ▼▼▼ 修正箇所 ▼▼▼
                     searchBtn.onclick = () => {
                         if (!isMobile()) {
                             navigator.clipboard.writeText(textToSearch).catch(err => {
@@ -941,13 +941,17 @@
                         const searchQuery = encodeURIComponent(textToSearch);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
                         
-                        // PC/モバイル問わず、第3引数(features)を削除し '_blank' のみ指定する。
-                        // これにより、ブラウザの標準動作（通常はメインウィンドウでの「新しいタブ」）で開かれる。
-                        // 特定の寸法を持つ別のウィンドウにタブを集約することは window.open では制御できないため、
-                        // 「新しいタブで開く」という動作を優先する。
-                        window.open(searchUrl, '_blank'); 
+                        if (!isMobile()) {
+                            const width = window.innerWidth;
+                            const height = window.innerHeight;
+                            const top = window.screenY;
+                            const left = window.screenX + window.innerWidth;
+                            const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
+                            window.open(searchUrl, 'googleSearchWindow', windowFeatures);
+                        } else {
+                            window.open(searchUrl, '_blank');
+                        }
                     };
-                    // ▲▲▲ 修正箇所 ▲▲▲
                     
                     const wrapper = iframeDoc.createElement('div');
                     wrapper.className = 'search-button-wrapper';
