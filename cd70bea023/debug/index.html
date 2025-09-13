@@ -130,7 +130,7 @@
             display: flex;
             align-items: center;
             z-index: 100;
-            transition: background-color 0.3s, border-color 0.3s, width 0.3s;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         body.dark-mode #footer-controls {
             background-color: var(--secondary-bg-dark);
@@ -158,12 +158,6 @@
             display: flex;
             width: 100%;
             flex-grow: 1; 
-        }
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            flex-grow: 1;
-            align-items: center;
         }
         .search-container input[type="search"] {
             flex-grow: 1;
@@ -222,6 +216,12 @@
             margin-left: 5px;
             margin-right: 10px;
         }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+        }
 
         @media (max-width: 768px) {
             .container { 
@@ -255,14 +255,15 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
-
-            /* ▼▼▼ 追加: スマホ用のフッターと履歴メニューの幅を調整 ▼▼▼ */
+            
+            /* ▼▼▼ 追加: スマホ用のフッターと履歴の幅調整 ▼▼▼ */
             #footer-controls {
-                width: 80%;
+                padding-left: 25px;
+                padding-right: 25px;
             }
             #search-history-container {
-                width: 80%;
-                right: auto; /* rightプロパティを解除してwidthを有効にする */
+                left: 25px;
+                right: 25px;
             }
         }
         
@@ -324,7 +325,6 @@
             border-radius: 5px 5px 0 0;
             box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
             z-index: 99;
-            transition: width 0.3s;
         }
         body.dark-mode #search-history-container {
              background-color: #4d4d33;
@@ -459,27 +459,22 @@
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
-
                     const textSpan = document.createElement('span');
                     textSpan.textContent = term;
                     textSpan.style.flexGrow = '1';
-
                     const deleteBtn = document.createElement('span');
                     deleteBtn.className = 'history-delete-btn';
                     deleteBtn.textContent = '×';
-                    
                     deleteBtn.addEventListener('mousedown', (e) => {
                         e.stopPropagation();
                         deleteSearchTerm(term);
                     });
-
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
-
                     item.appendChild(textSpan);
                     item.appendChild(deleteBtn);
                     searchHistoryContainer.appendChild(item);
