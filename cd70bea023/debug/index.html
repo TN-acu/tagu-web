@@ -430,9 +430,8 @@
         const searchInput = document.getElementById('search-input');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
-        // ▼▼▼ 修正: すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
+        // ▼▼▼ すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
         let customHistoryStack = []; 
-        // ▲▲▲ 修正ここまで ▲▲▲
 
         const setAppHeight = () => {
             document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -522,6 +521,7 @@
             }
         };
 
+        // ▼▼▼ 修正: saveSearchTerm 関数を新しい仕様（FIFO・重複無視）に変更 ▼▼▼
         const saveSearchTerm = (term) => {
             if (!term || term.trim() === '') return;
             let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
@@ -539,6 +539,7 @@
             localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
             loadSearchHistory(); 
         };
+        // ▲▲▲ 修正ここまで ▲▲▲
 
         let toastTimer;
         const showToast = (message) => {
@@ -569,6 +570,7 @@
             customHistoryStack = [];
         }
 
+        // ▼▼▼ 修正: clearIframeChoice をスコア再計算ロジック強制実行版に変更 ▼▼▼
         function clearIframeChoice(quizIndex) {
             try {
                 const iframeWin = iframe.contentWindow;
@@ -578,7 +580,7 @@
                 const quizItem = iframeDoc.getElementById(`quiz-${quizIndex}`);
                 if (!quizItem) return;
 
-                // 1. DOM操作: 選択ボタンの .selected クラスを解除
+                // 1. DOM操作: 選択解除
                 const choiceButtons = quizItem.querySelectorAll('.choice-btn');
                 choiceButtons.forEach(btn => {
                     btn.classList.remove('selected');
@@ -593,32 +595,41 @@
                 // 3. スクロール
                 quizItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // 4. ▼▼▼ 修正: スコア計算不具合の対策 ▼▼▼
-                //    delete 演算子がクロスフレームで期待通りに動作しない可能性を考慮し、
-                //    プロパティを削除する代わりに undefined を代入する。
-                //    これにより updateScore() のスコア加算ロジック (if (answer === correct_answer)) が false になり、
-                //    スコアが正しく減算（または非加算）される。
+                // 4. スコア計算不具合の根本対策：
+                // iframeのJS変数(userAnswers)からデータを削除し、
+                // iframeのupdateScore()を呼び出すのではなく、親フレーム側でスコア計算を再実行し、DOMに直接書き込む。
+                
+                let answerDeleted = false;
                 if (iframeWin.userAnswers && typeof iframeWin.userAnswers === 'object' && iframeWin.userAnswers.hasOwnProperty(quizIndex)) {
                     
-                    // 解答データを削除する代わりに undefined をセット
-                    iframeWin.userAnswers[quizIndex] = undefined;
-                    
-                    // delete iframeWin.userAnswers[quizIndex]; // ← こちらが機能していないと仮定
-
-                    // iframe内のスコア更新関数を呼び出す
-                    if (typeof iframeWin.updateScore === 'function') {
-                        iframeWin.updateScore();
-                    }
+                    delete iframeWin.userAnswers[quizIndex]; // iframeのJSデータを直接削除
+                    answerDeleted = true;
                 }
-                // ▲▲▲ 修正ここまで ▲▲▲
+
+                // iframe側の updateScore() と同等のロジックをここで実行
+                if (answerDeleted && iframeWin.quizzes && iframeWin.userAnswers && iframeDoc.getElementById('score-text')) {
+                    let score = 0;
+                    const quizzes = iframeWin.quizzes; // iframeのクイズデータ配列
+                    const userAnswers = iframeWin.userAnswers; // delete 済みの回答オブジェクト
+                    
+                    for (const idx in userAnswers) { 
+                        // userAnswersに存在するキー（削除された正解キーはもうない）だけをループ
+                        if (userAnswers[idx] && quizzes[idx] && userAnswers[idx] === quizzes[idx].answer) {
+                            score++; 
+                        }
+                    }
+                    
+                    // iframe内のスコア表示DOMを直接更新
+                    const scoreTextElement = iframeDoc.getElementById('score-text');
+                    scoreTextElement.textContent = `正解数: ${score} / ${quizzes.length}`;
+                }
 
             } catch (e) {
                 console.error("Error clearing iframe choice:", e.message);
             }
         }
+        // ▲▲▲ 修正ここまで ▲▲▲
         
-        // ▲▲▲ 追加ここまで ▲▲▲
-
 
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
