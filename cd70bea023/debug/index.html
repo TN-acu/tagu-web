@@ -266,14 +266,13 @@
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
             
-            /* ▼▼▼ 追加: スマホ表示時のフッター幅と検索フォーム幅を調整 ▼▼▼ */
             #footer-controls {
-                width: 100%; /* フッター自体は全幅に戻す */
+                width: 100%;
                 border-top-right-radius: 0;
             }
             .search-container input[type="search"] {
-                flex-grow: 0; /* 幅の指定を優先させるため */
-                width: 23ch;  /* 幅を約23文字分に設定 */
+                flex-grow: 0; 
+                width: 23ch; 
             }
         }
         
@@ -456,6 +455,10 @@
         const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
+        // ▼▼▼ 追加: ページ離脱防止用のフラグ ▼▼▼
+        let isQuizCurrentlyActive = false;
+        let userClickedMenu = false;
+
         const setAppHeight = () => {
             document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
         };
@@ -622,7 +625,13 @@
         menuToggleCloseBtn.addEventListener('click', toggleMenu);
         const appLinks = document.querySelectorAll('#app-list a');
         appLinks.forEach(link => {
-            link.addEventListener('click', () => { if (navColumn.classList.contains('menu-open')) { toggleMenu(); } });
+            link.addEventListener('click', () => { 
+                // ▼▼▼ 追加: メニュークリックのフラグを立てる ▼▼▼
+                userClickedMenu = true;
+                if (navColumn.classList.contains('menu-open')) { 
+                    toggleMenu(); 
+                } 
+            });
         });
         window.addEventListener('resize', setupMobileMenuLayout);
         setupMobileMenuLayout(); 
@@ -780,10 +789,14 @@
             searchClearBtn.style.display = searchInput.value ? 'block' : 'none';
         });
 
+        // ▼▼▼ 修正: 「戻る」ボタンの処理を、ページ離脱防止機能と統合 ▼▼▼
         window.addEventListener('popstate', (event) => {
+            // 1. 履歴メニューが開いていれば、閉じる
             if (searchHistoryContainer.style.display === 'block') {
                 searchHistoryContainer.style.display = 'none';
+                return; // 戻るボタンの動作はここで終了
             }
+            // 2. ナビメニューが開いていれば、閉じる
             if (navColumn.classList.contains('menu-open')) {
                 navColumn.classList.remove('menu-open');
                 menuToggleOpenBtn.style.display = 'flex';
@@ -791,6 +804,21 @@
                 appList.style.height = '0'; 
                 appList.style.paddingTop = '0';
                 appList.style.paddingBottom = '0';
+                return; // 戻るボタンの動作はここで終了
+            }
+
+            // 3. どちらのメニューも開いていない ＝ 本当のページ移動
+            if (isQuizCurrentlyActive) {
+                const isConfirmed = confirm("この画面から移動します。よろしいですか？");
+                if (!isConfirmed) {
+                    // 移動をキャンセルし、再度履歴にガードをプッシュする
+                    history.pushState({isQuizActive: true}, '');
+                } else {
+                    // ユーザーが「OK」した場合、(すでにpopstateは発生しているので)何もしないか、
+                    // もしくは安全に前のページ（タイマーなど）に移動する
+                    isQuizCurrentlyActive = false;
+                    history.back(); // 実際に「戻る」を実行
+                }
             }
         });
         
@@ -902,6 +930,19 @@
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
                     setAppHeight();
+                    
+                    // ▼▼▼ 追加: ページ離脱防止機能のセットアップ ▼▼▼
+                    const isTimerPage = iframe.contentWindow.location.href.includes('timer-');
+                    if (isTimerPage) {
+                        isQuizCurrentlyActive = false;
+                    } else {
+                        // クイズページの場合、履歴ガードを追加
+                        isQuizCurrentlyActive = true;
+                        history.pushState({isQuizActive: true}, '');
+                    }
+                    // メニュークリックフラグをリセット
+                    userClickedMenu = false;
+
                 } else {
                     setTimeout(setupIframeContent, 50);
                 }
@@ -912,6 +953,17 @@
 
         iframe.addEventListener('load', () => {
             setupIframeContent();
+        });
+
+        // ▼▼▼ 追加: 再読み込みやタブ閉じ込みを捕捉するリスナー ▼▼▼
+        window.addEventListener('beforeunload', (e) => {
+            // クイズがアクティブで、かつメニュークリック以外での離脱の場合
+            if (isQuizCurrentlyActive && !userClickedMenu) {
+                const confirmationMessage = "この画面から移動します。よろしいですか？";
+                e.returnValue = confirmationMessage; // 標準的なブラウザ用
+                return confirmationMessage;          // 一部の古いブラウザ用
+            }
+            // タイマーページやメニュークリック時は確認しない
         });
         
         loadSearchHistory();
