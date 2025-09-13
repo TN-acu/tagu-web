@@ -168,7 +168,8 @@
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
-            padding-right: 30px;
+            /* ▼▼▼ 削除: クリアボタン用のpadding-rightを削除 ▼▼▼ */
+            /* padding-right: 30px; */
             border: 1px solid var(--border-color-light);
             border-radius: 5px;
             font-size: 0.9em;
@@ -182,23 +183,9 @@
             color: var(--text-color-dark);
         }
         
-        #search-clear-btn {
-            display: none;
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 1.5em;
-            line-height: 1;
-            color: #888;
-            padding: 0 5px;
-        }
-        body.dark-mode #search-clear-btn {
-            color: #aaa;
-        }
+        /* ▼▼▼ 削除: クリアボタンのCSSを削除 ▼▼▼ */
+        /* #search-clear-btn { ... } */
+        /* body.dark-mode #search-clear-btn { ... } */
 
         .search-container button {
             flex-shrink: 0;
@@ -433,8 +420,7 @@
         <div class="search-container">
             <div class="input-wrapper">
                 <input type="search" id="search-input" placeholder="表示画面内を検索...">
-                <button id="search-clear-btn">×</button>
-            </div>
+                </div>
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -448,7 +434,8 @@
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
-        const searchClearBtn = document.getElementById('search-clear-btn');
+        // ▼▼▼ 削除: searchClearBtn の変数を削除 ▼▼▼
+        // const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
         const setAppHeight = () => {
@@ -741,17 +728,20 @@
             }
         });
         
+        // ▼▼▼ 修正: 履歴プッシュのロジックを修正 ▼▼▼
         searchInput.addEventListener('focus', () => {
+            // フォーカス時に必ず履歴エントリを追加
+            history.pushState({searchInputFocused: true}, '');
+
             loadSearchHistory();
             if (searchHistoryContainer.children.length > 0) {
                 searchHistoryContainer.style.display = 'block';
-                history.pushState({historyMenuOpen: true}, '');
             }
         });
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
-                    if (history.state && history.state.historyMenuOpen) {
+                    if (history.state && (history.state.historyMenuOpen || history.state.searchInputFocused)) {
                         history.back();
                     }
                     searchHistoryContainer.style.display = 'none';
@@ -759,33 +749,37 @@
             }, 200);
         });
         
-        searchClearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            try {
-                const iframeWin = iframe.contentWindow;
-                if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                    iframeWin.clearHighlights();
-                }
-            } catch(e) {}
-            searchClearBtn.style.display = 'none';
-            searchInput.focus();
-        });
+        // ▼▼▼ 削除: クリアボタン関連のリスナーを削除 ▼▼▼
+        /*
+        searchClearBtn.addEventListener('click', () => { ... });
+        searchInput.addEventListener('input', () => { ... });
+        */
 
-        searchInput.addEventListener('input', () => {
-            searchClearBtn.style.display = searchInput.value ? 'block' : 'none';
-        });
-
+        // ▼▼▼ 修正: popstateのロジックを更新 ▼▼▼
         window.addEventListener('popstate', (event) => {
-            if (searchHistoryContainer.style.display === 'block') {
-                searchHistoryContainer.style.display = 'none';
-            }
             if (navColumn.classList.contains('menu-open')) {
+                // 最優先: ナビゲーションメニューを閉じる
                 navColumn.classList.remove('menu-open');
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
                 appList.style.height = '0'; 
                 appList.style.paddingTop = '0';
                 appList.style.paddingBottom = '0';
+            } else if (searchHistoryContainer.style.display === 'block') {
+                // 次: 履歴メニューを閉じる
+                searchHistoryContainer.style.display = 'none';
+            } else if (document.activeElement === searchInput) {
+                // 最後: 検索フォームがフォーカスされている場合（ご要望の動作）
+                if (searchInput.value !== '') {
+                    searchInput.value = '';
+                    try {
+                        const iframeWin = iframe.contentWindow;
+                        if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+                            iframeWin.clearHighlights();
+                        }
+                    } catch(e) {}
+                }
+                searchInput.blur();
             }
         });
         
