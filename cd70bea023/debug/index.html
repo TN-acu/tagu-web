@@ -493,33 +493,23 @@
                         deleteSearchTerm(term);
                     });
                     
-                    // ▼▼▼ 修正: 履歴項目クリック時の動作 ▼▼▼
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
 
-                        // 検索実行前に、iframe内の検索状態（特にキャッシュされた検索語）をリセットする
                         try {
                             const iframeWin = iframe.contentWindow;
                             if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-                                // handleSearchが存在する場合（クイズページなど）:
-                                // 空文字列で検索を一度実行し、内部の検索語キャッシュ(internalState.term)をリセットさせる。
-                                // これにより、次に呼ばれる performSearch 内の handleSearch が必ず「新規検索」として扱われる。
-                                // clearHighlights()だけでは internalState.term がリセットされないため、この問題が発生していた。
                                 iframeWin.handleSearch('', 'next'); 
                             } else if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                                // handleSearchがないページ（タイマー等）の場合、従来のclearHighlightsを呼ぶ
                                 iframeWin.clearHighlights();
                             }
                         } catch(err) {}
                         
-                        // 目的の検索語をインプットにセット
                         searchInput.value = term;
 
-                        // 検索を実行
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
-                    // ▲▲▲ 修正ここまで ▲▲▲
 
                     item.appendChild(textSpan);
                     item.appendChild(deleteBtn);
@@ -743,13 +733,29 @@
             }
         });
         
-        searchInput.addEventListener('focus', () => {
-            history.pushState({searchInputFocused: true}, '');
+        // ▼▼▼ 修正 ▼▼▼
+        // 履歴表示ロジックを関数化
+        const showSearchHistoryIfNeeded = () => {
             loadSearchHistory();
             if (searchHistoryContainer.children.length > 0) {
                 searchHistoryContainer.style.display = 'block';
             }
+        };
+        
+        searchInput.addEventListener('focus', () => {
+            history.pushState({searchInputFocused: true}, '');
+            showSearchHistoryIfNeeded();
         });
+        
+        searchInput.addEventListener('click', () => {
+             // 既にフォーカスが当たっている状態（検索実行後など）で再度タップされた場合、
+             // focusイベントは発火しないため、clickイベントで履歴表示を強制的にトリガーする。
+            if (searchHistoryContainer.style.display !== 'block') {
+                 showSearchHistoryIfNeeded();
+            }
+        });
+        // ▲▲▲ 修正ここまで ▲▲▲
+        
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
