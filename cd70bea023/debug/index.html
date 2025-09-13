@@ -179,7 +179,6 @@
             width: 36px;
             padding: 0;
             border: 1px solid #c3e6cb;
-            /* ▼▼▼ 修正: ボタンの色を薄い緑色に ▼▼▼ */
             background-color: #d4edda;
             color: var(--text-color-light);
             cursor: pointer;
@@ -193,7 +192,6 @@
             color: var(--text-color-dark);
         }
         
-        /* ▼▼▼ 修正: ボタン間のスペース ▼▼▼ */
         #search-prev {
             margin-left: 5px;
             margin-right: 10px;
@@ -285,7 +283,6 @@
             right: 10px;
             max-height: 200px;
             overflow-y: auto;
-            /* ▼▼▼ 修正: 履歴の背景色を薄い黄色に ▼▼▼ */
             background-color: #ffffe0;
             border: 1px solid #e6e6c3;
             border-bottom: none;
@@ -433,7 +430,6 @@
             }, 1000);
         };
 
-        // ▼▼▼ 追加: iframe内のフォントサイズを調整する関数 ▼▼▼
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
             const existingStyle = iframeDoc.getElementById(styleId);
@@ -486,18 +482,24 @@
             }
         };
 
+        // ▼▼▼ 修正: 「戻る」ボタン対応を追加 ▼▼▼
         const toggleMenu = () => {
             if (window.innerWidth > 768) return;
+            const isOpening = !navColumn.classList.contains('menu-open');
+            
             navColumn.classList.toggle('menu-open');
-            const isOpen = navColumn.classList.contains('menu-open');
-            if (isOpen) {
+
+            if (isOpening) {
+                history.pushState({navMenuOpen: true}, '');
                 menuToggleOpenBtn.style.display = 'none';
                 menuToggleCloseBtn.style.display = 'flex';
-                appList.style.height = 'auto';
                 const scrollHeight = appList.scrollHeight;
                 appList.style.height = '0';
                 setTimeout(() => { appList.style.height = `${scrollHeight}px`; appList.style.paddingTop = '10px'; appList.style.paddingBottom = '10px'; }, 10);
             } else {
+                if (history.state && history.state.navMenuOpen) {
+                    history.back();
+                }
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
                 appList.style.height = `${appList.scrollHeight}px`;
@@ -610,20 +612,15 @@
             try {
                 const iframeWin = iframe.contentWindow;
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-                    // ▼▼▼ 修正: MutationObserverでDOMの変更を監視してポップアップを出す ▼▼▼
-                    const observer = new MutationObserver((mutations, obs) => {
-                        // DOMの変更が完了した後にチェック
+                    
+                    iframeWin.handleSearch(searchTerm, direction);
+
+                    // ▼▼▼ 修正: ポップアップ表示のタイミングをsetTimeout(..., 0)で調整 ▼▼▼
+                    setTimeout(() => {
                         if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                             showToast('検索結果無し');
                         }
-                        obs.disconnect(); // 監視を終了
-                    });
-                    
-                    if(iframeWin.document.body){
-                        observer.observe(iframeWin.document.body, { childList: true, subtree: true });
-                    }
-
-                    iframeWin.handleSearch(searchTerm, direction);
+                    }, 0);
 
                 } else if (searchTerm) {
                     alert("現在のページではカスタム検索機能がサポートされていません。");
@@ -643,7 +640,6 @@
             }
         });
         
-        // ▼▼▼ 修正: スマホの「戻る」ボタン対応を追加 ▼▼▼
         searchInput.addEventListener('focus', () => {
             loadSearchHistory();
             if (searchHistoryContainer.children.length > 0) {
@@ -655,7 +651,6 @@
 
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
-                // blur時に履歴メニューがまだ表示されていたら、履歴を戻って閉じる
                 if (searchHistoryContainer.style.display === 'block') {
                     if (history.state && history.state.historyMenuOpen) {
                         history.back();
@@ -665,11 +660,20 @@
             }, 200);
         });
 
-        // 「戻る」ボタンが押されたときの処理
+        // ▼▼▼ 修正: 「戻る」ボタンの処理を統合 ▼▼▼
         window.addEventListener('popstate', (event) => {
-            // 履歴メニューが表示されていれば、閉じるだけ
+            // 履歴メニューが表示されていれば、閉じる
             if (searchHistoryContainer.style.display === 'block') {
                 searchHistoryContainer.style.display = 'none';
+            }
+            // ナビゲーションメニューが表示されていれば、閉じる
+            if (navColumn.classList.contains('menu-open')) {
+                navColumn.classList.remove('menu-open');
+                menuToggleOpenBtn.style.display = 'flex';
+                menuToggleCloseBtn.style.display = 'none';
+                appList.style.height = '0'; 
+                appList.style.paddingTop = '0';
+                appList.style.paddingBottom = '0';
             }
         });
         
