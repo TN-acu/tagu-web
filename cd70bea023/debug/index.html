@@ -156,6 +156,7 @@
 
         .search-container {
             display: flex;
+            align-items: center;
             width: 100%;
             flex-grow: 1; 
         }
@@ -255,6 +256,12 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
+            
+            /* ▼▼▼ 追加: スマホ表示時の検索フォーム幅を調整 ▼▼▼ */
+            .input-wrapper {
+                flex-grow: 0; /* 幅が広がるのを防ぐ */
+                width: 10ch;  /* 幅を約10文字分に設定 */
+            }
         }
         
         .menu-toggle {
@@ -340,10 +347,9 @@
             background-color: #6c6c4c;
         }
         
-        /* ▼▼▼ 修正: 履歴全削除ボタンのスタイル ▼▼▼ */
         .history-clear-all-btn {
             padding: 8px 12px;
-            text-align: left; /* 左詰め */
+            text-align: left;
             font-weight: bold;
             color: #d9534f;
             cursor: pointer;
@@ -360,7 +366,6 @@
             background-color: #5c3b3b;
         }
 
-        /* ▼▼▼ 追加: 履歴個別削除ボタンのスタイル ▼▼▼ */
         .history-delete-btn {
             font-size: 1.2em;
             padding: 2px 8px;
@@ -462,9 +467,11 @@
         displayLastUpdated();
         
         const clearAllHistory = () => {
-            localStorage.removeItem(SEARCH_HISTORY_KEY);
-            loadSearchHistory();
-            searchHistoryContainer.style.display = 'none';
+            if (confirm('すべての検索履歴を消去しますか？')) {
+                localStorage.removeItem(SEARCH_HISTORY_KEY);
+                loadSearchHistory();
+                searchHistoryContainer.style.display = 'none';
+            }
         };
         
         const deleteSearchTerm = (termToDelete) => {
@@ -474,7 +481,6 @@
             loadSearchHistory();
         };
         
-        // ▼▼▼ 修正: 履歴全削除ボタンと個別削除ボタンの両方を生成 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
