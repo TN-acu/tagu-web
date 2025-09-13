@@ -549,8 +549,7 @@
             }, 1000);
         };
 
-        // ▼▼▼ 追加: スマホ戻るボタン機能のための新関数群 ▼▼▼
-
+        // ▼▼▼ すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
         function handleQuizChoiceMade(quizIndexStr) {
             const quizIndex = parseInt(quizIndexStr, 10);
             if (isNaN(quizIndex)) return;
@@ -947,7 +946,9 @@
                             const top = window.screenY;
                             const left = window.screenX + window.innerWidth;
                             const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
-                            window.open(searchUrl, 'googleSearchWindow', windowFeatures);
+                            // ▼▼▼ 修正箇所 ▼▼▼
+                            window.open(searchUrl, '_blank', windowFeatures); 
+                            // ▲▲▲ 修正箇所 ▲▲▲
                         } else {
                             window.open(searchUrl, '_blank');
                         }
