@@ -555,11 +555,10 @@
             }, 1000);
         };
 
-        // ▼▼▼ 修正: スマホ戻るボタン機能のための新関数群 ▼▼▼
+        // ▼▼▼ 追加: スマホ戻るボタン機能のための新関数群 ▼▼▼
 
         /**
          * iframe内のクイズ選択肢がクリックされた時に呼び出されるリスナー関数。
-         * 選択された問題のインデックスを受け取り、ブラウザ履歴と内部スタックに積む。
          */
         function handleQuizChoiceMade(quizIndexStr) {
             const quizIndex = parseInt(quizIndexStr, 10);
@@ -577,8 +576,8 @@
 
 
         /**
-         * iframe内のクイズ終了ボタンが押された時、またはページ移動時に呼び出される。
-         * 内部のカスタム履歴スタックをクリアし、「戻る」による選択解除機能を停止する。
+         * クイズ終了ボタン押下時、またはページ移動時に呼び出される。
+         * 内部のカスタム履歴スタックをクリアする。
          */
         function handleQuizFinished() {
             customHistoryStack = [];
@@ -586,7 +585,7 @@
 
         /**
          * popstateハンドラ（戻るボタン押下時）から呼ばれる。
-         * index.htmlからiframe内のDOMとJS変数を直接操作し、指定された問題の選択を解除し、そこへスクロールする。
+         * iframe内のDOMとJS変数を直接操作し、選択を解除してスコアを更新する。
          */
         function clearIframeChoice(quizIndex) {
             try {
@@ -599,12 +598,8 @@
 
                 // 1. DOM操作: 選択ボタンの .selected クラスを解除
                 const choiceButtons = quizItem.querySelectorAll('.choice-btn');
-                let wasSelected = false;
                 choiceButtons.forEach(btn => {
-                    if (btn.classList.contains('selected')) {
-                        wasSelected = true;
-                        btn.classList.remove('selected');
-                    }
+                    btn.classList.remove('selected');
                 });
 
                 // 2. DOM操作: フィードバックテキストをクリア
@@ -616,23 +611,27 @@
                 // 3. スクロール
                 quizItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // 4. iframeのJS変数を操作: 回答データを削除し、スコアを更新
-                if (wasSelected && iframeWin.userAnswers && typeof iframeWin.userAnswers === 'object') {
-                    if (iframeWin.userAnswers[quizIndex]) {
-                        delete iframeWin.userAnswers[quizIndex];
-                    }
+                // 4. ▼▼▼ 修正: スコア計算不具合の修正 ▼▼▼
+                //    DOMの .selected クラス(wasSelected)に依存せず、
+                //    iframeのJS変数(userAnswers)にデータが存在するかを直接確認する。
+                if (iframeWin.userAnswers && typeof iframeWin.userAnswers === 'object' && iframeWin.userAnswers.hasOwnProperty(quizIndex)) {
+                    
+                    // 解答データを削除
+                    delete iframeWin.userAnswers[quizIndex];
+                    
                     // iframe内のスコア更新関数を呼び出す
                     if (typeof iframeWin.updateScore === 'function') {
                         iframeWin.updateScore();
                     }
                 }
+                // ▲▲▲ 修正ここまで ▲▲▲
 
             } catch (e) {
                 console.error("Error clearing iframe choice:", e.message);
             }
         }
         
-        // ▲▲▲ 修正ここまで ▲▲▲
+        // ▲▲▲ 追加ここまで ▲▲▲
 
 
         function injectCustomStylesToIframe(iframeDoc) {
@@ -857,8 +856,6 @@
             if (searchHistoryContainer.style.display !== 'block') {
                  showSearchHistoryIfNeeded();
                  // 注: 既にフォーカスがあたっている場合のクリックでは、focusイベントが発火しないため履歴が重複しない
-                 // もしfocusが外れた状態からクリックした場合は、focusイベントで既にスタックに積まれているため、
-                 // ここで追加のスタック操作は不要（または重複を許容してもpopstateで処理される）
             }
         });
         
@@ -882,7 +879,6 @@
 
                 if (lastStateToPop === 'menu') {
                     // 「戻る」ボタンで押された場合（＝UIがまだ開いている場合）のみ、閉じるDOM操作を実行
-                    // (ボタンで閉じた場合は、DOM操作はtoggleMenu側で行われているため、このifはfalseになる)
                     if (navColumn.classList.contains('menu-open')) {
                         navColumn.classList.remove('menu-open');
                         menuToggleOpenBtn.style.display = 'flex';
@@ -895,7 +891,6 @@
                 } 
                 else if (lastStateToPop === 'search') {
                     // 「戻る」ボタンで押された場合（＝UIがまだ開いている/フォーカスされている場合）のみ、閉じるDOM操作を実行
-                    // (blurで閉じた場合は、DOM操作はblurリスナー側で行われているため、このifはfalseか、既に閉じられている)
                     if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
                         if (searchHistoryContainer.style.display === 'block') {
                              searchHistoryContainer.style.display = 'none';
