@@ -218,10 +218,9 @@
             color: var(--text-color-dark);
         }
         
-        /* ▼▼▼ 修正: ボタン間のスペースを調整 ▼▼▼ */
         #search-prev {
-            margin-left: 5px;
-            margin-right: 5px;
+            margin-left: 10px;
+            margin-right: 10px;
         }
 
         @media (max-width: 768px) {
@@ -340,16 +339,11 @@
         body.dark-mode .history-item:hover {
             background-color: #6c6c4c;
         }
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        /* ▼▼▼ 削除: 個別削除ボタンのスタイルを削除 ▼▼▼ */
-        /* .history-delete-btn { ... } */
-
-        /* ▼▼▼ 追加: 履歴全削除ボタンのスタイル ▼▼▼ */
+        
+        /* ▼▼▼ 修正: 履歴全削除ボタンのスタイル ▼▼▼ */
         .history-clear-all-btn {
-            padding: 10px;
-            text-align: center;
+            padding: 8px 12px;
+            text-align: left; /* 左詰め */
             font-weight: bold;
             color: #d9534f;
             cursor: pointer;
@@ -364,6 +358,27 @@
         }
         body.dark-mode .history-clear-all-btn:hover {
             background-color: #5c3b3b;
+        }
+
+        /* ▼▼▼ 追加: 履歴個別削除ボタンのスタイル ▼▼▼ */
+        .history-delete-btn {
+            font-size: 1.2em;
+            padding: 2px 8px;
+            border-radius: 50%;
+            line-height: 1;
+            font-weight: bold;
+            color: #aaa;
+        }
+        .history-delete-btn:hover {
+            background-color: rgba(0,0,0,0.1);
+            color: #555;
+        }
+        body.dark-mode .history-delete-btn {
+            color: #888;
+        }
+        body.dark-mode .history-delete-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #ccc;
         }
     </style>
 </head>
@@ -446,19 +461,24 @@
         };
         displayLastUpdated();
         
-        // ▼▼▼ 追加: 履歴を全削除する関数 ▼▼▼
         const clearAllHistory = () => {
             localStorage.removeItem(SEARCH_HISTORY_KEY);
-            loadSearchHistory(); // 表示を更新
-            searchHistoryContainer.style.display = 'none'; // メニューを閉じる
+            loadSearchHistory();
+            searchHistoryContainer.style.display = 'none';
         };
         
-        // ▼▼▼ 修正: 個別削除を無くし、全削除ボタンの生成を追加 ▼▼▼
+        const deleteSearchTerm = (termToDelete) => {
+            let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
+            history = history.filter(item => item !== termToDelete);
+            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+            loadSearchHistory();
+        };
+        
+        // ▼▼▼ 修正: 履歴全削除ボタンと個別削除ボタンの両方を生成 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
             if (history.length > 0) {
-                // 全削除ボタンを作成
                 const clearAllBtn = document.createElement('div');
                 clearAllBtn.className = 'history-clear-all-btn';
                 clearAllBtn.textContent = '【履歴をすべて消去する】';
@@ -468,17 +488,27 @@
                 });
                 searchHistoryContainer.appendChild(clearAllBtn);
 
-                // 各履歴項目を作成
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
-                    item.textContent = term;
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = term;
+                    textSpan.style.flexGrow = '1';
+                    const deleteBtn = document.createElement('span');
+                    deleteBtn.className = 'history-delete-btn';
+                    deleteBtn.textContent = '×';
+                    deleteBtn.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        deleteSearchTerm(term);
+                    });
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
+                    item.appendChild(textSpan);
+                    item.appendChild(deleteBtn);
                     searchHistoryContainer.appendChild(item);
                 });
             }
