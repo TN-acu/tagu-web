@@ -168,8 +168,6 @@
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
-            /* ▼▼▼ 削除: クリアボタン用のpadding-rightを削除 ▼▼▼ */
-            /* padding-right: 30px; */
             border: 1px solid var(--border-color-light);
             border-radius: 5px;
             font-size: 0.9em;
@@ -183,10 +181,6 @@
             color: var(--text-color-dark);
         }
         
-        /* ▼▼▼ 削除: クリアボタンのCSSを削除 ▼▼▼ */
-        /* #search-clear-btn { ... } */
-        /* body.dark-mode #search-clear-btn { ... } */
-
         .search-container button {
             flex-shrink: 0;
             width: 36px;
@@ -420,7 +414,7 @@
         <div class="search-container">
             <div class="input-wrapper">
                 <input type="search" id="search-input" placeholder="表示画面内を検索...">
-                </div>
+            </div>
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -434,8 +428,6 @@
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
-        // ▼▼▼ 削除: searchClearBtn の変数を削除 ▼▼▼
-        // const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
         const setAppHeight = () => {
@@ -728,10 +720,12 @@
             }
         });
         
-        // ▼▼▼ 修正: 履歴プッシュのロジックを修正 ▼▼▼
+        // ▼▼▼ 修正: フォーカス時に必ず履歴エントリを追加するよう修正 ▼▼▼
         searchInput.addEventListener('focus', () => {
-            // フォーカス時に必ず履歴エントリを追加
-            history.pushState({searchInputFocused: true}, '');
+            // 履歴メニューやナビメニューが開いていない場合のみ、新しい履歴エントリを追加
+            if (!history.state || (!history.state.navMenuOpen && !history.state.searchInputFocused)) {
+                 history.pushState({searchInputFocused: true}, '');
+            }
 
             loadSearchHistory();
             if (searchHistoryContainer.children.length > 0) {
@@ -741,7 +735,7 @@
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
-                    if (history.state && (history.state.historyMenuOpen || history.state.searchInputFocused)) {
+                    if (history.state && history.state.searchInputFocused) {
                         history.back();
                     }
                     searchHistoryContainer.style.display = 'none';
@@ -749,7 +743,7 @@
             }, 200);
         });
         
-        // ▼▼▼ 削除: クリアボタン関連のリスナーを削除 ▼▼▼
+        // ▼▼▼ 削除: クリアボタン関連のイベントリスナーを削除 ▼▼▼
         /*
         searchClearBtn.addEventListener('click', () => { ... });
         searchInput.addEventListener('input', () => { ... });
@@ -765,11 +759,16 @@
                 appList.style.height = '0'; 
                 appList.style.paddingTop = '0';
                 appList.style.paddingBottom = '0';
-            } else if (searchHistoryContainer.style.display === 'block') {
-                // 次: 履歴メニューを閉じる
-                searchHistoryContainer.style.display = 'none';
-            } else if (document.activeElement === searchInput) {
-                // 最後: 検索フォームがフォーカスされている場合（ご要望の動作）
+            } 
+            else if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
+                // 次: 履歴メニューが開いている、または検索フォームがフォーカスされている場合
+                
+                // 1. 履歴メニューを閉じる
+                if (searchHistoryContainer.style.display === 'block') {
+                     searchHistoryContainer.style.display = 'none';
+                }
+
+                // 2. ご要望の動作（テキストクリアとフォーカス解除）を実行
                 if (searchInput.value !== '') {
                     searchInput.value = '';
                     try {
