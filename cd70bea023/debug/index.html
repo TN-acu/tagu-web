@@ -159,12 +159,14 @@
             width: 100%;
             flex-grow: 1; 
         }
+
         .input-wrapper {
             position: relative;
             display: flex;
             flex-grow: 1;
             align-items: center;
         }
+
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
@@ -256,9 +258,9 @@
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
             
-            /* ▼▼▼ 追加: スマホ表示時にフッターを左詰めで40px縮小する ▼▼▼ */
+            /* ▼▼▼ 修正: スマホ表示時にフッターの幅を縮小し左寄せにする ▼▼▼ */
             #footer-controls {
-                width: calc(100% - 40px);
+                width: calc(100% - 70px);
             }
         }
         
@@ -506,7 +508,7 @@
             clearTimeout(toastTimer);
             toastElement.textContent = message;
             toastElement.classList.add('show');
-            toastTimer = setTimeout(() => {
+            toastimer = setTimeout(() => {
                 toastElement.classList.remove('show');
             }, 1000);
         };
@@ -680,7 +682,6 @@
                 const iframeWin = iframe.contentWindow;
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
                     iframeWin.handleSearch(searchTerm, direction);
-                    
                     setTimeout(() => {
                         if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                             showToast('検索結果無し');
@@ -712,7 +713,6 @@
                 history.pushState({historyMenuOpen: true}, '');
             }
         });
-
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
