@@ -378,9 +378,9 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 追加: 依頼されたフォントサイズとレイアウト調整をiframeに適用する関数
+        // ▼▼▼ 修正 ▼▼▼ フォントサイズ指定とレイアウト修正を行う関数
         function injectCustomStylesToIframe(iframeDoc) {
-            const styleId = 'injected-custom-styles';
+            const styleId = 'injected-custom-style';
             if (iframeDoc.getElementById(styleId)) return;
 
             const styleElement = iframeDoc.createElement('style');
@@ -390,7 +390,7 @@
                 .question-text { font-size: 1.7em !important; }
                 .choice-btn { font-size: 1.7em !important; }
 
-                /* スマホ表示時のレイアウト調整 */
+                /* スマホ表示時のレイアウト調整 & フォントサイズ調整 */
                 @media (max-width: 768px) {
                     html, body {
                         margin: 0 !important;
@@ -405,8 +405,6 @@
                         margin-left: 0 !important;
                         margin-right: 0 !important;
                     }
-                    
-                    /* スマホ表示時のフォントサイズ調整 */
                     .question-text { font-size: 1.4em !important; }
                     .choice-btn { font-size: 1.4em !important; }
                 }
@@ -414,17 +412,19 @@
             iframeDoc.head.appendChild(styleElement);
         }
 
-        // ▼▼▼ 追加: Android端末でフッターの幅を調整する関数
-        function adjustFooterForAndroid() {
+        // ▼▼▼ 追加 ▼▼▼ Androidの場合にフッターのスタイルを適用する関数
+        const applyAndroidFooterStyle = () => {
             const isAndroid = /Android/i.test(navigator.userAgent);
             if (isAndroid) {
                 const footer = document.getElementById('footer-controls');
                 if (footer) {
-                    footer.style.width = '98%';
-                    footer.style.margin = '0 auto';
+                    footer.style.width = '500px';
+                    footer.style.marginRight = 'auto';
+                    footer.style.marginLeft = '0';
                 }
             }
-        }
+        };
+        applyAndroidFooterStyle(); // ページ読み込み時に実行
 
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
@@ -639,15 +639,11 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
-                    injectCustomStylesToIframe(iframeDoc); // フォントとレイアウトのカスタムCSSを注入
+                    // ▼▼▼ 修正 ▼▼▼
+                    injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    
-                    // ▼▼▼ 修正: 検索ボタン機能の呼び出しを再度有効化 ▼▼▼
+                    // ▼▼▼ 修正 ▼▼▼
                     addSearchButtonsToIframe(); 
-                    
-                    // ▼▼▼ 修正: Androidでのフッター調整関数を呼び出し ▼▼▼
-                    adjustFooterForAndroid();
-                    
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
