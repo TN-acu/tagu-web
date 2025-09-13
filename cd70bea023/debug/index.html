@@ -219,10 +219,9 @@
         }
         
         #search-prev {
-            margin-left: 5px;
+            /* ▼▼▼ 修正: 検索フォームとのスペースを10pxに ▼▼▼ */
+            margin-left: 10px;
             margin-right: 10px;
-            /* ▼▼▼ 修正: 横幅を10px広げる ▼▼▼ */
-            width: 46px;
         }
 
         @media (max-width: 768px) {
@@ -338,29 +337,26 @@
         body.dark-mode .history-item:hover {
             background-color: #6c6c4c;
         }
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        
         /* ▼▼▼ 追加: 履歴全削除ボタンのスタイル ▼▼▼ */
         .history-clear-all-btn {
             padding: 10px;
-            cursor: pointer;
-            border-bottom: 2px solid #e6e6c3;
-            color: #d9534f;
-            font-weight: bold;
             text-align: center;
+            font-weight: bold;
+            color: #d9534f;
+            cursor: pointer;
+            border-bottom: 1px solid #e6e6c3;
         }
         .history-clear-all-btn:hover {
-            background-color: #f5f5c3;
+            background-color: #f2dede;
         }
         body.dark-mode .history-clear-all-btn {
+            color: #ff8a8a;
             border-bottom-color: #6c6c4c;
-            color: #ff8a85;
         }
         body.dark-mode .history-clear-all-btn:hover {
-            background-color: #6c6c4c;
+            background-color: #5c3b3b;
         }
+
     </style>
 </head>
 <body>
@@ -444,28 +440,29 @@
         
         // ▼▼▼ 追加: 履歴を全削除する関数 ▼▼▼
         const clearAllHistory = () => {
-            localStorage.removeItem(SEARCH_HISTORY_KEY);
-            loadSearchHistory(); // 表示を更新（空にする）
-            searchHistoryContainer.style.display = 'none'; // メニューを閉じる
+            if (confirm('すべての検索履歴を消去しますか？')) {
+                localStorage.removeItem(SEARCH_HISTORY_KEY);
+                loadSearchHistory(); // 表示を更新
+                searchHistoryContainer.style.display = 'none'; // メニューを閉じる
+            }
         };
         
         // ▼▼▼ 修正: 履歴全削除ボタンの生成を追加 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
-            
             if (history.length > 0) {
-                // 全削除ボタンを生成して追加
+                // 全削除ボタンを作成
                 const clearAllBtn = document.createElement('div');
                 clearAllBtn.className = 'history-clear-all-btn';
-                clearAllBtn.textContent = '【履歴をすべて消去する】';
+                clearAllBtn.textContent = 'すべての履歴を消去する';
                 clearAllBtn.addEventListener('mousedown', (e) => {
                     e.stopPropagation();
                     clearAllHistory();
                 });
                 searchHistoryContainer.appendChild(clearAllBtn);
 
-                // 個別の履歴項目を追加
+                // 各履歴項目を作成
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
