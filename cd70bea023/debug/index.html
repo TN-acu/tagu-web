@@ -136,6 +136,12 @@
             background-color: var(--secondary-bg-dark);
             border-top-color: var(--border-color-dark);
         }
+        /* ▼▼▼ 追加: Android用のフッタースタイル ▼▼▼ */
+        body.android #footer-controls {
+            width: 280px;
+            margin-right: auto;
+            margin-left: 0;
+        }
 
         .dark-mode-toggle {
             flex-shrink: 0;
@@ -297,6 +303,13 @@
     </div>
 
     <script>
+        // ▼▼▼ 追加: Android判定 ▼▼▼
+        (function() {
+            if (/Android/i.test(navigator.userAgent)) {
+                document.body.classList.add('android');
+            }
+        })();
+
         const iframe = document.getElementById('contentFrame');
         const bodyElement = document.body;
 
@@ -378,10 +391,14 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 修正 ▼▼▼ フォントサイズ指定とレイアウト修正を行う関数
+        // ▼▼▼ 追加: iframe内のフォントサイズを調整する関数 ▼▼▼
         function injectCustomStylesToIframe(iframeDoc) {
-            const styleId = 'injected-custom-style';
-            if (iframeDoc.getElementById(styleId)) return;
+            const styleId = 'injected-custom-styles';
+            // 既存のスタイルがあれば一度削除して新しいものを適用する
+            const existingStyle = iframeDoc.getElementById(styleId);
+            if (existingStyle) {
+                existingStyle.remove();
+            }
 
             const styleElement = iframeDoc.createElement('style');
             styleElement.id = styleId;
@@ -390,41 +407,14 @@
                 .question-text { font-size: 1.7em !important; }
                 .choice-btn { font-size: 1.7em !important; }
 
-                /* スマホ表示時のレイアウト調整 & フォントサイズ調整 */
+                /* スマホ表示時のフォントサイズ調整 */
                 @media (max-width: 768px) {
-                    html, body {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        width: 100%;
-                        overflow-x: hidden;
-                    }
-                    #quiz-header, .quiz-container {
-                        width: 100% !important;
-                        max-width: 100% !important;
-                        box-sizing: border-box !important;
-                        margin-left: 0 !important;
-                        margin-right: 0 !important;
-                    }
                     .question-text { font-size: 1.4em !important; }
                     .choice-btn { font-size: 1.4em !important; }
                 }
             `;
             iframeDoc.head.appendChild(styleElement);
         }
-
-        // ▼▼▼ 追加 ▼▼▼ Androidの場合にフッターのスタイルを適用する関数
-        const applyAndroidFooterStyle = () => {
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            if (isAndroid) {
-                const footer = document.getElementById('footer-controls');
-                if (footer) {
-                    footer.style.width = '500px';
-                    footer.style.marginRight = 'auto';
-                    footer.style.marginLeft = '0';
-                }
-            }
-        };
-        applyAndroidFooterStyle(); // ページ読み込み時に実行
 
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
@@ -639,10 +629,10 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
-                    // ▼▼▼ 修正 ▼▼▼
+                    // ▼▼▼ 修正: フォント調整関数を呼び出す ▼▼▼
                     injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    // ▼▼▼ 修正 ▼▼▼
+                    // ▼▼▼ 修正: 検索ボタン機能を再有効化 ▼▼▼
                     addSearchButtonsToIframe(); 
                     setAppHeight();
                 } else {
