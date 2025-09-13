@@ -159,18 +159,11 @@
             width: 100%;
             flex-grow: 1; 
         }
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            flex-grow: 1;
-            align-items: center;
-        }
         .search-container input[type="search"] {
             flex-grow: 1;
             padding: 8px;
-            padding-right: 30px;
             border: 1px solid var(--border-color-light);
-            border-radius: 5px;
+            border-radius: 5px 0 0 5px;
             font-size: 0.9em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
@@ -181,25 +174,6 @@
             background-color: var(--secondary-bg-dark);
             color: var(--text-color-dark);
         }
-        
-        #search-clear-btn {
-            display: none;
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 1.5em;
-            line-height: 1;
-            color: #888;
-            padding: 0 5px;
-        }
-        body.dark-mode #search-clear-btn {
-            color: #aaa;
-        }
-
         .search-container button {
             flex-shrink: 0;
             width: 36px;
@@ -210,17 +184,17 @@
             cursor: pointer;
             font-size: 1.1em;
             line-height: 1;
-            border-radius: 5px;
         }
         body.dark-mode .search-container button {
             background-color: #2a4832;
             border-color: #3b6145;
             color: var(--text-color-dark);
         }
-        
         #search-prev {
-            margin-left: 10px;
-            margin-right: 10px;
+            border-radius: 0;
+        }
+        #search-next {
+             border-radius: 0 5px 5px 0;
         }
 
         @media (max-width: 768px) {
@@ -255,11 +229,11 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
-            
-            /* ▼▼▼ 追加: スマホ表示時の検索フォーム幅を調整 ▼▼▼ */
+
+            /* ▼▼▼ 追加: スマホ表示時の検索フォームの幅を調整 ▼▼▼ */
             .search-container input[type="search"] {
-                flex-grow: 0; /* 自動で伸びるのをやめる */
-                width: 30ch;  /* ch単位で約30文字分の幅を指定 */
+                flex-grow: 0; /* 幅の指定を優先させるために、伸縮を無効化 */
+                width: 23ch;  /* 幅を約23文字分に設定 */
             }
         }
         
@@ -348,24 +322,6 @@
         .history-item:last-child {
             border-bottom: none;
         }
-        .history-clear-all-btn {
-            padding: 8px 12px;
-            text-align: left;
-            font-weight: bold;
-            color: #d9534f;
-            cursor: pointer;
-            border-bottom: 1px solid #e6e6c3;
-        }
-        .history-clear-all-btn:hover {
-            background-color: #f2dede;
-        }
-        body.dark-mode .history-clear-all-btn {
-            color: #ff8a8a;
-            border-bottom-color: #6c6c4c;
-        }
-        body.dark-mode .history-clear-all-btn:hover {
-            background-color: #5c3b3b;
-        }
         .history-delete-btn {
             font-size: 1.2em;
             padding: 2px 8px;
@@ -423,10 +379,7 @@
     <div id="footer-controls">
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
         <div class="search-container">
-            <div class="input-wrapper">
-                <input type="search" id="search-input" placeholder="表示画面内を検索...">
-                <button id="search-clear-btn">×</button>
-            </div>
+            <input type="search" id="search-input" placeholder="表示画面内を検索...">
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -440,7 +393,6 @@
         const toastElement = document.getElementById('toast-notification');
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
-        const searchClearBtn = document.getElementById('search-clear-btn');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
         const setAppHeight = () => {
@@ -466,12 +418,6 @@
         };
         displayLastUpdated();
         
-        const clearAllHistory = () => {
-            localStorage.removeItem(SEARCH_HISTORY_KEY);
-            loadSearchHistory();
-            searchHistoryContainer.style.display = 'none';
-        };
-        
         const deleteSearchTerm = (termToDelete) => {
             let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             history = history.filter(item => item !== termToDelete);
@@ -483,15 +429,6 @@
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
             if (history.length > 0) {
-                const clearAllBtn = document.createElement('div');
-                clearAllBtn.className = 'history-clear-all-btn';
-                clearAllBtn.textContent = '【履歴をすべて消去する】';
-                clearAllBtn.addEventListener('mousedown', (e) => {
-                    e.stopPropagation();
-                    clearAllHistory();
-                });
-                searchHistoryContainer.appendChild(clearAllBtn);
-
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
@@ -751,22 +688,6 @@
             }, 200);
         });
         
-        searchClearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            try {
-                const iframeWin = iframe.contentWindow;
-                if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                    iframeWin.clearHighlights();
-                }
-            } catch(e) {}
-            searchClearBtn.style.display = 'none';
-            searchInput.focus();
-        });
-
-        searchInput.addEventListener('input', () => {
-            searchClearBtn.style.display = searchInput.value ? 'block' : 'none';
-        });
-
         window.addEventListener('popstate', (event) => {
             if (searchHistoryContainer.style.display === 'block') {
                 searchHistoryContainer.style.display = 'none';
