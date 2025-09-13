@@ -257,7 +257,7 @@
         #toast-notification {
             visibility: hidden;
             min-width: 150px;
-            background-color: #333;
+            background-color: rgba(0,0,0,0.7);
             color: #fff;
             text-align: center;
             border-radius: 4px;
@@ -348,13 +348,14 @@
     </div>
 
     <div id="search-history-container"></div>
+
     <div id="footer-controls">
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
         <div class="search-container">
-             <input type="search" id="search-input" placeholder="表示画面内を検索...">
+             <input type="search" id="search-input" placeholder="表示画面内を検索...(履歴)">
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
-            </div>
+        </div>
     </div>
 
     <div id="toast-notification"></div>
@@ -363,7 +364,7 @@
         const iframe = document.getElementById('contentFrame');
         const bodyElement = document.body;
         const toastElement = document.getElementById('toast-notification');
-        // ▼▼▼ 修正: カスタム履歴コンテナの要素を取得 ▼▼▼
+        // ▼▼▼ 修正: 履歴コンテナの要素を取得 ▼▼▼
         const searchHistoryContainer = document.getElementById('search-history-container');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
@@ -390,21 +391,24 @@
         };
         displayLastUpdated();
         
-        // ▼▼▼ 修正: 検索履歴をカスタムコンテナに読み込む関数 ▼▼▼
+        // ▼▼▼ 修正: カスタム履歴ポップアップを生成するロジックに変更 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
-            searchHistoryContainer.innerHTML = '';
-            history.forEach(term => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.textContent = term;
-                item.addEventListener('click', () => {
-                    searchInput.value = term;
-                    searchHistoryContainer.style.display = 'none';
-                    performSearch('next');
+            searchHistoryContainer.innerHTML = ''; // 中身をクリア
+            if (history.length > 0) {
+                history.forEach(term => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.textContent = term;
+                    item.addEventListener('mousedown', (e) => { // clickではなくmousedownを使う
+                        e.preventDefault();
+                        searchInput.value = term;
+                        performSearch('next');
+                        searchHistoryContainer.style.display = 'none';
+                    });
+                    searchHistoryContainer.appendChild(item);
                 });
-                searchHistoryContainer.appendChild(item);
-            });
+            }
         };
 
         const saveSearchTerm = (term) => {
@@ -428,6 +432,32 @@
                 toastElement.classList.remove('show');
             }, 1000);
         };
+
+        // ▼▼▼ 追加: iframe内のフォントサイズを調整する関数 ▼▼▼
+        function injectCustomStylesToIframe(iframeDoc) {
+            const styleId = 'injected-custom-font-style';
+            const existingStyle = iframeDoc.getElementById(styleId);
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.id = styleId;
+            styleElement.textContent = `
+                /* 通常時のフォントサイズ調整 */
+                .question-text, .choice-btn { 
+                    font-size: 1.7em !important; 
+                }
+
+                /* スマホ表示時のフォントサイズ調整 */
+                @media (max-width: 768px) {
+                    .question-text, .choice-btn { 
+                        font-size: 1.4em !important; 
+                    }
+                }
+            `;
+            iframeDoc.head.appendChild(styleElement);
+        }
 
         const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
         const menuToggleCloseBtn = document.getElementById('menu-toggle-close');
@@ -484,29 +514,6 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 追加: iframe内のフォントサイズを調整する関数 ▼▼▼
-        function injectCustomStylesToIframe(iframeDoc) {
-            const styleId = 'injected-custom-style';
-            const existingStyle = iframeDoc.getElementById(styleId);
-            if (existingStyle) {
-                existingStyle.remove();
-            }
-
-            const styleElement = iframeDoc.createElement('style');
-            styleElement.id = styleId;
-            styleElement.textContent = `
-                .question-text, .choice-btn { 
-                    font-size: 1.7em !important; 
-                }
-                @media (max-width: 768px) {
-                    .question-text, .choice-btn { 
-                        font-size: 1.4em !important; 
-                    }
-                }
-            `;
-            iframeDoc.head.appendChild(styleElement);
-        }
-
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -602,13 +609,13 @@
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
                     iframeWin.handleSearch(searchTerm, direction);
                     
-                    // ▼▼▼ 修正: ポップアップ表示のタイミングを調整 ▼▼▼
+                    // ▼▼▼ 修正: タイミングを調整してポップアップ表示を確実にする ▼▼▼
                     setTimeout(() => {
-                        const state = iframeWin.searchState;
-                        if (searchTerm && state && state.elements.length === 0) {
+                        if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                             showToast('検索結果無し');
                         }
-                    }, 150);
+                    }, 100); // 0.1秒待ってからチェック
+
                 } else if (searchTerm) {
                     alert("現在のページではカスタム検索機能がサポートされていません。");
                 }
@@ -623,18 +630,19 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 performSearch('next');
+                searchHistoryContainer.style.display = 'none'; // 検索実行後、履歴を閉じる
             }
         });
         
-        // ▼▼▼ 修正: 履歴表示/非表示のロジック ▼▼▼
+        // ▼▼▼ 修正: 履歴表示のロジック ▼▼▼
         searchInput.addEventListener('focus', () => {
-            if (searchInput.value.length === 0) {
-                 loadSearchHistory();
-                 searchHistoryContainer.style.display = 'block';
+            loadSearchHistory();
+            if (searchHistoryContainer.children.length > 0) {
+                searchHistoryContainer.style.display = 'block';
             }
         });
         searchInput.addEventListener('blur', () => {
-            // クリックイベントが先に処理されるように少し遅延させる
+            // マウスが履歴項目上にある場合を考慮して少し遅らせて非表示にする
             setTimeout(() => {
                 searchHistoryContainer.style.display = 'none';
             }, 200);
@@ -744,6 +752,7 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
+                    // ▼▼▼ 修正: フォント調整関数を呼び出す ▼▼▼
                     injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
                     addSearchButtonsToIframe(); 
