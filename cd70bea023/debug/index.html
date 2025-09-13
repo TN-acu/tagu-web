@@ -131,10 +131,19 @@
             align-items: center;
             z-index: 100;
             transition: background-color 0.3s, border-color 0.3s;
+            /* ▼▼▼ 修正 ▼▼▼ */
+            max-width: 840px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border-color-light);
+            border-right: 1px solid var(--border-color-light);
+            border-radius: 10px 10px 0 0;
         }
         body.dark-mode #footer-controls {
             background-color: var(--secondary-bg-dark);
             border-top-color: var(--border-color-dark);
+            /* ▼▼▼ 修正 ▼▼▼ */
+            border-left-color: var(--border-color-dark);
+            border-right-color: var(--border-color-dark);
         }
 
         .dark-mode-toggle {
@@ -164,7 +173,8 @@
             padding: 8px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
-            font-size: 0.9em;
+            /* ▼▼▼ 修正 ▼▼▼ */
+            font-size: 1.4em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
             min-width: 50px; 
@@ -230,6 +240,13 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
+            /* ▼▼▼ 修正 ▼▼▼ スマホではフッターを全幅に戻す */
+            #footer-controls {
+                max-width: 100%;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
         }
         
         .menu-toggle {
@@ -377,6 +394,45 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
+        // ▼▼▼ 修正 ▼▼▼ フォントサイズとレイアウト調整をiframeに適用する関数
+        function injectCustomStylesToIframe(iframeDoc) {
+            const styleId = 'injected-custom-style';
+            if (iframeDoc.getElementById(styleId)) return;
+
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.id = styleId;
+            styleElement.textContent = `
+                /* フォントサイズの調整 */
+                .question-text, .choice-btn {
+                    font-size: 1.7em !important;
+                }
+
+                /* スマホ表示時のレイアウト調整 */
+                @media (max-width: 768px) {
+                    /* フォントサイズの調整 */
+                    .question-text, .choice-btn {
+                        font-size: 1.4em !important;
+                    }
+                    
+                    /* 隙間問題の解決 */
+                    html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        width: 100%;
+                        overflow-x: hidden;
+                    }
+                    #quiz-header, .quiz-container {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        box-sizing: border-box !important;
+                        margin-left: 0 !important;
+                        margin-right: 0 !important;
+                    }
+                }
+            `;
+            iframeDoc.head.appendChild(styleElement);
+        }
+        
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -500,13 +556,11 @@
                     const originalTextContent = targetElement.textContent;
 
                     if (targetElement.matches('.question-text')) {
-                        // ▼▼▼ 修正箇所 ▼▼▼
                         textToSearch = originalTextContent
                             .replace(/^問題 \d+:\s*/, '')
                             .replace(/※?【[^】]*】にも出題/g, '')
                             .replace(/（[^）]*）/g, '')
                             .replace(/\([^)]*\)/g, (match) => {
-                                // 括弧の中身が数字だけの場合は残す
                                 const content = match.slice(1, -1);
                                 return /^\d+$/.test(content) ? match : '';
                             })
@@ -591,9 +645,10 @@
             try {
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
+                    injectCustomStylesToIframe(iframeDoc); // ← 修正したスタイルを適用
                     injectBaseStyles(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    addSearchButtonsToIframe(); 
+                    addSearchButtonsToIframe(); // ← 機能を有効化
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
