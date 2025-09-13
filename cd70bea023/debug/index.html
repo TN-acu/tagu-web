@@ -429,7 +429,7 @@
         const searchHistoryContainer = document.getElementById('search-history-container');
         const searchInput = document.getElementById('search-input');
         const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
-        
+
         // ▼▼▼ 追加: スマホ戻るボタンによるクイズ選択解除機能のための内部スタック ▼▼▼
         let quizChoiceHistoryStack = []; // [index, index, ...] 選択された問題インデックスの履歴
         // ▲▲▲ 追加ここまで ▲▲▲
@@ -544,6 +544,84 @@
             }, 1000);
         };
 
+        // ▼▼▼ 追加: スマホ戻るボタン機能のための新関数群 ▼▼▼
+
+        /**
+         * iframe内のクイズ選択肢がクリックされた時に呼び出されるリスナー関数。
+         * 選択された問題のインデックスを受け取り、ブラウザ履歴と内部スタックに積む。
+         */
+        function handleQuizChoiceMade(quizIndexStr) {
+            const quizIndex = parseInt(quizIndexStr, 10);
+            if (isNaN(quizIndex)) return;
+
+            // 直前の履歴が同じ問題でない場合のみ、新しい履歴をプッシュ
+            // (同じ問題で選び直した場合、履歴スタックは増やさない)
+            if (quizChoiceHistoryStack.length === 0 || quizChoiceHistoryStack[quizChoiceHistoryStack.length - 1] !== quizIndex) {
+                history.pushState({ quizChoiceSelected: true, quizIndex: quizIndex }, '');
+                quizChoiceHistoryStack.push(quizIndex);
+            }
+        }
+
+        /**
+         * iframe内のクイズ終了ボタンが押された時、またはページ移動時に呼び出される。
+         * 内部のカスタム履歴スタックをクリアし、「戻る」による選択解除機能を停止する。
+         */
+        function handleQuizFinished() {
+            quizChoiceHistoryStack = [];
+        }
+
+        /**
+         * popstateハンドラ（戻るボタン押下時）から呼ばれる。
+         * index.htmlからiframe内のDOMとJS変数を直接操作し、指定された問題の選択を解除し、そこへスクロールする。
+         */
+        function clearIframeChoice(quizIndex) {
+            try {
+                const iframeWin = iframe.contentWindow;
+                const iframeDoc = iframe.contentDocument;
+                if (!iframeWin || !iframeDoc) return;
+
+                const quizItem = iframeDoc.getElementById(`quiz-${quizIndex}`);
+                if (!quizItem) return;
+
+                // 1. DOM操作: 選択ボタンの .selected クラスを解除
+                const choiceButtons = quizItem.querySelectorAll('.choice-btn');
+                let wasSelected = false;
+                choiceButtons.forEach(btn => {
+                    if (btn.classList.contains('selected')) {
+                        wasSelected = true;
+                        btn.classList.remove('selected');
+                    }
+                });
+
+                // 2. DOM操作: フィードバックテキストをクリア
+                const feedbackText = quizItem.querySelector('.feedback-text');
+                if (feedbackText) {
+                    feedbackText.textContent = '';
+                }
+                
+                // 3. ★新要件: 解除した問題へスクロール
+                // iframe内の要素に対してscrollIntoViewを実行すると、iframe内でスクロールする
+                quizItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // 4. iframeのJS変数を操作: 回答データを削除し、スコアを更新
+                if (wasSelected && iframeWin.userAnswers && typeof iframeWin.userAnswers === 'object') {
+                    if (iframeWin.userAnswers[quizIndex]) {
+                        delete iframeWin.userAnswers[quizIndex];
+                    }
+                    // iframe内のスコア更新関数を呼び出す
+                    if (typeof iframeWin.updateScore === 'function') {
+                        iframeWin.updateScore();
+                    }
+                }
+
+            } catch (e) {
+                console.error("Error clearing iframe choice:", e.message);
+            }
+        }
+        
+        // ▲▲▲ 追加ここまで ▲▲▲
+
+
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
             const existingStyle = iframeDoc.getElementById(styleId);
@@ -612,16 +690,18 @@
         menuToggleOpenBtn.addEventListener('click', toggleMenu);
         menuToggleCloseBtn.addEventListener('click', toggleMenu);
         const appLinks = document.querySelectorAll('#app-list a');
+        
+        // ▼▼▼ 修正: ナビゲーションクリック時にもクイズ履歴スタックをクリアする ▼▼▼
         appLinks.forEach(link => {
-            // ▼▼▼ 修正: ナビゲーションクリック時にもクイズ履歴スタックをクリアする ▼▼▼
             link.addEventListener('click', () => { 
                 handleQuizFinished(); // クイズ履歴スタックをクリアする関数を流用
                 if (navColumn.classList.contains('menu-open')) { 
                     toggleMenu(); 
                 } 
             });
-            // ▲▲▲ 修正ここまで ▲▲▲
         });
+        // ▲▲▲ 修正ここまで ▲▲▲
+        
         window.addEventListener('resize', setupMobileMenuLayout);
         setupMobileMenuLayout(); 
 
@@ -773,88 +853,14 @@
             }, 200);
         });
         
-        // ▼▼▼ 追加: スマホ戻るボタン機能のための新関数群 ▼▼▼
-
-        /**
-         * iframe内のクイズ選択肢がクリックされた時に呼び出されるリスナー関数。
-         * 選択された問題のインデックスを受け取り、ブラウザ履歴と内部スタックに積む。
-         */
-        function handleQuizChoiceMade(quizIndexStr) {
-            const quizIndex = parseInt(quizIndexStr, 10);
-            if (isNaN(quizIndex)) return;
-
-            // 直前の履歴が同じ問題でない場合のみ、新しい履歴をプッシュ
-            // (同じ問題で選び直した場合、履歴スタックは増やさない)
-            if (quizChoiceHistoryStack.length === 0 || quizChoiceHistoryStack[quizChoiceHistoryStack.length - 1] !== quizIndex) {
-                history.pushState({ quizChoiceSelected: true, quizIndex: quizIndex }, '');
-                quizChoiceHistoryStack.push(quizIndex);
-            }
-        }
-
-        /**
-         * iframe内のクイズ終了ボタンが押された時、またはページ移動時に呼び出される。
-         * 内部のカスタム履歴スタックをクリアし、「戻る」による選択解除機能を停止する。
-         */
-        function handleQuizFinished() {
-            quizChoiceHistoryStack = [];
-        }
-
-        /**
-         * popstateハンドラ（戻るボタン押下時）から呼ばれる。
-         * index.htmlからiframe内のDOMとJS変数を直接操作し、指定された問題の選択を解除する。
-         */
-        function clearIframeChoice(quizIndex) {
-            try {
-                const iframeWin = iframe.contentWindow;
-                const iframeDoc = iframe.contentDocument;
-                if (!iframeWin || !iframeDoc) return;
-
-                const quizItem = iframeDoc.getElementById(`quiz-${quizIndex}`);
-                if (!quizItem) return;
-
-                // 1. DOM操作: 選択ボタンの .selected クラスを解除
-                const choiceButtons = quizItem.querySelectorAll('.choice-btn');
-                let wasSelected = false;
-                choiceButtons.forEach(btn => {
-                    if (btn.classList.contains('selected')) {
-                        wasSelected = true;
-                        btn.classList.remove('selected');
-                    }
-                });
-
-                // 2. DOM操作: フィードバックテキストをクリア
-                const feedbackText = quizItem.querySelector('.feedback-text');
-                if (feedbackText) {
-                    feedbackText.textContent = '';
-                }
-
-                // 3. iframeのJS変数を操作: 回答データを削除し、スコアを更新
-                if (wasSelected && iframeWin.userAnswers && typeof iframeWin.userAnswers === 'object') {
-                    if (iframeWin.userAnswers[quizIndex]) {
-                        delete iframeWin.userAnswers[quizIndex];
-                    }
-                    // iframe内のスコア更新関数を呼び出す
-                    if (typeof iframeWin.updateScore === 'function') {
-                        iframeWin.updateScore();
-                    }
-                }
-
-            } catch (e) {
-                console.error("Error clearing iframe choice:", e.message);
-            }
-        }
-        
-        // ▲▲▲ 追加ここまで ▲▲▲
-
-
-        // ▼▼▼ 修正: 既存のpopstateリスナーを、新しいロジックを含むものに「置き換え」る ▼▼▼
+        // ▼▼▼ 修正: 既存のpopstateリスナーを、クイズ解除ロジックを含むものに「置き換え」る ▼▼▼
         window.addEventListener('popstate', (event) => {
             
             // 優先度1: クイズの選択解除 (内部スタックに履歴がある場合)
             if (quizChoiceHistoryStack.length > 0) {
                 const quizIndexToClear = quizChoiceHistoryStack.pop(); // スタックから最後の選択を取り出す
                 
-                // iframeのDOMとJS状態を操作して、その問題の選択を解除する
+                // iframeのDOMとJS状態を操作して、その問題の選択を解除する (スクロールも含む)
                 clearIframeChoice(quizIndexToClear);
                 
                 // この「戻る」操作は選択解除のために消費されたため、以降の処理は行わない。
@@ -999,7 +1005,7 @@
                     injectBaseStyles(iframeDoc);
                     injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    addSearchButtonsToIframe(); 
+                    addSearchButtonsToIframe(); // 既存の検索ボタン機能
                     setAppHeight();
                     
                     // ▼▼▼ 追加: iframe内のボタンに「戻る」機能のためのリスナーをアタッチ ▼▼▼
@@ -1009,9 +1015,9 @@
                         if (!iframeDoc.body.classList.contains('choice-listeners-added')) {
                             
                             quizButtons.forEach(btn => {
+                                // 既存の onclick 属性 (selectChoice) の *後* で実行されるように addEventListener を使用
                                 btn.addEventListener('click', (e) => {
-                                    // iframe側の 'onclick' が先に処理されることを期待し、このリスナーを発火。
-                                    // (e.targetはiframe内の要素)
+                                    // e.targetはiframe内の要素 (.choice-btn)
                                     const quizItem = e.target.closest('.quiz-item');
                                     if (quizItem && quizItem.id) {
                                         const quizIndex = quizItem.id.split('-')[1];
@@ -1037,7 +1043,7 @@
                     setTimeout(setupIframeContent, 50);
                 }
             } catch (e) {
-                // クロスオリジンエラー等をキャッチ（今回は同一オリジン想定だが念のため）
+                // クロスオリジンエラー等をキャッチ
                 setTimeout(setupIframeContent, 50);
             }
         }
