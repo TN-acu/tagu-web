@@ -136,12 +136,6 @@
             background-color: var(--secondary-bg-dark);
             border-top-color: var(--border-color-dark);
         }
-        /* ▼▼▼ 追加: Android用のフッタースタイル ▼▼▼ */
-        body.android #footer-controls {
-            width: 280px;
-            margin-right: auto;
-            margin-left: 0;
-        }
 
         .dark-mode-toggle {
             flex-shrink: 0;
@@ -170,7 +164,7 @@
             padding: 8px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
-            /* ▼▼▼ 修正 ▼▼▼ */
+            /* ▼▼▼ 修正: フォントサイズを変更 ▼▼▼ */
             font-size: 1.4em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
@@ -237,6 +231,14 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
+            
+            /* ▼▼▼ 追加: スマホ用のフッタースタイル ▼▼▼ */
+            #footer-controls {
+                max-width: 300px;
+                width: 100%; /* 画面が300pxより狭い場合に対応 */
+                margin-right: auto; /* 左寄せにする */
+                border-top-right-radius: 8px;
+            }
         }
         
         .menu-toggle {
@@ -303,13 +305,6 @@
     </div>
 
     <script>
-        // ▼▼▼ 追加: Android判定 ▼▼▼
-        (function() {
-            if (/Android/i.test(navigator.userAgent)) {
-                document.body.classList.add('android');
-            }
-        })();
-
         const iframe = document.getElementById('contentFrame');
         const bodyElement = document.body;
 
@@ -391,13 +386,11 @@
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
-        // ▼▼▼ 追加: iframe内のフォントサイズを調整する関数 ▼▼▼
+        // ▼▼▼ 追加: フォントサイズ調整用のCSSをiframeに注入する関数 ▼▼▼
         function injectCustomStylesToIframe(iframeDoc) {
-            const styleId = 'injected-custom-styles';
-            // 既存のスタイルがあれば一度削除して新しいものを適用する
-            const existingStyle = iframeDoc.getElementById(styleId);
-            if (existingStyle) {
-                existingStyle.remove();
+            const styleId = 'injected-custom-style';
+            if (iframeDoc.getElementById(styleId)) {
+                iframeDoc.getElementById(styleId).remove(); // 念のため既存のスタイルを削除
             }
 
             const styleElement = iframeDoc.createElement('style');
@@ -415,7 +408,7 @@
             `;
             iframeDoc.head.appendChild(styleElement);
         }
-
+        
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
             if (iframeDoc.getElementById(styleId)) return;
@@ -632,7 +625,7 @@
                     // ▼▼▼ 修正: フォント調整関数を呼び出す ▼▼▼
                     injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    // ▼▼▼ 修正: 検索ボタン機能を再有効化 ▼▼▼
+                    // ▼▼▼ 修正: 検索ボタン機能を再度有効化 ▼▼▼
                     addSearchButtonsToIframe(); 
                     setAppHeight();
                 } else {
