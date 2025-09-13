@@ -256,12 +256,9 @@
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
             
-            /* ▼▼▼ 追加: スマホ用のフッターと履歴メニューの幅調整 ▼▼▼ */
-            .search-container {
+            /* ▼▼▼ 追加: スマホ表示時にフッターを左詰めで40px縮小する ▼▼▼ */
+            #footer-controls {
                 width: calc(100% - 40px);
-            }
-            #search-history-container {
-                right: 40px;
             }
         }
         
@@ -457,22 +454,27 @@
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
+
                     const textSpan = document.createElement('span');
                     textSpan.textContent = term;
                     textSpan.style.flexGrow = '1';
+
                     const deleteBtn = document.createElement('span');
                     deleteBtn.className = 'history-delete-btn';
                     deleteBtn.textContent = '×';
+                    
                     deleteBtn.addEventListener('mousedown', (e) => {
                         e.stopPropagation();
                         deleteSearchTerm(term);
                     });
+
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
+
                     item.appendChild(textSpan);
                     item.appendChild(deleteBtn);
                     searchHistoryContainer.appendChild(item);
@@ -678,6 +680,7 @@
                 const iframeWin = iframe.contentWindow;
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
                     iframeWin.handleSearch(searchTerm, direction);
+                    
                     setTimeout(() => {
                         if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                             showToast('検索結果無し');
@@ -709,6 +712,7 @@
                 history.pushState({historyMenuOpen: true}, '');
             }
         });
+
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
