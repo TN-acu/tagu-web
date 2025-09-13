@@ -930,6 +930,7 @@
                     searchBtn.className = 'search-btn';
                     searchBtn.textContent = '🔍';
                     
+                    // ▼▼▼ 修正箇所 ▼▼▼
                     searchBtn.onclick = () => {
                         if (!isMobile()) {
                             navigator.clipboard.writeText(textToSearch).catch(err => {
@@ -940,19 +941,13 @@
                         const searchQuery = encodeURIComponent(textToSearch);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
                         
-                        if (!isMobile()) {
-                            const width = window.innerWidth;
-                            const height = window.innerHeight;
-                            const top = window.screenY;
-                            const left = window.screenX + window.innerWidth;
-                            const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
-                            // ▼▼▼ 修正箇所 ▼▼▼
-                            window.open(searchUrl, '_blank', windowFeatures); 
-                            // ▲▲▲ 修正箇所 ▲▲▲
-                        } else {
-                            window.open(searchUrl, '_blank');
-                        }
+                        // PC/モバイル問わず、第3引数(features)を削除し '_blank' のみ指定する。
+                        // これにより、ブラウザの標準動作（通常はメインウィンドウでの「新しいタブ」）で開かれる。
+                        // 特定の寸法を持つ別のウィンドウにタブを集約することは window.open では制御できないため、
+                        // 「新しいタブで開く」という動作を優先する。
+                        window.open(searchUrl, '_blank'); 
                     };
+                    // ▲▲▲ 修正箇所 ▲▲▲
                     
                     const wrapper = iframeDoc.createElement('div');
                     wrapper.className = 'search-button-wrapper';
