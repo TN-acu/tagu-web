@@ -218,11 +218,9 @@
             color: var(--text-color-dark);
         }
         
-        /* ▼▼▼ 修正: ボタン間のスペースを調整 ▼▼▼ */
         #search-prev {
             margin-left: 5px;
             margin-right: 5px;
-            /* ボタンが分離したため枠線を戻す */
             border-left: 1px solid #c3e6cb;
         }
         body.dark-mode #search-prev {
@@ -268,9 +266,14 @@
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
             
+            /* ▼▼▼ 追加: スマホ表示時のフッター幅と検索フォーム幅を調整 ▼▼▼ */
             #footer-controls {
-                width: calc(100% - 100px);
-                border-top-right-radius: 8px;
+                width: 100%; /* フッター自体は全幅に戻す */
+                border-top-right-radius: 0;
+            }
+            .search-container input[type="search"] {
+                flex-grow: 0; /* 幅の指定を優先させるため */
+                width: 23ch;  /* 幅を約23文字分に設定 */
             }
         }
         
@@ -356,8 +359,7 @@
         body.dark-mode .history-item:hover {
             background-color: #6c6c4c;
         }
-
-        /* ▼▼▼ 修正: 「全削除」ボタンを左寄せにし、余白調整 ▼▼▼ */
+        
         .history-clear-all-btn {
             padding: 8px 12px;
             text-align: left;
@@ -377,7 +379,6 @@
             background-color: #5c3b3b;
         }
 
-        /* ▼▼▼ 追加: 履歴個別削除ボタンのスタイル（復活） ▼▼▼ */
         .history-delete-btn {
             font-size: 1.2em;
             padding: 2px 8px;
@@ -491,12 +492,10 @@
             loadSearchHistory();
         };
         
-        // ▼▼▼ 修正: 履歴全削除ボタンと個別削除ボタンの両方を生成 ▼▼▼
         const loadSearchHistory = () => {
             const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             searchHistoryContainer.innerHTML = '';
             if (history.length > 0) {
-                // 全削除ボタンを作成
                 const clearAllBtn = document.createElement('div');
                 clearAllBtn.className = 'history-clear-all-btn';
                 clearAllBtn.textContent = '【履歴をすべて消去する】';
@@ -506,15 +505,12 @@
                 });
                 searchHistoryContainer.appendChild(clearAllBtn);
 
-                // 各履歴項目を作成 (個別削除ボタン付き)
                 history.forEach(term => {
                     const item = document.createElement('div');
                     item.className = 'history-item';
-
                     const textSpan = document.createElement('span');
                     textSpan.textContent = term;
                     textSpan.style.flexGrow = '1';
-                    
                     const deleteBtn = document.createElement('span');
                     deleteBtn.className = 'history-delete-btn';
                     deleteBtn.textContent = '×';
@@ -522,14 +518,12 @@
                         e.stopPropagation();
                         deleteSearchTerm(term);
                     });
-
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
                         searchInput.value = term;
                         performSearch('next');
                         searchHistoryContainer.style.display = 'none';
                     });
-                    
                     item.appendChild(textSpan);
                     item.appendChild(deleteBtn);
                     searchHistoryContainer.appendChild(item);
