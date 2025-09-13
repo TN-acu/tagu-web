@@ -156,6 +156,7 @@
 
         .search-container {
             display: flex;
+            align-items: center; /* ▼▼▼ 追加: カウンターを中央揃えにするため ▼▼▼ */
             width: 100%;
             flex-grow: 1; 
         }
@@ -164,8 +165,7 @@
             padding: 8px;
             border: 1px solid var(--border-color-light);
             border-radius: 5px 0 0 5px;
-            /* ▼▼▼ 修正: フォントサイズを変更 ▼▼▼ */
-            font-size: 1.4em;
+            font-size: 0.9em;
             background-color: var(--secondary-bg-light);
             color: var(--text-color-light);
             min-width: 50px; 
@@ -186,6 +186,29 @@
             font-size: 1.1em;
             line-height: 1;
         }
+        
+        /* ▼▼▼ 追加: ボタン間のスペース ▼▼▼ */
+        #search-prev {
+            margin-right: 5px;
+        }
+
+        /* ▼▼▼ 追加: 検索カウンターのスタイル ▼▼▼ */
+        #search-counter {
+            flex-shrink: 0;
+            padding: 0 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--text-color-light);
+            white-space: nowrap;
+        }
+        #search-current {
+            color: orange;
+        }
+        body.dark-mode #search-counter {
+            color: var(--text-color-dark);
+        }
+        /* ▲▲▲ ここまで追加 ▲▲▲ */
+
         .search-container button:first-of-type {
             border-left: none;
         }
@@ -231,14 +254,6 @@
             .nav-column li { margin-bottom: 5px; text-align: center; }
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
-            
-            /* ▼▼▼ 追加: スマホ用のフッタースタイル ▼▼▼ */
-            #footer-controls {
-                max-width: 300px;
-                width: 100%; /* 画面が300pxより狭い場合に対応 */
-                margin-right: auto; /* 左寄せにする */
-                border-top-right-radius: 8px;
-            }
         }
         
         .menu-toggle {
@@ -299,6 +314,9 @@
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
         <div class="search-container">
             <input type="search" id="search-input" placeholder="表示画面内を検索...">
+            <span id="search-counter">
+                <span id="search-current">0</span> / <span id="search-total">0</span>
+            </span>
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
         </div>
@@ -307,6 +325,9 @@
     <script>
         const iframe = document.getElementById('contentFrame');
         const bodyElement = document.body;
+        // ▼▼▼ 追加: 検索カウンターの要素を取得 ▼▼▼
+        const searchCurrentEl = document.getElementById('search-current');
+        const searchTotalEl = document.getElementById('search-total');
 
         const setAppHeight = () => {
             document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -385,29 +406,6 @@
         setupMobileMenuLayout(); 
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
-        
-        // ▼▼▼ 追加: フォントサイズ調整用のCSSをiframeに注入する関数 ▼▼▼
-        function injectCustomStylesToIframe(iframeDoc) {
-            const styleId = 'injected-custom-style';
-            if (iframeDoc.getElementById(styleId)) {
-                iframeDoc.getElementById(styleId).remove(); // 念のため既存のスタイルを削除
-            }
-
-            const styleElement = iframeDoc.createElement('style');
-            styleElement.id = styleId;
-            styleElement.textContent = `
-                /* フォントサイズの調整 */
-                .question-text { font-size: 1.7em !important; }
-                .choice-btn { font-size: 1.7em !important; }
-
-                /* スマホ表示時のフォントサイズ調整 */
-                @media (max-width: 768px) {
-                    .question-text { font-size: 1.4em !important; }
-                    .choice-btn { font-size: 1.4em !important; }
-                }
-            `;
-            iframeDoc.head.appendChild(styleElement);
-        }
         
         function injectBaseStyles(iframeDoc) {
             const styleId = 'injected-base-style';
@@ -495,12 +493,37 @@
         const searchPrevBtn = document.getElementById('search-prev');
         const searchNextBtn = document.getElementById('search-next');
 
+        // ▼▼▼ 追加: カウンターを更新する関数 ▼▼▼
+        function updateSearchCounter() {
+            try {
+                const iframeWin = iframe.contentWindow;
+                // iframe内のsearchState変数を直接参照
+                if (iframeWin && iframeWin.searchState) {
+                    const state = iframeWin.searchState;
+                    const total = state.elements.length;
+                    const current = total > 0 ? state.currentIndex + 1 : 0;
+                    
+                    searchCurrentEl.textContent = current;
+                    searchTotalEl.textContent = total;
+                } else {
+                     searchCurrentEl.textContent = 0;
+                     searchTotalEl.textContent = 0;
+                }
+            } catch (e) {
+                // アクセスできない場合はリセット
+                searchCurrentEl.textContent = 0;
+                searchTotalEl.textContent = 0;
+            }
+        }
+
         const performSearch = (direction) => {
             const searchTerm = searchInput.value;
             try {
                 const iframeWin = iframe.contentWindow;
                 if (iframeWin && typeof iframeWin.handleSearch === 'function') {
                     iframeWin.handleSearch(searchTerm, direction);
+                    // 検索実行後にカウンターを更新
+                    setTimeout(updateSearchCounter, 50);
                 } else if (searchTerm) {
                     alert("現在のページではカスタム検索機能がサポートされていません。");
                 }
@@ -518,6 +541,19 @@
             }
         });
         
+        // ▼▼▼ 追加: 入力欄が空になったらカウンターをリセット ▼▼▼
+        searchInput.addEventListener('input', () => {
+            if (searchInput.value === '') {
+                 try {
+                    const iframeWin = iframe.contentWindow;
+                    if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+                        iframeWin.clearHighlights();
+                    }
+                } catch(e) {}
+                updateSearchCounter();
+            }
+        });
+
         function isMobile() {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
@@ -622,11 +658,8 @@
                 const iframeDoc = iframe.contentDocument;
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
                     injectBaseStyles(iframeDoc);
-                    // ▼▼▼ 修正: フォント調整関数を呼び出す ▼▼▼
-                    injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    // ▼▼▼ 修正: 検索ボタン機能を再度有効化 ▼▼▼
-                    addSearchButtonsToIframe(); 
+                    // addSearchButtonsToIframe(); 
                     setAppHeight();
                 } else {
                     setTimeout(setupIframeContent, 50);
@@ -638,6 +671,7 @@
 
         iframe.addEventListener('load', () => {
             setupIframeContent();
+            updateSearchCounter(); // ▼▼▼ 追加: ページ読み込み時にもカウンターをリセット/更新 ▼▼▼
         });
     </script>
 
