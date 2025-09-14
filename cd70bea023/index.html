@@ -465,16 +465,14 @@
             // 1. CSSフックの追加 (CSS側で選択と長押しメニューを禁止する)
             document.body.classList.add('mobile-no-select');
 
-            // 2. JSでのコンテキストメニューの明示的な無効化
+            // 2. JSでのコンテキストメニューの明示的な無効化（検索欄例外あり）
             window.addEventListener('contextmenu', function (e) {
-                // ターゲット(長押しした要素)が 'search-input' 以外の場合のみ、メニューを禁止する
-                // これにより、検索入力欄でのみ長押し（コピー/ペースト）が可能になる
                 if (e.target.id !== 'search-input') {
                      e.preventDefault();
                 }
             }, false);
 
-            // 3. 外部キーボードによる開発者ツールショートカットの抑止 (F12, Ctrl+Shift+I, Ctrl+U など)
+            // 3. 外部キーボードによる開発者ツールショートカットの抑止
             window.addEventListener('keydown', function (e) {
                 if (
                     e.key === 'F12' || 
@@ -485,6 +483,18 @@
                     e.preventDefault();
                 }
             });
+            
+            // ▼▼▼ 追加: アンチデバッグ（DevTools開いたらフリーズ） ▼▼▼
+            (function() {
+                function blockDevTools() {
+                    // debugger; コマンドを定期的に呼び出す
+                    // 開発者ツールが開いている場合、この行で実行が一時停止し続け、コンソールが実質フリーズする
+                    debugger; 
+                }
+                // 一定間隔（例: 0.5秒ごと）で上記関数を実行し、コンソールを継続的にチェック/フリーズさせる
+                setInterval(blockDevTools, 500);
+            })();
+            // ▲▲▲ アンチデバッグ追加ここまで ▲▲▲
         }
         // ▲▲▲ 抑止機能ここまで ▲▲▲
 
@@ -547,7 +557,7 @@
                     deleteBtn.className = 'history-delete-btn';
                     deleteBtn.textContent = '×';
                     
-                    // ▼▼▼ 変更点: ここに e.preventDefault() を追加 ▼▼▼
+                    // ▼▼▼ 変更点: ここに e.preventDefault() を追加済み ▼▼▼
                     deleteBtn.addEventListener('mousedown', (e) => {
                         e.preventDefault(); // これにより入力欄のフォーカスが外れるのを防ぎ、メニューが開き続ける
                         e.stopPropagation();
