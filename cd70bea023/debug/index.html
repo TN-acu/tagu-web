@@ -142,76 +142,35 @@
             margin-left: 10px;
         }
         
-        /* ▼▼▼ 入れ子アコーディオン用スタイル（タイマーカテゴリ用に維持） ▼▼▼ */
-        .category-group {
-            margin-bottom: 5px;
+        /* ▼▼▼ 削除: 入れ子アコーディオン関連のスタイルをすべて削除 ▼▼▼ */
+        /* .category-group, .category-title, etc. all removed. */
+        /* ▲▲▲ 削除ここまで ▲▲▲ */
+        
+        /* ▼▼▼ 追加: タイマー横並び用スタイル ▼▼▼ */
+        .timer-row {
+            display: flex;
+            justify-content: space-around; /* 均等配置 */
+            gap: 5px; /* 間の隙間 */
             border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: 5px;
         }
-        body.dark-mode .category-group {
+        body.dark-mode .timer-row {
              border-bottom-color: var(--border-color-dark);
         }
-        .nav-column li.category-group {
-             margin-bottom: 5px; /* liデフォルトマージンを上書き */
-        }
-        .category-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 8px;
+        .timer-row a {
+            flex: 1; /* 均等幅 */
+            text-align: center; /* リンク内のテキストを中央揃え */
+            padding: 8px 5px;
+            font-size: 1.0em;
             font-weight: bold;
-            font-size: 1.15em;
-            cursor: pointer;
-            border-radius: 5px;
-            /* ▼▼▼ 色（薄緑/濃青）は維持 ▼▼▼ */
-            background-color: #e6f7ec; /* 薄い緑 */
-            color: #0d47a1;            /* 濃い青 */
-            /* ▲▲▲ 色ここまで ▲▲▲ */
+            background-color: #e6f7ec; /* 色は維持（リクエストになかったため、前の色を流用） */
+            color: #0d47a1;
         }
-        /* ダークモード時は既存のテーマ色を維持 */
-        body.dark-mode .category-title {
+        body.dark-mode .timer-row a {
             background-color: var(--secondary-bg-dark);
             color: var(--text-color-dark);
         }
-        .category-title:hover {
-            background-color: var(--hover-bg-color-light); /* ホバー色はデフォルトのまま */
-        }
-        body.dark-mode .category-title:hover {
-             background-color: var(--hover-bg-color-dark);
-        }
-        .category-arrow {
-            width: 0; 
-            height: 0; 
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-             /* ▼▼▼ 矢印の色も濃青（維持） ▼▼▼ */
-            border-top: 6px solid #0d47a1; /* 下向き矢印 */
-             /* ▲▲▲ 矢印色ここまで ▲▲▲ */
-            transition: transform 0.3s ease-out;
-            margin-right: 5px;
-        }
-        /* ダークモード時は矢印もテーマ色を維持 */
-        body.dark-mode .category-arrow {
-            border-top-color: var(--text-color-dark);
-        }
-        .category-title.open .category-arrow {
-            transform: rotate(180deg); /* 上向き矢印 */
-        }
-        .submenu {
-            list-style: none;
-            padding: 0 0 0 15px; /* サブメニューのインデント */
-            margin: 0;
-            overflow: hidden;
-            height: 0; /* JSで高さを制御 */
-            transition: height 0.3s ease-out;
-        }
-        .submenu li {
-            margin: 0; /* liデフォルトマージンをリセット */
-        }
-        .submenu a {
-            font-size: 1.0em; /* カテゴリ名より少し小さく */
-            padding: 8px 10px;
-        }
-        /* ▲▲▲ スタイルここまで ▲▲▲ */
+         /* ▲▲▲ 追加ここまで ▲▲▲ */
 
 
         #footer-controls {
@@ -330,31 +289,34 @@
             body.dark-mode #menu-toggle-open { border-bottom-color: var(--border-color-dark); }
             #menu-toggle-close { display: none; }
             .nav-column ul { height: 0; padding: 0 15px; flex-direction: column; }
+
+            /* ▼▼▼ メニューパネルのCSS（維持） ▼▼▼ */
             .nav-column.menu-open ul {
-                height: auto; 
+                height: auto; /* JSがピクセル高さを設定する */
                 display: flex; 
-                padding: 10px 15px; 
+                padding: 10px 15px 70px 15px; /* 下部70pxの余白はStickyフッターのために維持 */
                 border-bottom: 2px solid var(--border-color-light); 
                 
-                /* ▼▼▼ メニュー内スクロールのための最大高 ▼▼▼ */
-                max-height: calc(var(--app-height) - 150px); /* フッターとトグルボタン以外の高さを上限に */
+                max-height: calc(var(--app-height) - 100px); 
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                 /* ▲▲▲ スクロール設定 ▲▲▲ */
             }
+            /* ▲▲▲ 修正ここまで ▲▲▲ */
+
             body.dark-mode .nav-column.menu-open ul { border-bottom-color: var(--border-color-dark); }
-            .nav-column li { margin-bottom: 5px; text-align: center; } 
             
-            /* ▼▼▼ 削除: カテゴリ間の-10pxマージン指定を削除（デフォルトの5pxマージンが適用される） ▼▼▼ */
-            /* .nav-column.menu-open ul li.category-group { ... } */
-            /* ▲▲▲ 削除ここまで ▲▲▲ */
-            
-            /* ▼▼▼ 追加: モバイルメニュー内のリンクを左詰めに強制 ▼▼▼ */
-            .nav-column.menu-open ul li a,
-            .nav-column.menu-open ul .submenu a {
+            /* ▼▼▼ 変更: liのテキストアラインを center から left に変更 ▼▼▼ */
+            .nav-column li { margin-bottom: 5px; text-align: left; } 
+            /* ▲▲▲ 変更ここまで ▲▲▲ */
+
+            .nav-column.menu-open ul li a {
                 text-align: left;
             }
-            /* ▲▲▲ 追加ここまで ▲▲▲ */
+
+            /* タイマー行の内部リンクのみ中央揃えに戻す */
+            .timer-row a {
+                text-align: center;
+            }
 
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
@@ -372,21 +334,18 @@
                 z-index: 10;
                 margin-bottom: 0; /* デフォルトのliマージンを削除 */
                 
-                /* スクロールする項目が透けないように背景色を指定 */
                 background-color: var(--bg-color-light); 
-                /* 既存のボタンにあった上罫線をliに移動し、全幅にする */
                 border-top: 2px solid var(--border-color-light); 
             }
             body.dark-mode .nav-column.menu-open ul li.close-menu-li {
                 background-color: var(--bg-color-dark);
                 border-top-color: var(--border-color-dark);
             }
-            /* 貼り付いたliの中のボタン自体のスタイル調整 */
             .nav-column.menu-open ul li.close-menu-li .close-btn {
-                 margin-top: 0; /* ボタン固有のmargin-topをリセット */
+                 margin-top: 0; 
                  padding: 10px;
                  width: 100%;
-                 box-sizing: border-box; /* paddingを含めて全幅にする */
+                 box-sizing: border-box; 
             }
             /* ▲▲▲ Sticky設定ここまで ▲▲▲ */
         }
@@ -524,22 +483,18 @@
             </button>
             
             <ul id="app-list">
-                <li class="category-group">
-                    <div class="category-title" tabindex="0">
-                        <span>⏰ 実技用タイマー</span>
-                        <span class="category-arrow"></span>
-                    </div>
-                    <ul class="submenu" style="height: 0px;">
-                        <li><a href="timer-portrait.html" target="contentFrame">●実技用タイマー(縦表示)</a></li>
-                        <li><a href="timer-landscape.html" target="contentFrame">●実技用タイマー(横表示)</a></li>
-                    </ul>
+                
+                <li class="timer-row">
+                    <a href="timer-portrait.html" target="contentFrame">●実技用⏰(縦)</a>
+                    <a href="timer-landscape.html" target="contentFrame">●実技用⏰(横)</a>
                 </li>
             
-                <li><a href="quiz-sizenkagaku2025zenki/quiz-sizenkagaku2025zenki-kimatu.html" target="contentFrame">１日目　●自然科学2025前期期末クイズ(過去問40問)</a></li>
-                <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">１日目　●医療と社会2025前期期末クイズ(予想27問+過去問21問)</a></li>
-                <li><a href="quiz-seirigaku2025zenki-kimatu/quiz-seirigaku2025zenki-kimatu.html" target="contentFrame">２日目　●生理学2025前期期末クイズ(生理学復習問題①PDFから38問(38～72、74、76～77)+過去問74問 ※不適切問題1問以外)</a></li>
-                <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">２日目　●解剖学2025前期期末クイズ(Forms全316問+過去問170問以上)</a></li>
-                <li><a href="quiz-touyouigakugairon2025zenki-kimatu/quiz-touyouigakugairon2025zenki-kimatu.html" target="contentFrame">３日目　●東洋医学概論2025前期期末クイズ(Forms試験範囲復習60問＋Forms練習問題70問)</a></li>
+                <li><a href="quiz-sizenkagaku2025zenki/quiz-sizenkagaku2025zenki-kimatu.html" target="contentFrame">●１日目 自然科学 2025前期末(過去40問)</a></li>
+                <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">●１日目 医療と社会 2025前期末(予想27問+過去21問)</a></li>
+                <li><a href="quiz-seirigaku2025zenki-kimatu/quiz-seirigaku2025zenki-kimatu.html" target="contentFrame">●２日目 生理学 2025前期末(生理学復習問題①PDF38問(38～72、74、76～77)+過去74問)</a></li>
+                <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">●２日目 解剖学 2025前期末(Forms全316問+過去170問以上)</a></li>
+                <li><a href="quiz-touyouigakugairon2025zenki-kimatu/quiz-touyouigakugairon2025zenki-kimatu.html" target="contentFrame">●３日目 東洋医学概論 2025前期末(Forms試験範囲復習60問＋Forms練習問題70問)</a></li>
+                <li><a href="quiz-iryougairon2025zenki/quiz-iryougairon2025zenki-kimatu.html" target="contentFrame">●３日目 医療概論 2025前期末(過去55問+国試13問)</a></li>
 
                 <li class="close-menu-li"> 
                     <button class="menu-toggle close-btn" id="menu-toggle-close">
@@ -593,7 +548,7 @@
 
             // 2. JSでのコンテキストメニューの明示的な無効化（検索欄例外あり）
             window.addEventListener('contextmenu', function (e) {
-                // 修正: ターゲット自身または親(closest)が検索入力かチェック
+                 // 修正: ターゲット自身または親(closest)が検索入力かチェック
                 if (e.target.closest('#search-input') === null) { 
                      e.preventDefault();
                 }
@@ -807,7 +762,6 @@
         const appList = document.getElementById('app-list');
         const pcMenuTitle = document.getElementById('pc-menu-title');
 
-        // ▼▼▼ 変更: PC表示時にサブメニューを強制的に開く処理を削除 ▼▼▼
         const setupMobileMenuLayout = () => {
             if (window.innerWidth <= 768) {
                 pcMenuTitle.style.display = 'none';
@@ -823,16 +777,10 @@
                 menuToggleCloseBtn.style.display = 'none';
                 navColumn.classList.remove('menu-open');
                 appList.style.height = 'auto'; 
-                
-                // ▼▼▼ 削除: 以下の2行を削除し、PCでもデフォルトで閉じるようにする ▼▼▼
-                // document.querySelectorAll('.submenu').forEach(sub => sub.style.height = 'auto');
-                // document.querySelectorAll('.category-title').forEach(t => t.classList.add('open'));
-                // ▲▲▲ 削除ここまで ▲▲▲
             }
         };
-        // ▲▲▲ 変更ここまで ▲▲▲
 
-        // ▼▼▼ toggleMenu関数（修正済み） ▼▼▼
+        // ▼▼▼ 変更: toggleMenu関数をアコーディオン削除に伴いシンプル化 ▼▼▼
         const toggleMenu = () => {
             if (window.innerWidth > 768) return;
             const isOpening = !navColumn.classList.contains('menu-open');
@@ -843,24 +791,29 @@
                 
                 menuToggleOpenBtn.style.display = 'none';
                 menuToggleCloseBtn.style.display = 'flex';
+                
+                // シンプルなフラットリストに戻ったため、JSの高さ計算が正しく機能する
                 const scrollHeight = appList.scrollHeight;
                 appList.style.height = '0';
-                setTimeout(() => { appList.style.height = `${scrollHeight}px`; appList.style.paddingTop = '10px'; appList.style.paddingBottom = '10px'; }, 10);
+                setTimeout(() => { 
+                    appList.style.height = `${scrollHeight}px`; 
+                    appList.style.paddingTop = '10px'; 
+                    // padding-bottomはCSS側で制御
+                }, 10);
             } else {
                 if (history.state && history.state.uiState === 'menu') { 
                     history.back(); 
                 }
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
-                appList.style.height = `${appList.scrollHeight}px`;
-                setTimeout(() => { appList.style.height = '0'; appList.style.paddingTop = '0'; appList.style.paddingBottom = '0'; }, 10);
-
-                // ▼▼▼ 追加: メインメニューを閉じるとき、サブメニューもすべて閉じる ▼▼▼
-                setTimeout(() => {
-                    document.querySelectorAll('.submenu').forEach(sub => sub.style.height = '0px');
-                    document.querySelectorAll('.category-title').forEach(t => t.classList.remove('open'));
-                }, 300); // アニメーション時間と合わせる
-                // ▲▲▲ 追加ここまで ▲▲▲
+                
+                appList.style.height = `${appList.scrollHeight}px`; // 現在高さを取得
+                setTimeout(() => { 
+                    appList.style.height = '0'; 
+                    appList.style.paddingTop = '0'; 
+                }, 10);
+                
+                // サブメニューが存在しないため、リセットロジックは不要
             }
             setTimeout(setAppHeight, 300); 
         };
@@ -868,8 +821,7 @@
 
         menuToggleOpenBtn.addEventListener('click', toggleMenu);
         menuToggleCloseBtn.addEventListener('click', toggleMenu);
-        
-        const appLinks = document.querySelectorAll('#app-list a'); 
+        const appLinks = document.querySelectorAll('#app-list a');
         
         appLinks.forEach(link => {
             link.addEventListener('click', () => { 
@@ -881,7 +833,7 @@
         });
         
         window.addEventListener('resize', setupMobileMenuLayout);
-        // setupMobileMenuLayout(); // <-- setupNestedAccordionの後に移動
+        setupMobileMenuLayout(); // 実行
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
@@ -1032,6 +984,7 @@
             }, 200);
         });
         
+        // ▼▼▼ 変更: popstateからサブメニュー関連の処理を削除 ▼▼▼
         window.addEventListener('popstate', (event) => {
             
             if (customHistoryStack.length > 0) {
@@ -1044,13 +997,6 @@
                         menuToggleCloseBtn.style.display = 'none';
                         appList.style.height = '0'; 
                         appList.style.paddingTop = '0';
-                        appList.style.paddingBottom = '0';
-                        
-                        // メニューを閉じるので、サブメニューもリセット
-                        setTimeout(() => {
-                            document.querySelectorAll('.submenu').forEach(sub => sub.style.height = '0px');
-                            document.querySelectorAll('.category-title').forEach(t => t.classList.remove('open'));
-                        }, 300);
                     }
                     return; 
                 } 
@@ -1078,6 +1024,7 @@
                 }
             }
         });
+        // ▲▲▲ 変更ここまで ▲▲▲
         
         
         function addSearchButtonsToIframe() {
@@ -1222,49 +1169,13 @@
             setupIframeContent();
         });
         
-        // ▼▼▼ 入れ子アコーディオンを起動する関数 ▼▼▼
-        function setupNestedAccordion() {
-            const mainAppList = document.getElementById('app-list');
-            const categories = document.querySelectorAll('.category-title');
-
-            categories.forEach(category => {
-                const submenu = category.nextElementSibling; // 直後の弟要素(.submenu <ul>)を取得
-                if (!submenu || !submenu.classList.contains('submenu')) return;
-
-                const toggleSubmenu = () => {
-                    const isOpen = submenu.style.height !== '0px' && submenu.style.height !== '';
-                    
-                    if (isOpen) {
-                        submenu.style.height = '0px';
-                        category.classList.remove('open');
-                    } else {
-                        submenu.style.height = submenu.scrollHeight + 'px'; // サブメニュー自身のスクロール高さを設定
-                        category.classList.add('open');
-                    }
-                    
-                    // サブメニュー開閉後、メインアコーディオンの高さを再計算して更新
-                    // (スマホ表示（メインメニューが開いている）時のみ実行)
-                    if (navColumn.classList.contains('menu-open')) {
-                        setTimeout(() => {
-                            mainAppList.style.height = mainAppList.scrollHeight + 'px';
-                        }, 310); // サブメニューのアニメーション(300ms)完了後に実行
-                    }
-                };
-
-                category.addEventListener('click', toggleSubmenu);
-                // キーボード操作（TabでフォーカスしてEnter/Space）でも開閉できるように
-                category.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleSubmenu();
-                    }
-                });
-            });
-        }
+        // ▼▼▼ 削除: setupNestedAccordion() 関数全体を削除 ▼▼▼
+        
+        // ▲▲▲ 削除ここまで ▲▲▲
         
         // ▼▼▼ 実行 ▼▼▼
-        setupNestedAccordion();
-        setupMobileMenuLayout(); // アコーディオン設定後にレイアウトを実行
+        // setupNestedAccordion(); // <-- 呼び出しも削除
+        setupMobileMenuLayout(); 
         loadSearchHistory();
     </script>
 
