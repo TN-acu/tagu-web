@@ -142,10 +142,6 @@
             margin-left: 10px;
         }
         
-        /* ▼▼▼ 削除: 入れ子アコーディオン関連のスタイルをすべて削除 ▼▼▼ */
-        /* .category-group, .category-title, etc. all removed. */
-        /* ▲▲▲ 削除ここまで ▲▲▲ */
-        
         /* ▼▼▼ 追加: タイマー横並び用スタイル ▼▼▼ */
         .timer-row {
             display: flex;
@@ -535,6 +531,10 @@
 
         // ▼▼▼ すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
         let customHistoryStack = []; 
+
+        // ▼▼▼ 削除: 検索ウィンドウのフラグ変数を削除 ▼▼▼
+        // let hasSearchWindowBeenOpened = false;
+        // ▲▲▲ 削除ここまで ▲▲▲
 
         // ▼▼▼ isMobile()関数（スクリプトの先頭に移動済み） ▼▼▼
         function isMobile() {
@@ -1027,6 +1027,7 @@
         // ▲▲▲ 変更ここまで ▲▲▲
         
         
+        // ▼▼▼ 変更: 検索ボタンのロジックを「常に同じ名前のWindow」に戻す ▼▼▼
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -1081,6 +1082,7 @@
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
                         
                         if (!isMobile()) {
+                             // PCの場合のロジック（常に同じ名前のウィンドウを指定）
                             const width = window.innerWidth;
                             const height = window.innerHeight;
                             const top = window.screenY;
@@ -1088,9 +1090,11 @@
                             const windowFeatures = `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`;
                             window.open(searchUrl, 'googleSearchWindow', windowFeatures);
                         } else {
+                            // モバイルの場合
                             window.open(searchUrl, '_blank');
                         }
                     };
+                    // ▲▲▲ 変更ここまで ▲▲▲
                     
                     const wrapper = iframeDoc.createElement('div');
                     wrapper.className = 'search-button-wrapper';
