@@ -13,6 +13,8 @@
     <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
     <link rel="manifest" href="manifest.json">
+    
+    <script src="auth.js"></script>
     <style>
         :root {
             --app-height: 100vh;
@@ -941,6 +943,12 @@
                         const searchQuery = encodeURIComponent(textToSearch);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
                         
+                        // ※※※
+                        // このコードは以前の会話のものです。
+                        // 「常に新しいタブで開く」という修正（_blankのみ指定）が反映されていない
+                        // 状態のコードがアップロードされましたが、
+                        // 認証ロジックの追加のみを要望されたため、この部分は変更していません。
+                        // ※※※
                         if (!isMobile()) {
                             const width = window.innerWidth;
                             const height = window.innerHeight;
