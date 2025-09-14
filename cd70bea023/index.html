@@ -141,6 +141,78 @@
             vertical-align: middle;
             margin-left: 10px;
         }
+        
+        /* ▼▼▼ 入れ子アコーディオン用スタイル（タイマーカテゴリ用に維持） ▼▼▼ */
+        .category-group {
+            margin-bottom: 5px;
+            border-bottom: 1px solid var(--border-color-light);
+        }
+        body.dark-mode .category-group {
+             border-bottom-color: var(--border-color-dark);
+        }
+        .nav-column li.category-group {
+             margin-bottom: 5px; /* liデフォルトマージンを上書き */
+        }
+        .category-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 8px;
+            font-weight: bold;
+            font-size: 1.15em;
+            cursor: pointer;
+            border-radius: 5px;
+            /* ▼▼▼ 色（薄緑/濃青）は維持 ▼▼▼ */
+            background-color: #e6f7ec; /* 薄い緑 */
+            color: #0d47a1;            /* 濃い青 */
+            /* ▲▲▲ 色ここまで ▲▲▲ */
+        }
+        /* ダークモード時は既存のテーマ色を維持 */
+        body.dark-mode .category-title {
+            background-color: var(--secondary-bg-dark);
+            color: var(--text-color-dark);
+        }
+        .category-title:hover {
+            background-color: var(--hover-bg-color-light); /* ホバー色はデフォルトのまま */
+        }
+        body.dark-mode .category-title:hover {
+             background-color: var(--hover-bg-color-dark);
+        }
+        .category-arrow {
+            width: 0; 
+            height: 0; 
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+             /* ▼▼▼ 矢印の色も濃青（維持） ▼▼▼ */
+            border-top: 6px solid #0d47a1; /* 下向き矢印 */
+             /* ▲▲▲ 矢印色ここまで ▲▲▲ */
+            transition: transform 0.3s ease-out;
+            margin-right: 5px;
+        }
+        /* ダークモード時は矢印もテーマ色を維持 */
+        body.dark-mode .category-arrow {
+            border-top-color: var(--text-color-dark);
+        }
+        .category-title.open .category-arrow {
+            transform: rotate(180deg); /* 上向き矢印 */
+        }
+        .submenu {
+            list-style: none;
+            padding: 0 0 0 15px; /* サブメニューのインデント */
+            margin: 0;
+            overflow: hidden;
+            height: 0; /* JSで高さを制御 */
+            transition: height 0.3s ease-out;
+        }
+        .submenu li {
+            margin: 0; /* liデフォルトマージンをリセット */
+        }
+        .submenu a {
+            font-size: 1.0em; /* カテゴリ名より少し小さく */
+            padding: 8px 10px;
+        }
+        /* ▲▲▲ スタイルここまで ▲▲▲ */
+
 
         #footer-controls {
             flex-shrink: 0; 
@@ -263,9 +335,27 @@
                 display: flex; 
                 padding: 10px 15px; 
                 border-bottom: 2px solid var(--border-color-light); 
+                
+                /* ▼▼▼ メニュー内スクロールのための最大高 ▼▼▼ */
+                max-height: calc(var(--app-height) - 150px); /* フッターとトグルボタン以外の高さを上限に */
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                 /* ▲▲▲ スクロール設定 ▲▲▲ */
             }
             body.dark-mode .nav-column.menu-open ul { border-bottom-color: var(--border-color-dark); }
-            .nav-column li { margin-bottom: 5px; text-align: center; }
+            .nav-column li { margin-bottom: 5px; text-align: center; } 
+            
+            /* ▼▼▼ 削除: カテゴリ間の-10pxマージン指定を削除（デフォルトの5pxマージンが適用される） ▼▼▼ */
+            /* .nav-column.menu-open ul li.category-group { ... } */
+            /* ▲▲▲ 削除ここまで ▲▲▲ */
+            
+            /* ▼▼▼ 追加: モバイルメニュー内のリンクを左詰めに強制 ▼▼▼ */
+            .nav-column.menu-open ul li a,
+            .nav-column.menu-open ul .submenu a {
+                text-align: left;
+            }
+            /* ▲▲▲ 追加ここまで ▲▲▲ */
+
             .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
             .content-column { flex-grow: 1; min-height: 0; }
             
@@ -273,6 +363,32 @@
                 flex-grow: 0;
                 width: 23ch;
             }
+            
+            /* ▼▼▼ 閉じるボタンのSticky（固定）設定（維持） ▼▼▼ */
+            .nav-column.menu-open ul li.close-menu-li {
+                position: -webkit-sticky; /* iOS Safari対応 */
+                position: sticky;
+                bottom: -1px; /* わずかな隙間を消すために-1pxを指定 */
+                z-index: 10;
+                margin-bottom: 0; /* デフォルトのliマージンを削除 */
+                
+                /* スクロールする項目が透けないように背景色を指定 */
+                background-color: var(--bg-color-light); 
+                /* 既存のボタンにあった上罫線をliに移動し、全幅にする */
+                border-top: 2px solid var(--border-color-light); 
+            }
+            body.dark-mode .nav-column.menu-open ul li.close-menu-li {
+                background-color: var(--bg-color-dark);
+                border-top-color: var(--border-color-dark);
+            }
+            /* 貼り付いたliの中のボタン自体のスタイル調整 */
+            .nav-column.menu-open ul li.close-menu-li .close-btn {
+                 margin-top: 0; /* ボタン固有のmargin-topをリセット */
+                 padding: 10px;
+                 width: 100%;
+                 box-sizing: border-box; /* paddingを含めて全幅にする */
+            }
+            /* ▲▲▲ Sticky設定ここまで ▲▲▲ */
         }
         
         .menu-toggle {
@@ -406,22 +522,32 @@
             <button class="menu-toggle open-btn" id="menu-toggle-open">
                 他のアプリを選択する <span class="arrow"></span>
             </button>
+            
             <ul id="app-list">
-                <li><a href="timer-portrait.html" target="contentFrame">●実技用タイマー(縦表示)</a></li>
-                <li><a href="timer-landscape.html" target="contentFrame">●実技用タイマー(横表示)</a></li>
-                <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">●解剖学2025前期期末クイズ(Forms全316問+過去問170問以上)</a></li>
-                <li><a href="quiz-iryougairon2025zenki/quiz-iryougairon2025zenki-kimatu.html" target="contentFrame">●医療概論2025前期期末クイズ(過去問55問+国試問題13問)</a></li>
-                <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">●医療と社会2025前期期末クイズ(予想27問+過去問21問)</a></li>
-                <li><a href="quiz-sizenkagaku2025zenki/quiz-sizenkagaku2025zenki-kimatu.html" target="contentFrame">●自然科学2025前期期末クイズ(過去問40問)</a></li>
-                <li><a href="quiz-seirigaku2025zenki-kimatu/quiz-seirigaku2025zenki-kimatu.html" target="contentFrame">●生理学2025前期期末クイズ(生理学復習問題①PDFから38問(38～72、74、76～77)+過去問74問 ※不適切問題1問以外)</a></li>
-                <li><a href="quiz-touyouigakugairon2025zenki-kimatu/quiz-touyouigakugairon2025zenki-kimatu.html" target="contentFrame">●東洋医学概論2025前期期末クイズ(Forms試験範囲復習60問＋Forms練習問題70問)</a></li>
-                <li> 
+                <li class="category-group">
+                    <div class="category-title" tabindex="0">
+                        <span>⏰ 実技用タイマー</span>
+                        <span class="category-arrow"></span>
+                    </div>
+                    <ul class="submenu" style="height: 0px;">
+                        <li><a href="timer-portrait.html" target="contentFrame">●実技用タイマー(縦表示)</a></li>
+                        <li><a href="timer-landscape.html" target="contentFrame">●実技用タイマー(横表示)</a></li>
+                    </ul>
+                </li>
+            
+                <li><a href="quiz-sizenkagaku2025zenki/quiz-sizenkagaku2025zenki-kimatu.html" target="contentFrame">１日目　●自然科学2025前期期末クイズ(過去問40問)</a></li>
+                <li><a href="quiz-iryoutoshakai2025zenki/quiz-iryoutoshakai2025zenki-kimatu.html" target="contentFrame">１日目　●医療と社会2025前期期末クイズ(予想27問+過去問21問)</a></li>
+                <li><a href="quiz-seirigaku2025zenki-kimatu/quiz-seirigaku2025zenki-kimatu.html" target="contentFrame">２日目　●生理学2025前期期末クイズ(生理学復習問題①PDFから38問(38～72、74、76～77)+過去問74問 ※不適切問題1問以外)</a></li>
+                <li><a href="quiz-kaibougaku/quiz-kaibougaku.html" target="contentFrame">２日目　●解剖学2025前期期末クイズ(Forms全316問+過去問170問以上)</a></li>
+                <li><a href="quiz-touyouigakugairon2025zenki-kimatu/quiz-touyouigakugairon2025zenki-kimatu.html" target="contentFrame">３日目　●東洋医学概論2025前期期末クイズ(Forms試験範囲復習60問＋Forms練習問題70問)</a></li>
+
+                <li class="close-menu-li"> 
                     <button class="menu-toggle close-btn" id="menu-toggle-close">
                         他のアプリ選択メニューを閉じる <span class="arrow"></span>
                     </button>
                 </li>
             </ul>
-        </div>
+            </div>
         <div class="content-column">
             <iframe src="timer-portrait.html" name="contentFrame" id="contentFrame" title="コンテンツ表示エリア">
                 お使いのブラウザはiframeに対応していません。
@@ -467,7 +593,8 @@
 
             // 2. JSでのコンテキストメニューの明示的な無効化（検索欄例外あり）
             window.addEventListener('contextmenu', function (e) {
-                if (e.target.id !== 'search-input') {
+                // 修正: ターゲット自身または親(closest)が検索入力かチェック
+                if (e.target.closest('#search-input') === null) { 
                      e.preventDefault();
                 }
             }, false);
@@ -487,11 +614,8 @@
             // ▼▼▼ 追加: アンチデバッグ（DevTools開いたらフリーズ） ▼▼▼
             (function() {
                 function blockDevTools() {
-                    // debugger; コマンドを定期的に呼び出す
-                    // 開発者ツールが開いている場合、この行で実行が一時停止し続け、コンソールが実質フリーズする
                     debugger; 
                 }
-                // 一定間隔（例: 0.5秒ごと）で上記関数を実行し、コンソールを継続的にチェック/フリーズさせる
                 setInterval(blockDevTools, 500);
             })();
             // ▲▲▲ アンチデバッグ追加ここまで ▲▲▲
@@ -557,13 +681,11 @@
                     deleteBtn.className = 'history-delete-btn';
                     deleteBtn.textContent = '×';
                     
-                    // ▼▼▼ 変更点: ここに e.preventDefault() を追加済み ▼▼▼
                     deleteBtn.addEventListener('mousedown', (e) => {
-                        e.preventDefault(); // これにより入力欄のフォーカスが外れるのを防ぎ、メニューが開き続ける
+                        e.preventDefault(); 
                         e.stopPropagation();
                         deleteSearchTerm(term);
                     });
-                    // ▲▲▲ 変更ここまで ▲▲▲
                     
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
@@ -618,8 +740,6 @@
             }, 1000);
         };
 
-        // ▼▼▼ 追加: スマホ戻るボタン機能のための新関数群 ▼▼▼
-
         function handleQuizChoiceMade(quizIndexStr) {
             const quizIndex = parseInt(quizIndexStr, 10);
             if (isNaN(quizIndex)) return;
@@ -637,7 +757,6 @@
             customHistoryStack = [];
         }
 
-        // ▼▼▼ 修正: clearIframeChoice からスコア計算ロジックをすべて削除 ▼▼▼
         function clearIframeChoice(quizIndex) {
             try {
                 const iframeWin = iframe.contentWindow;
@@ -647,32 +766,23 @@
                 const quizItem = iframeDoc.getElementById(`quiz-${quizIndex}`);
                 if (!quizItem) return;
 
-                // 1. DOM操作: 選択解除 (残す)
                 const choiceButtons = quizItem.querySelectorAll('.choice-btn');
                 choiceButtons.forEach(btn => {
                     btn.classList.remove('selected');
                 });
 
-                // 2. DOM操作: フィードバックテキストをクリア (残す)
                 const feedbackText = quizItem.querySelector('.feedback-text');
                 if (feedbackText) {
                     feedbackText.textContent = '';
                 }
                 
-                // 3. スクロール (残す)
                 quizItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // 4. (削除) スコアデータ(userAnswers)の操作とスコア再計算ロジックは、
-                //    ご要望に基づき、すべて削除しました。
-                //    この操作により「正解数」は変動しなくなります。
 
             } catch (e) {
                 console.error("Error clearing iframe choice:", e.message);
             }
         }
-        // ▲▲▲ 修正ここまで ▲▲▲
         
-
         function injectCustomStylesToIframe(iframeDoc) {
             const styleId = 'injected-custom-font-style';
             const existingStyle = iframeDoc.getElementById(styleId);
@@ -697,6 +807,7 @@
         const appList = document.getElementById('app-list');
         const pcMenuTitle = document.getElementById('pc-menu-title');
 
+        // ▼▼▼ 変更: PC表示時にサブメニューを強制的に開く処理を削除 ▼▼▼
         const setupMobileMenuLayout = () => {
             if (window.innerWidth <= 768) {
                 pcMenuTitle.style.display = 'none';
@@ -712,16 +823,23 @@
                 menuToggleCloseBtn.style.display = 'none';
                 navColumn.classList.remove('menu-open');
                 appList.style.height = 'auto'; 
+                
+                // ▼▼▼ 削除: 以下の2行を削除し、PCでもデフォルトで閉じるようにする ▼▼▼
+                // document.querySelectorAll('.submenu').forEach(sub => sub.style.height = 'auto');
+                // document.querySelectorAll('.category-title').forEach(t => t.classList.add('open'));
+                // ▲▲▲ 削除ここまで ▲▲▲
             }
         };
+        // ▲▲▲ 変更ここまで ▲▲▲
 
+        // ▼▼▼ toggleMenu関数（修正済み） ▼▼▼
         const toggleMenu = () => {
             if (window.innerWidth > 768) return;
             const isOpening = !navColumn.classList.contains('menu-open');
             navColumn.classList.toggle('menu-open');
             if (isOpening) {
-                history.pushState({uiState: 'menu'}, ''); // ▼修正: 一元管理用のstate
-                customHistoryStack.push('menu');          // ▼修正: 内部スタックに追加
+                history.pushState({uiState: 'menu'}, ''); 
+                customHistoryStack.push('menu');          
                 
                 menuToggleOpenBtn.style.display = 'none';
                 menuToggleCloseBtn.style.display = 'flex';
@@ -729,24 +847,33 @@
                 appList.style.height = '0';
                 setTimeout(() => { appList.style.height = `${scrollHeight}px`; appList.style.paddingTop = '10px'; appList.style.paddingBottom = '10px'; }, 10);
             } else {
-                if (history.state && history.state.uiState === 'menu') { // ▼修正: 新しいstateキーで判定
-                    history.back(); // これがpopstateをトリガーする
+                if (history.state && history.state.uiState === 'menu') { 
+                    history.back(); 
                 }
                 menuToggleOpenBtn.style.display = 'flex';
                 menuToggleCloseBtn.style.display = 'none';
                 appList.style.height = `${appList.scrollHeight}px`;
                 setTimeout(() => { appList.style.height = '0'; appList.style.paddingTop = '0'; appList.style.paddingBottom = '0'; }, 10);
+
+                // ▼▼▼ 追加: メインメニューを閉じるとき、サブメニューもすべて閉じる ▼▼▼
+                setTimeout(() => {
+                    document.querySelectorAll('.submenu').forEach(sub => sub.style.height = '0px');
+                    document.querySelectorAll('.category-title').forEach(t => t.classList.remove('open'));
+                }, 300); // アニメーション時間と合わせる
+                // ▲▲▲ 追加ここまで ▲▲▲
             }
             setTimeout(setAppHeight, 300); 
         };
+        // ▲▲▲ 変更ここまで ▲▲▲
 
         menuToggleOpenBtn.addEventListener('click', toggleMenu);
         menuToggleCloseBtn.addEventListener('click', toggleMenu);
-        const appLinks = document.querySelectorAll('#app-list a');
+        
+        const appLinks = document.querySelectorAll('#app-list a'); 
         
         appLinks.forEach(link => {
             link.addEventListener('click', () => { 
-                handleQuizFinished(); // ▼修正: クイズ履歴スタックをクリア
+                handleQuizFinished(); 
                 if (navColumn.classList.contains('menu-open')) { 
                     toggleMenu(); 
                 } 
@@ -754,7 +881,7 @@
         });
         
         window.addEventListener('resize', setupMobileMenuLayout);
-        setupMobileMenuLayout(); 
+        // setupMobileMenuLayout(); // <-- setupNestedAccordionの後に移動
 
         const darkModeButton = document.getElementById('dark-mode-toggle');
         
@@ -883,8 +1010,8 @@
         };
         
         searchInput.addEventListener('focus', () => {
-            history.pushState({uiState: 'search'}, ''); // ▼修正: 一元管理用のstate
-            customHistoryStack.push('search');          // ▼修正: 内部スタックに追加
+            history.pushState({uiState: 'search'}, ''); 
+            customHistoryStack.push('search');          
             showSearchHistoryIfNeeded();
         });
         
@@ -897,22 +1024,20 @@
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 if (searchHistoryContainer.style.display === 'block') {
-                    if (history.state && history.state.uiState === 'search') { // ▼修正: 新しいstateキーで判定
-                        history.back(); // これがpopstateをトリガーする
+                    if (history.state && history.state.uiState === 'search') { 
+                        history.back(); 
                     }
                     searchHistoryContainer.style.display = 'none';
                 }
             }, 200);
         });
         
-        // ▼▼▼ 修正: popstateリスナーを、すべての状態を一元管理するロジックに「置き換え」る ▼▼▼
         window.addEventListener('popstate', (event) => {
             
             if (customHistoryStack.length > 0) {
-                const lastStateToPop = customHistoryStack.pop(); // 内部スタックから最後のアクションを取り出す
+                const lastStateToPop = customHistoryStack.pop(); 
 
                 if (lastStateToPop === 'menu') {
-                    // 「戻る」ボタンで押された場合（＝UIがまだ開いている場合）のみ、閉じるDOM操作を実行
                     if (navColumn.classList.contains('menu-open')) {
                         navColumn.classList.remove('menu-open');
                         menuToggleOpenBtn.style.display = 'flex';
@@ -920,11 +1045,16 @@
                         appList.style.height = '0'; 
                         appList.style.paddingTop = '0';
                         appList.style.paddingBottom = '0';
+                        
+                        // メニューを閉じるので、サブメニューもリセット
+                        setTimeout(() => {
+                            document.querySelectorAll('.submenu').forEach(sub => sub.style.height = '0px');
+                            document.querySelectorAll('.category-title').forEach(t => t.classList.remove('open'));
+                        }, 300);
                     }
-                    return; // このpopstateは消費した
+                    return; 
                 } 
                 else if (lastStateToPop === 'search') {
-                    // 「戻る」ボタンで押された場合（＝UIがまだ開いている/フォーカスされている場合）のみ、閉じるDOM操作を実行
                     if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
                         if (searchHistoryContainer.style.display === 'block') {
                              searchHistoryContainer.style.display = 'none';
@@ -940,17 +1070,14 @@
                         }
                         searchInput.blur();
                     }
-                    return; // このpopstateは消費した
+                    return; 
                 }
                 else if (lastStateToPop && lastStateToPop.type === 'quiz') {
-                    // クイズ解除は「戻る」ボタンでしかトリガーされないので、必ず実行
                     clearIframeChoice(lastStateToPop.index);
-                    return; // このpopstateは消費した
+                    return; 
                 }
             }
-            // 内部スタックが空の場合は、通常のブラウザバック動作（ページ遷移）となる
         });
-        // ▲▲▲ 修正ここまで ▲▲▲
         
         
         function addSearchButtonsToIframe() {
@@ -1018,7 +1145,7 @@
                         }
                     };
                     
-                    const wrapper = document.createElement('div');
+                    const wrapper = iframeDoc.createElement('div');
                     wrapper.className = 'search-button-wrapper';
                     
                     const parent = targetElement.parentNode;
@@ -1051,24 +1178,19 @@
         function setupIframeContent() {
             try {
                 const iframeDoc = iframe.contentDocument;
-                // ▼▼▼ 修正: if条件を不具合のあった 'readyState' を削除し、元の状態（JSによるDOM構築完了を待つ）に戻す ▼▼▼
                 if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
-                // ▲▲▲ 修正ここまで ▲▲▲
                     
                     injectBaseStyles(iframeDoc);
                     injectCustomStylesToIframe(iframeDoc);
                     applyDarkModeToIframe(bodyElement.classList.contains('dark-mode'));
-                    addSearchButtonsToIframe(); // 既存の検索ボタン機能
+                    addSearchButtonsToIframe(); 
                     setAppHeight();
                     
-                    // ▼▼▼ 追加: iframe内のボタンに「戻る」機能のためのリスナーをアタッチ ▼▼▼
                     const quizButtons = iframeDoc.querySelectorAll('.choice-btn');
                     if (quizButtons.length > 0) {
-                        // 二重アタッチを防止するためのフラグチェック
                         if (!iframeDoc.body.classList.contains('choice-listeners-added')) {
                             
                             quizButtons.forEach(btn => {
-                                // 既存の onclick 属性 (selectChoice) の *後* で実行されるように addEventListener を使用
                                 btn.addEventListener('click', (e) => {
                                     const quizItem = e.target.closest('.quiz-item');
                                     if (quizItem && quizItem.id) {
@@ -1078,32 +1200,71 @@
                                 });
                             });
                             
-                            // 終了ボタンにもリスナーをアタッチ
                             const finishBtn = iframeDoc.getElementById('finish-btn');
                             if (finishBtn) {
                                 finishBtn.addEventListener('click', handleQuizFinished);
                             }
                             
-                            // 処理済みフラグをiframeのbodyに付与
                             iframeDoc.body.classList.add('choice-listeners-added');
                         }
                     }
-                    // ▲▲▲ 追加ここまで ▲▲▲
                     
                 } else {
-                    setTimeout(setupIframeContent, 50); // DOM構築がまだならリトライ
+                    setTimeout(setupIframeContent, 50); 
                 }
             } catch (e) {
-                // クロスオリジンエラー等をキャッチ
                 setTimeout(setupIframeContent, 50);
             }
         }
 
         iframe.addEventListener('load', () => {
-            handleQuizFinished(); // ▼修正: ページが新しく読み込まれたら必ず履歴スタックをクリア
+            handleQuizFinished(); 
             setupIframeContent();
         });
         
+        // ▼▼▼ 入れ子アコーディオンを起動する関数 ▼▼▼
+        function setupNestedAccordion() {
+            const mainAppList = document.getElementById('app-list');
+            const categories = document.querySelectorAll('.category-title');
+
+            categories.forEach(category => {
+                const submenu = category.nextElementSibling; // 直後の弟要素(.submenu <ul>)を取得
+                if (!submenu || !submenu.classList.contains('submenu')) return;
+
+                const toggleSubmenu = () => {
+                    const isOpen = submenu.style.height !== '0px' && submenu.style.height !== '';
+                    
+                    if (isOpen) {
+                        submenu.style.height = '0px';
+                        category.classList.remove('open');
+                    } else {
+                        submenu.style.height = submenu.scrollHeight + 'px'; // サブメニュー自身のスクロール高さを設定
+                        category.classList.add('open');
+                    }
+                    
+                    // サブメニュー開閉後、メインアコーディオンの高さを再計算して更新
+                    // (スマホ表示（メインメニューが開いている）時のみ実行)
+                    if (navColumn.classList.contains('menu-open')) {
+                        setTimeout(() => {
+                            mainAppList.style.height = mainAppList.scrollHeight + 'px';
+                        }, 310); // サブメニューのアニメーション(300ms)完了後に実行
+                    }
+                };
+
+                category.addEventListener('click', toggleSubmenu);
+                // キーボード操作（TabでフォーカスしてEnter/Space）でも開閉できるように
+                category.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleSubmenu();
+                    }
+                });
+            });
+        }
+        
+        // ▼▼▼ 実行 ▼▼▼
+        setupNestedAccordion();
+        setupMobileMenuLayout(); // アコーディオン設定後にレイアウトを実行
         loadSearchHistory();
     </script>
 
