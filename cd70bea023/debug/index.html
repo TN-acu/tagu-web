@@ -64,14 +64,14 @@
             user-select: none;           /* Standard: テキスト選択禁止 */
         }
         
-        /* ▼▼▼ 追加: 検索入力欄の選択(コピー/ペースト)のみを許可する例外ルール ▼▼▼ */
+        /* ▼▼▼ 検索入力欄の選択(コピー/ペースト)のみを許可する例外ルール ▼▼▼ */
         body.mobile-no-select #search-input {
              -webkit-user-select: auto; /* Safari/Chrome */
             -moz-user-select: auto;    /* Firefox */
             -ms-user-select: auto;     /* IE/Edge */
             user-select: auto;         /* Standard */
         }
-        /* ▲▲▲ 追加ここまで ▲▲▲ */
+        /* ▲▲▲ CSSここまで ▲▲▲ */
 
         .container { 
             display: flex; 
@@ -466,7 +466,6 @@
             document.body.classList.add('mobile-no-select');
 
             // 2. JSでのコンテキストメニューの明示的な無効化
-            // ▼▼▼ 変更点: ここに例外処理を追加 ▼▼▼
             window.addEventListener('contextmenu', function (e) {
                 // ターゲット(長押しした要素)が 'search-input' 以外の場合のみ、メニューを禁止する
                 // これにより、検索入力欄でのみ長押し（コピー/ペースト）が可能になる
@@ -474,7 +473,6 @@
                      e.preventDefault();
                 }
             }, false);
-            // ▲▲▲ 変更ここまで ▲▲▲
 
             // 3. 外部キーボードによる開発者ツールショートカットの抑止 (F12, Ctrl+Shift+I, Ctrl+U など)
             window.addEventListener('keydown', function (e) {
@@ -548,10 +546,14 @@
                     const deleteBtn = document.createElement('span');
                     deleteBtn.className = 'history-delete-btn';
                     deleteBtn.textContent = '×';
+                    
+                    // ▼▼▼ 変更点: ここに e.preventDefault() を追加 ▼▼▼
                     deleteBtn.addEventListener('mousedown', (e) => {
+                        e.preventDefault(); // これにより入力欄のフォーカスが外れるのを防ぎ、メニューが開き続ける
                         e.stopPropagation();
                         deleteSearchTerm(term);
                     });
+                    // ▲▲▲ 変更ここまで ▲▲▲
                     
                     item.addEventListener('mousedown', (e) => {
                         e.preventDefault();
@@ -1006,7 +1008,7 @@
                         }
                     };
                     
-                    const wrapper = iframeDoc.createElement('div');
+                    const wrapper = document.createElement('div');
                     wrapper.className = 'search-button-wrapper';
                     
                     const parent = targetElement.parentNode;
