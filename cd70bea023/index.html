@@ -8,6 +8,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    
+    <meta name="robots" content="noindex, nofollow, noarchive">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
@@ -52,6 +54,16 @@
             background-color: var(--bg-color-dark);
             color: var(--text-color-dark);
         }
+
+        /* ▼▼▼ 追加: モバイル閲覧抑止用CSS ▼▼▼ */
+        body.mobile-no-select {
+            -webkit-touch-callout: none; /* iOS: リンクや画像の長押しメニュー(保存等)を禁止 */
+            -webkit-user-select: none;   /* Safari: テキスト選択禁止 */
+            -moz-user-select: none;      /* Firefox */
+            -ms-user-select: none;       /* IE/Edge */
+            user-select: none;           /* Standard: テキスト選択禁止 */
+        }
+        /* ▲▲▲ 追加ここまで ▲▲▲ */
 
         .container { 
             display: flex; 
@@ -434,6 +446,35 @@
 
         // ▼▼▼ すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
         let customHistoryStack = []; 
+
+        // ▼▼▼ 変更点: isMobile()関数をスクリプトの先頭（この位置）に移動 ▼▼▼
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // ▼▼▼ 追加: モバイル端末向け 閲覧抑止機能 ▼▼▼
+        if (isMobile()) {
+            // 1. CSSフックの追加 (CSS側で選択と長押しメニューを禁止する)
+            document.body.classList.add('mobile-no-select');
+
+            // 2. JSでのコンテキストメニューの明示的な無効化 (二重ブロック)
+            window.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+            }, false);
+
+            // 3. 外部キーボードによる開発者ツールショートカットの抑止 (F12, Ctrl+Shift+I, Ctrl+U など)
+            window.addEventListener('keydown', function (e) {
+                if (
+                    e.key === 'F12' || 
+                    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
+                    (e.ctrlKey && e.key === 'U') ||
+                    (e.metaKey && e.altKey && e.key === 'I') // Mac: Cmd+Option+I (Safari/Chrome共通)
+                ) {
+                    e.preventDefault();
+                }
+            });
+        }
+        // ▲▲▲ 抑止機能ここまで ▲▲▲
 
         const setAppHeight = () => {
             document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -886,10 +927,6 @@
         // ▲▲▲ 修正ここまで ▲▲▲
         
         
-        function isMobile() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-
         function addSearchButtonsToIframe() {
             try {
                 const iframeDoc = iframe.contentDocument;
@@ -943,12 +980,6 @@
                         const searchQuery = encodeURIComponent(textToSearch);
                         const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
                         
-                        // ※※※
-                        // このコードは以前の会話のものです。
-                        // 「常に新しいタブで開く」という修正（_blankのみ指定）が反映されていない
-                        // 状態のコードがアップロードされましたが、
-                        // 認証ロジックの追加のみを要望されたため、この部分は変更していません。
-                        // ※※※
                         if (!isMobile()) {
                             const width = window.innerWidth;
                             const height = window.innerHeight;
