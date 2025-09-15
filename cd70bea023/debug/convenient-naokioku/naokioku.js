@@ -3,116 +3,208 @@ window.addEventListener('DOMContentLoaded', () => {
     const startButton = document.getElementById('startButton');
     const stopButton = document.getElementById('stopButton');
 
-    // スライダーと値表示の要素
+    // スライダー要素
     const delaySlider = document.getElementById('delaySlider');
     const delayValueSpan = document.getElementById('delayValue');
     const volumeSlider = document.getElementById('volumeSlider');
     const volumeValueSpan = document.getElementById('volumeValue');
 
-    // Web Audio API と MediaStream のオブジェクト
+    // チェックボックス要素
+    const compressorToggle = document.getElementById('compressorToggle');
+    const compressorSpan = document.getElementById('compressorStatus');
+    const noiseToggle = document.getElementById('noiseToggle');
+    const noiseToggleSpan = document.getElementById('noiseToggleStatus');
+    const highCutToggle = document.getElementById('highCutToggle'); // ★高音カット チェックボックス
+    const highCutSpan = document.getElementById('highCutStatus'); // ★高音カット スパン
+
+    // Web Audio API オブジェクト
     let audioContext = null;
-    let mediaStream = null;
+    let mediaStream = null; 
     let sourceNode = null;
     let delayNode = null; 
     let gainNode = null; 
+    let compressorNode = null;
+    let biquadFilterNode = null; // ★高音カット用フィルターノード
 
-    // --- ▼▼▼【 1. 保存機能の追加 】▼▼▼ ---
+    // --- 1. localStorage と設定 ---
 
-    // localStorageに保存するための「キー」を定義
     const DELAY_KEY = 'naokioku_delay_setting';
     const VOLUME_KEY = 'naokioku_volume_setting';
+    const COMPRESSOR_KEY = 'naokioku_compressor_setting';
+    const NOISE_KEY = 'naokioku_noise_setting';
+    const HIGH_CUT_KEY = 'naokioku_highcut_setting'; // ★高音カット設定キー
 
-    // 読み込み処理（ページロード時に実行）
     function loadSettings() {
         const savedDelay = localStorage.getItem(DELAY_KEY);
         const savedVolume = localStorage.getItem(VOLUME_KEY);
+        const savedCompressor = localStorage.getItem(COMPRESSOR_KEY);
+        const savedNoise = localStorage.getItem(NOISE_KEY);
+        const savedHighCut = localStorage.getItem(HIGH_CUT_KEY); // ★読み込み
 
-        // 保存された値があれば、スライダーのデフォルト値として設定
-        if (savedDelay !== null) {
-            delaySlider.value = savedDelay;
-        }
-        if (savedVolume !== null) {
-            volumeSlider.value = savedVolume;
-        }
+        if (savedDelay !== null) delaySlider.value = savedDelay;
+        if (savedVolume !== null) volumeSlider.value = savedVolume;
+        
+        // "false" (文字列) の場合にのみチェックを外す
+        compressorToggle.checked = (savedCompressor !== 'false');
+        noiseToggle.checked = (savedNoise !== 'false');
+        highCutToggle.checked = (savedHighCut !== 'false'); // ★反映
     }
 
-    // --- ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ ---
-
-
-    // --- 2. スライダーの初期値設定とイベントリスナー ---
+    // --- 2. スライダーとチェックボックスのリスナー ---
     
-    // ★(変更) 読み込み処理を実行
     loadSettings();
 
-    // ★(変更) ページ読み込み時のスパン反映（保存値が反映された後の現在値を使う）
+    // スパン表示の初期化
     delayValueSpan.textContent = `${Number(delaySlider.value).toFixed(1)} 秒`;
     volumeValueSpan.textContent = `${volumeSlider.value} %`;
+    updateCompressorSpan();
+    updateNoiseSpan();
+    updateHighCutSpan(); // ★高音カットスパン初期化
 
-    // 遅延スライダーのイベント (inputイベントでリアルタイムに反応)
+    // 遅延スライダー
     delaySlider.addEventListener('input', (e) => {
         const delaySec = Number(e.target.value);
         delayValueSpan.textContent = `${delaySec.toFixed(1)} 秒`;
-        
-        // ★(追加) localStorage に値を保存
         localStorage.setItem(DELAY_KEY, delaySec);
-
-        if (delayNode) {
-            delayNode.delayTime.setValueAtTime(delaySec, audioContext.currentTime);
-        }
+        if (delayNode) delayNode.delayTime.setValueAtTime(delaySec, audioContext.currentTime);
     });
 
-    // 音量スライダーのイベント
+    // 音量スライダー
     volumeSlider.addEventListener('input', (e) => {
         const volumePercent = e.target.value;
         volumeValueSpan.textContent = `${volumePercent} %`;
-        
-        // ★(追加) localStorage に値を保存
         localStorage.setItem(VOLUME_KEY, volumePercent);
-
         const gainValue = volumePercent / 100.0;
-        
-        if (gainNode) {
-            gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
-        }
+        if (gainNode) gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
+    });
+
+    // ハウリング抑制 (コンプレッサー)
+    compressorToggle.addEventListener('change', (e) => {
+        const isEnabled = e.target.checked;
+        localStorage.setItem(COMPRESSOR_KEY, isEnabled);
+        updateCompressorState(); 
+        updateCompressorSpan(); 
+    });
+
+    // ノイズ防止
+    noiseToggle.addEventListener('change', (e) => {
+        const isEnabled = e.target.checked;
+        localStorage.setItem(NOISE_KEY, isEnabled);
+        updateNoiseSpan();
+        applyAudioConstraints(); 
+    });
+
+    // ★高音カットフィルター
+    highCutToggle.addEventListener('change', (e) => {
+        const isEnabled = e.target.checked;
+        localStorage.setItem(HIGH_CUT_KEY, isEnabled);
+        updateFilterState(); // ★フィルター状態を更新
+        updateHighCutSpan();
     });
 
 
-    // --- 3. スタート/ストップ処理 (※このセクションに変更なし) ---
+    // --- 3. 補助関数 ---
 
-    // スタートボタンの処理
+    function updateCompressorSpan() {
+        compressorSpan.textContent = compressorToggle.checked ? '(リミッターON)' : '(OFF - 危険)';
+    }
+    function updateNoiseSpan() {
+        noiseToggleSpan.textContent = noiseToggle.checked ? '(ブラウザ機能 ON)' : '(OFF)';
+    }
+    // ★高音カットスパン更新
+    function updateHighCutSpan() {
+        highCutSpan.textContent = highCutToggle.checked ? '(3000Hz以上をカット)' : '(OFF)';
+    }
+
+    // コンプレッサー状態更新
+    function updateCompressorState() {
+        if (!compressorNode) return;
+        const isEnabled = compressorToggle.checked;
+        const now = audioContext.currentTime;
+        if (isEnabled) {
+            compressorNode.threshold.setValueAtTime(-50, now);
+            compressorNode.knee.setValueAtTime(40, now);
+            compressorNode.ratio.setValueAtTime(12, now);
+            compressorNode.attack.setValueAtTime(0, now);
+            compressorNode.release.setValueAtTime(0.25, now);
+        } else {
+            compressorNode.threshold.setValueAtTime(0, now);
+            compressorNode.knee.setValueAtTime(0, now);
+            compressorNode.ratio.setValueAtTime(1, now);
+            compressorNode.attack.setValueAtTime(0, now);
+        }
+    }
+    
+    // ★高音カットフィルター状態更新
+    function updateFilterState() {
+        if (!biquadFilterNode) return;
+
+        const isEnabled = highCutToggle.checked;
+        const now = audioContext.currentTime;
+        // フィルタータイプは常にローパスに設定
+        biquadFilterNode.type = 'lowpass';
+        
+        if (isEnabled) {
+            // ON: 3000Hz (ハウリングが起きやすい高音域) 以上をカット
+            biquadFilterNode.frequency.setValueAtTime(3000, now);
+            biquadFilterNode.Q.setValueAtTime(1, now); // 標準的な品質
+        } else {
+            // OFF: フィルターをバイパス（実質的に無効化）
+            // 可聴域の上限を超える周波数（ナイキスト周波数、通常22050Hzなど）に設定
+            biquadFilterNode.frequency.setValueAtTime(22050, now);
+        }
+    }
+
+    // マイク制約の適用
+    function applyAudioConstraints() {
+        if (!mediaStream) return; 
+        const isNoiseSuppressionOn = noiseToggle.checked;
+        const constraints = { noiseSuppression: isNoiseSuppressionOn };
+        const audioTrack = mediaStream.getAudioTracks()[0];
+        if (audioTrack && audioTrack.applyConstraints) {
+            audioTrack.applyConstraints(constraints)
+                .catch(e => console.warn("制約の適用に失敗:", e));
+        }
+    }
+
+    // --- 4. スタート/ストップ処理 ---
+
+    // スタートボタン
     startButton.addEventListener('click', async () => {
         try {
-            // AudioContextの準備
             if (!audioContext || audioContext.state === 'closed') {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
             if (audioContext.state === 'suspended') {
                 await audioContext.resume();
             }
+            
+            const audioConstraints = {
+                echoCancellation: true,
+                noiseSuppression: noiseToggle.checked 
+            };
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
 
-            // マイクストリームの取得
-            mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: true } 
-            });
-
-            // 3. Audioノードの作成
+            // 3. Audioノード作成
             sourceNode = audioContext.createMediaStreamSource(mediaStream);
             delayNode = audioContext.createDelay(4.0); 
             gainNode = audioContext.createGain(); 
+            biquadFilterNode = audioContext.createBiquadFilter(); // ★フィルターノード作成
+            compressorNode = audioContext.createDynamicsCompressor(); 
 
-            // 4. スライダーの現在値を取得してノードに初期設定
-            const currentDelay = Number(delaySlider.value);
-            const currentGain = Number(volumeSlider.value) / 100.0;
+            // 4. 初期値設定
+            delayNode.delayTime.value = Number(delaySlider.value);
+            gainNode.gain.value = Number(volumeSlider.value) / 100.0;
+            updateCompressorState(); // コンプレッサー初期化
+            updateFilterState();     // ★フィルター初期化
 
-            delayNode.delayTime.value = currentDelay;
-            gainNode.gain.value = currentGain;
-
-            // 5. ノードの接続グラフを変更
+            // 5. ★ノード接続 (Gain -> Filter -> Compressor)
             sourceNode.connect(delayNode);
             delayNode.connect(gainNode);      
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(biquadFilterNode);      // Gain を Filter へ
+            biquadFilterNode.connect(compressorNode); // Filter を Compressor へ
+            compressorNode.connect(audioContext.destination); // Compressor をスピーカーへ
 
-            // ボタン状態の更新
             startButton.disabled = true;
             stopButton.disabled = false;
 
@@ -122,32 +214,30 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 停止ボタンの処理
+    // 停止ボタン
     stopButton.addEventListener('click', () => {
         if (!mediaStream) return;
 
-        mediaStream.getTracks().forEach(track => {
-            track.stop();
-        });
+        mediaStream.getTracks().forEach(track => track.stop());
 
-        if (sourceNode) {
-            sourceNode.disconnect();
-            sourceNode = null;
-        }
-        if (delayNode) {
-            delayNode.disconnect();
-            delayNode = null;
-        }
-        if (gainNode) { 
-            gainNode.disconnect();
-            gainNode = null;
-        }
+        // ★すべてのノードを切断
+        if (sourceNode) sourceNode.disconnect();
+        if (delayNode) delayNode.disconnect();
+        if (gainNode) gainNode.disconnect();
+        if (biquadFilterNode) biquadFilterNode.disconnect(); // ★フィルター切断
+        if (compressorNode) compressorNode.disconnect();
+
+        // ノード参照を破棄
+        sourceNode = null;
+        delayNode = null;
+        gainNode = null;
+        compressorNode = null;
+        biquadFilterNode = null; // ★参照破棄
+        mediaStream = null;
         
         if (audioContext && audioContext.state === 'running') {
             audioContext.suspend();
         }
-
-        mediaStream = null;
         
         startButton.disabled = false;
         stopButton.disabled = true;

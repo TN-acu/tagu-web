@@ -10,7 +10,9 @@
     <link rel="icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
-    <link rel="manifest" href="manifest.json"> </head>
+    <link rel="manifest" href="manifest.json">
+
+</head>
 <body>
 
     <h1>記憶用復唱アプリ (naokioku)</h1>
@@ -34,7 +36,25 @@
             <input type="range" id="volumeSlider" min="0" max="500" value="100" step="1">
             <span id="volumeValue">100 %</span>
         </div>
-    </div>
+
+        <div class="setting-item checkbox-item">
+            <label for="compressorToggle">ハウリング抑制:</label>
+            <input type="checkbox" id="compressorToggle" checked>
+            <span id="compressorStatus">(リミッターON)</span>
+        </div>
+        
+        <div class="setting-item checkbox-item">
+            <label for="noiseToggle">ノイズ防止:</label>
+            <input type="checkbox" id="noiseToggle" checked>
+            <span id="noiseToggleStatus">(ブラウザ機能 ON)</span>
+        </div>
+
+        <div class="setting-item checkbox-item">
+            <label for="highCutToggle">高音カット:</label>
+            <input type="checkbox" id="highCutToggle" checked>
+            <span id="highCutStatus">(3000Hz以上をカット)</span>
+        </div>
+        </div>
 
 
     <script src="naokioku.js"></script>
