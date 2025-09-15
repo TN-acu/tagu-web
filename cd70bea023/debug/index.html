@@ -1012,11 +1012,20 @@
                         #quiz-header { background-color: #474a4d !important; }
                         #score-text { color: #b8bbbf !important; }
 
-                        /* ▼▼▼ 追加: 未回答時のフィードバックテキスト(インラインの青色指定)を白文字で上書き ▼▼▼ */
-                        .feedback-text {
-                            color: #f8f9fa !important; /* JSによる 'blue' 指定を白文字で上書き */
+                        /* ▼▼▼ 修正: フィードバックテキストの色をインラインスタイル別に上書き ▼▼▼ */
+                        /* JSが color: green (正解) を指定した場合、明るい緑に */
+                        .feedback-text[style*="color: green"] {
+                            color: #69f0ae !important;
                         }
-                        /* ▲▲▲ 追加ここまで ▲▲▲ */
+                        /* JSが color: red (不正解) を指定した場合、明るい赤に */
+                        .feedback-text[style*="color: red"] {
+                            color: #ff6e6e !important;
+                        }
+                        /* JSが color: blue (未回答・終了時) を指定した場合、白 (ユーザー要求) に */
+                        .feedback-text[style*="color: blue"] {
+                            color: #f8f9fa !important; 
+                        }
+                        /* ▲▲▲ 修正ここまで ▲▲▲ */
 
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
                         .quiz-container, .timer-container, div[style*="background"], section, main {
@@ -1033,19 +1042,19 @@
                             color: #ffffff !important;           
                         }
                         
-                        /* ▼▼▼ 追加: 採点後の正解/不正解ボタンのダークモードスタイル ▼▼▼ */
+                        /* ▼▼▼ 修正: 採点後の正解/不正解ボタンを「目に優しい」コントラストに変更 ▼▼▼ */
                         .choice-btn.correct {
-                            background-color: #28a745 !important; /* 明るい緑 */
-                            border-color: #2e7d32 !important;     
-                            color: #ffffff !important;           /* 白文字 */
+                            background-color: #1f513f !important; /* 落ち着いた暗い緑 */
+                            border-color: #286953 !important;     
+                            color: #ffffff !important;           /* 白文字 (維持) */
                             font-weight: bold !important;
                         }
                         .choice-btn.incorrect {
-                            background-color: #dc3545 !important; /* 明るい赤 */
-                            border-color: #b02a37 !important;     
-                            color: #ffffff !important;           /* 白文字 */
+                            background-color: #581e26 !important; /* 落ち着いた暗い赤 */
+                            border-color: #722730 !important;     
+                            color: #ffffff !important;           /* 白文字 (維持) */
                         }
-                        /* ▲▲▲ 追加ここまで ▲▲▲ */
+                        /* ▲▲▲ 修正ここまで ▲▲▲ */
                     `;
                     // ▲▲▲ 修正ここまで ▲▲▲
                 } else {
@@ -1527,4 +1536,5 @@
     </script>
 
 </body>
+
 </html>
