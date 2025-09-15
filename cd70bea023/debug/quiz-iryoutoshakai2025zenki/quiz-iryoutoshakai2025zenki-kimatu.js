@@ -195,7 +195,8 @@ function updateScore() {
 }
 
 // 「クイズ終了」ボタンを押したときの処理
-function finishQuiz() {
+// ▼▼▼ 修正: 引数(scrollToTop) を追加 ▼▼▼
+function finishQuiz(scrollToTop = true) {
     let score = 0;
     
     quizzes.forEach((quiz, index) => {
@@ -242,12 +243,16 @@ function finishQuiz() {
     finishBtn.textContent = 'もう一度挑戦する';
     finishBtn.onclick = () => location.reload();
     
-    window.scrollTo(0, 0);
+    // ▼▼▼ 修正: 引数に応じてスクロールを制御 ▼▼▼
+    if (scrollToTop) {
+        window.scrollTo(0, 0);
+    }
 }
+// ▲▲▲ 修正ここまで ▲▲▲
 
 // PDF印刷のメインロジック
 function handlePdfPrint() {
-    finishQuiz();
+    finishQuiz(true); // PDF化の際は必ずトップにスクロール
 
     const lastModified = new Date(document.lastModified);
     const year = lastModified.getFullYear();
@@ -286,7 +291,9 @@ function handlePdfPrint() {
 
 // イベントリスナーを設定
 finishBtn.addEventListener('click', () => {
-    finishQuiz();
+    // ▼▼▼ 修正: finishQuiz() 呼び出し時に true を渡す ▼▼▼
+    finishQuiz(true);
+    // ▲▲▲ 修正ここまで ▲▲▲
     isReadyForPrint = true;
     pdfBtn.textContent = '印刷プレビューを開く';
     pdfBtn.classList.add('ready');
@@ -323,6 +330,46 @@ pdfBtn.addEventListener('click', () => {
 
 // 最初にクイズをセットアップ
 setupQuiz();
+
+
+// ▼▼▼ 追加: クイズリセット機能（リロードなし） ▼▼▼
+/**
+ * ページをリロードせずにクイズの状態のみをリセットする
+ * (オートスクロールOFF時、または親フレームの「戻る」ボタン押下時に呼び出される)
+ */
+function resetQuiz() {
+    userAnswers = {};
+    updateScore(); // スコア表示をリセット
+
+    quizzes.forEach((quiz, index) => {
+        const quizItem = document.getElementById(`quiz-${index}`);
+        if (!quizItem) return;
+
+        const choiceButtons = quizItem.querySelectorAll('.choice-btn');
+        const feedbackText = quizItem.querySelector('.feedback-text');
+        
+        // ボタンの状態をリセット
+        choiceButtons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('selected', 'correct', 'incorrect');
+        });
+        
+        // フィードバックテキストを消去
+        if (feedbackText) {
+            feedbackText.textContent = '';
+        }
+    });
+
+    // 終了ボタンを元の状態に戻す
+    finishBtn.textContent = 'クイズ終了';
+    finishBtn.onclick = null; // location.reload() の onclick を削除 (addEventListener が再度有効になる)
+
+    // PDFボタンの状態をリセット
+    isReadyForPrint = false;
+    pdfBtn.textContent = '正答PDF化';
+    pdfBtn.classList.remove('ready');
+}
+// ▲▲▲ 追加ここまで ▲▲▲
 
 
 // --- カスタム検索機能 (追加) ---
