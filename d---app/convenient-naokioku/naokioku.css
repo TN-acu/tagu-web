@@ -1,0 +1,95 @@
+body {
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    color: #444;
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+button {
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#startButton {
+    background-color: #28a745; /* 緑 */
+    color: white;
+}
+
+#stopButton {
+    background-color: #dc3545; /* 赤 */
+    color: white;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 400px;
+    margin: 10px auto;
+}
+
+/* --- ▼ 以下、スライダー用に追記 ▼ --- */
+
+.settings {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 450px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.setting-item label {
+    font-weight: bold;
+    flex-basis: 120px;
+    text-align: left;
+}
+
+.setting-item input[type="range"] {
+    flex-grow: 1;
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+.setting-item span {
+    font-family: monospace; /* 数字の幅を揃える */
+    font-size: 1.1rem;
+    color: #0056b3;
+    flex-basis: 70px;
+    text-align: right;
+}
