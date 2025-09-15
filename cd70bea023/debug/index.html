@@ -203,6 +203,92 @@
             background-color: var(--bg-color-dark);
         }
 
+        /* ▼▼▼ 追加: オートスクロールUI用CSS ▼▼▼ */
+        .scroll-controls-container {
+            display: none; /* デフォルト非表示。JSでPC判定時にflexにする */
+            align-items: center;
+            flex-shrink: 0;
+            margin-left: 10px; /* ★指示: ダークモードボタンの右隣10px */
+            margin-right: 10px; /* 検索コンテナとのマージン */
+        }
+        #scroll-speed-select {
+            padding: 5px;
+            font-size: 0.9em;
+            height: 36px; /* ボタン類と高さを合わせる */
+            border: 1px solid var(--border-color-light);
+            background-color: var(--secondary-bg-light);
+            color: var(--text-color-light);
+            border-radius: 5px;
+        }
+        body.dark-mode #scroll-speed-select {
+            border-color: var(--border-color-dark);
+            background-color: var(--secondary-bg-dark);
+            color: var(--text-color-dark);
+        }
+        #scroll-countdown {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #007bff; /* ★指示: 青文字 */
+            margin-left: 5px; /* プルダウンとのマージン */
+            margin-right: 18px; /* ★修正: トグルスイッチとのマージンを18pxに変更 */
+            width: 55px; /* "00分00秒" が入る幅 */
+            white-space: nowrap;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        body.dark-mode #scroll-countdown {
+            color: #66bfff; /* ダークモード用の青 */
+        }
+
+        /* トグルスイッチのラッパー */
+        .scroll-toggle-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 44px; /* 幅 */
+            height: 24px; /* 高さ */
+            flex-shrink: 0;
+        }
+        /* チェックボックス本体は隠す */
+        .scroll-toggle-wrapper input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        /* スライダー（背景） */
+        .scroll-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px; /* 高さに合わせる */
+        }
+        /* スライダー（丸） */
+        .scroll-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px; /* (高さ - 4px) */
+            width: 20px;  /* (高さ - 4px) */
+            left: 2px;   /* (マージン) */
+            bottom: 2px;  /* (マージン) */
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        /* ONの時の背景色 */
+        input:checked + .scroll-toggle-slider {
+            background-color: #28a745; /* 緑 */
+        }
+        /* ONの時の丸の位置 */
+        input:checked + .scroll-toggle-slider:before {
+            transform: translateX(20px); /* (44px - 20px - 2px - 2px) */
+        }
+        /* ▲▲▲ オートスクロールUI CSSここまで ▲▲▲ */
+
+
         .search-container {
             display: flex;
             width: 100%;
@@ -282,7 +368,9 @@
             .nav-column h2 { display: none; }
             .menu-toggle { display: flex; }
             #menu-toggle-open { border-bottom: 2px solid var(--border-color-light); }
+            /* ▼▼▼ 修正: #menu-toggle-open のダークモードボーダーをCSS変数に変更 ▼▼▼ */
             body.dark-mode #menu-toggle-open { border-bottom-color: var(--border-color-dark); }
+            /* ▲▲▲ 修正ここまで ▲▲▲ */
             #menu-toggle-close { display: none; }
             .nav-column ul { height: 0; padding: 0 15px; flex-direction: column; }
 
@@ -296,10 +384,19 @@
                 max-height: calc(var(--app-height) - 100px); 
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
+
+                /* ▼▼▼ 追加: 指示されたアコーディオンパネルの背景色(モバイル時) ▼▼▼ */
+                background-color: #ffffe0;
+                /* ▲▲▲ 追加ここまで ▲▲▲ */
             }
             /* ▲▲▲ 修正ここまで ▲▲▲ */
 
-            body.dark-mode .nav-column.menu-open ul { border-bottom-color: var(--border-color-dark); }
+            body.dark-mode .nav-column.menu-open ul { 
+                border-bottom-color: var(--border-color-dark); 
+                /* ▼▼▼ 追加: ダークモード時の背景色 ▼▼▼ */
+                background-color: #4d4d33;
+                /* ▲▲▲ 追加ここまで ▲▲▲ */
+            }
             
             /* ▼▼▼ 変更: liのテキストアラインを center から left に変更 ▼▼▼ */
             .nav-column li { margin-bottom: 5px; text-align: left; } 
@@ -330,13 +427,16 @@
                 z-index: 10;
                 margin-bottom: 0; /* デフォルトのliマージンを削除 */
                 
-                background-color: var(--bg-color-light); 
+                /* ▼▼▼ 修正: 背景色を強制的にデフォルトに戻す（親の黄色指定を上書き） ▼▼▼ */
+                background-color: var(--bg-color-light) !important; 
                 border-top: 2px solid var(--border-color-light); 
             }
             body.dark-mode .nav-column.menu-open ul li.close-menu-li {
-                background-color: var(--bg-color-dark);
+                background-color: var(--bg-color-dark) !important;
                 border-top-color: var(--border-color-dark);
             }
+            /* ▲▲▲ 修正ここまで ▲▲▲ */
+
             .nav-column.menu-open ul li.close-menu-li .close-btn {
                  margin-top: 0; 
                  padding: 10px;
@@ -357,6 +457,11 @@
             background-color: #26422d;
             color: #b8bbbf;
         }
+        
+        /* ▼▼▼ 削除: アコーディオン「ボタン」の背景色変更ルールを削除 ▼▼▼ */
+        /* (削除対応: #menu-toggle-open への黄色指定ルールをすべて削除しました) */
+        /* ▲▲▲ 削除ここまで ▲▲▲ */
+
 
         .menu-toggle.close-btn { border-top: 2px solid var(--border-color-light); margin-top: 10px; }
         body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dark); }
@@ -366,7 +471,11 @@
             vertical-align: middle; transition: transform 0.3s ease-out;
         }
         .menu-toggle.open-btn .arrow { border-top: 6px solid white; }
+        /* ▼▼▼ 修正: 黄色ボタン削除に伴い、open-btn .arrow のルールが復活 ▼▼▼ */
+        /* (CSSルール削除により、この .arrow 指定が再び有効になります) */
+        /* ▲▲▲ 修正ここまで ▲▲▲ */
         .menu-toggle.close-btn .arrow { border-bottom: 6px solid white; }
+
 
         #toast-notification {
             visibility: hidden;
@@ -510,6 +619,18 @@
 
     <div id="footer-controls">
         <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
+
+        <div class="scroll-controls-container" id="scroll-controls">
+            <select id="scroll-speed-select" title="スクロール速度 (0.5 ～ 5.0)">
+                </select>
+            
+            <span id="scroll-countdown">00分00秒</span> 
+
+            <label class="scroll-toggle-wrapper" title="オートスクロール ON/OFF">
+                <input type="checkbox" id="scroll-toggle-checkbox">
+                <span class="scroll-toggle-slider"></span>
+            </label>
+        </div>
         <div class="search-container">
             <div class="input-wrapper">
                 <input type="search" id="search-input" placeholder="表示画面内を検索...">
@@ -883,12 +1004,20 @@
                         styleElement.id = styleElementId;
                         iframeDoc.head.appendChild(styleElement);
                     }
+                    // ▼▼▼ 修正: 採点後のスタイル(正解/不正解/フィードバックテキスト)を追加 ▼▼▼
                     styleElement.textContent = `
                         body { background-color: #212529 !important; color: #f8f9fa !important; }
                         .quiz-container h1 { color: #f8f9fa !important; }
                         .main-container h1, .main-container h2 { color: #000000 !important; }
                         #quiz-header { background-color: #474a4d !important; }
                         #score-text { color: #b8bbbf !important; }
+
+                        /* ▼▼▼ 追加: 未回答時のフィードバックテキスト(インラインの青色指定)を白文字で上書き ▼▼▼ */
+                        .feedback-text {
+                            color: #f8f9fa !important; /* JSによる 'blue' 指定を白文字で上書き */
+                        }
+                        /* ▲▲▲ 追加ここまで ▲▲▲ */
+
                         ::selection { background-color: #ffc107 !important; color: #000000 !important; }
                         .quiz-container, .timer-container, div[style*="background"], section, main {
                             background-color: transparent !important; color: inherit !important;
@@ -903,7 +1032,22 @@
                             border-color: #adb5bd !important;     
                             color: #ffffff !important;           
                         }
+                        
+                        /* ▼▼▼ 追加: 採点後の正解/不正解ボタンのダークモードスタイル ▼▼▼ */
+                        .choice-btn.correct {
+                            background-color: #28a745 !important; /* 明るい緑 */
+                            border-color: #2e7d32 !important;     
+                            color: #ffffff !important;           /* 白文字 */
+                            font-weight: bold !important;
+                        }
+                        .choice-btn.incorrect {
+                            background-color: #dc3545 !important; /* 明るい赤 */
+                            border-color: #b02a37 !important;     
+                            color: #ffffff !important;           /* 白文字 */
+                        }
+                        /* ▲▲▲ 追加ここまで ▲▲▲ */
                     `;
+                    // ▲▲▲ 修正ここまで ▲▲▲
                 } else {
                     if (styleElement) { styleElement.remove(); }
                 }
@@ -986,6 +1130,13 @@
         
         // ▼▼▼ 変更: popstateからサブメニュー関連の処理を削除 ▼▼▼
         window.addEventListener('popstate', (event) => {
+
+            // ▼▼▼ 追加: オートスクロール作動中に「戻る」が押された場合の処理 ▼▼▼
+            if (scrollInterval) {
+                // スクロールを停止し、クイズをリセットする (トグルOFFと同じ動作)
+                stopAutoScroll(true); // true = クイズをリセット
+            }
+            // ▲▲▲ 追加ここまで ▲▲▲
             
             if (customHistoryStack.length > 0) {
                 const lastStateToPop = customHistoryStack.pop(); 
@@ -1159,7 +1310,19 @@
                             iframeDoc.body.classList.add('choice-listeners-added');
                         }
                     }
-                    
+
+                    // ▼▼▼ 追加: iframe内のスクロールを監視し、手動スクロール時に残り時間概算を更新 ▼▼▼
+                    if (!iframeDoc.body.classList.contains('scroll-time-listener-added')) {
+                        iframe.contentWindow.addEventListener('scroll', () => {
+                            if (!scrollInterval) { // オートスクロール作動中「以外」の場合
+                                updateCountdownDisplay();
+                            }
+                        });
+                        iframeDoc.body.classList.add('scroll-time-listener-added');
+                    }
+                    updateCountdownDisplay(); // iframeロード完了時に一度計算
+                    // ▲▲▲ 追加ここまで ▲▲▲
+
                 } else {
                     setTimeout(setupIframeContent, 50); 
                 }
@@ -1176,7 +1339,187 @@
         // ▼▼▼ 削除: setupNestedAccordion() 関数全体を削除 ▼▼▼
         
         // ▲▲▲ 削除ここまで ▲▲▲
+
+        // ▼▼▼ 追加: オートスクロール機能 ▼▼▼
+        const scrollControls = document.getElementById('scroll-controls');
+        const speedSelect = document.getElementById('scroll-speed-select');
+        const countdownDisplay = document.getElementById('scroll-countdown');
+        const toggleCheckbox = document.getElementById('scroll-toggle-checkbox');
         
+        const SCROLL_SPEED_KEY = 'quizAutoScrollSpeed';
+        const SCROLL_INTERVAL_MS = 20; // スクロール更新間隔 (ミリ秒)
+
+        let scrollInterval = null;
+        let countdownInterval = null;
+        let currentScrollSpeed = 1.0; // ★修正: 速度をグローバル変数で管理
+
+        /**
+         * 0.5から5.0まで0.1刻みでプルダウンを生成し、localStorageから速度を復元
+         */
+        function populateSpeedSelect() {
+            const savedSpeed = localStorage.getItem(SCROLL_SPEED_KEY) || '1.0';
+            currentScrollSpeed = parseFloat(savedSpeed); // ★修正: グローバル変数に初期値を設定
+            for (let i = 5; i <= 50; i++) {
+                const speedValue = (i / 10).toFixed(1);
+                const option = document.createElement('option');
+                option.value = speedValue;
+                option.textContent = speedValue;
+                if (speedValue === savedSpeed) {
+                    option.selected = true;
+                }
+                speedSelect.appendChild(option);
+            }
+        }
+
+        /**
+         * 秒数を「MM分SS秒」形式の文字列にフォーマット
+         */
+        function formatTime(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = Math.floor(totalSeconds % 60);
+            return `${String(mins).padStart(2, '0')}分${String(secs).padStart(2, '0')}秒`;
+        }
+
+        /**
+         * iframe内の残りのスクロール可能ピクセル数と、選択中の速度に基づく残り時間を計算
+         */
+        function getRemainingScrollData() {
+            try {
+                const iWin = iframe.contentWindow;
+                const iDocEl = iframe.contentDocument.documentElement;
+                if (!iWin || !iDocEl) return { pixels: 0, seconds: 0 };
+
+                const remainingPixels = iDocEl.scrollHeight - (iWin.innerHeight + iWin.scrollY);
+                if (remainingPixels <= 0) return { pixels: 0, seconds: 0 };
+
+                // 速度解釈: 選択値 = SCROLL_INTERVAL_MS (例: 20ms) ごとに進むピクセル数
+                // ★修正: グローバル変数を参照
+                const speedSetting = currentScrollSpeed; 
+                // 1秒あたりのピクセル数 = 速度設定 * (1000ms / 20ms)
+                const pixelsPerSecond = speedSetting * (1000 / SCROLL_INTERVAL_MS);
+                
+                const remainingSeconds = (pixelsPerSecond > 0) ? (remainingPixels / pixelsPerSecond) : 0;
+                return { pixels: remainingPixels, seconds: remainingSeconds };
+            } catch (e) {
+                return { pixels: 0, seconds: 0 }; // エラー時
+            }
+        }
+
+        /**
+         * カウントダウン表示を更新する
+         */
+        function updateCountdownDisplay(isStopped = false) {
+            if (isStopped) {
+                countdownDisplay.textContent = '00分00秒';
+                return;
+            }
+            const data = getRemainingScrollData();
+            countdownDisplay.textContent = formatTime(data.seconds);
+        }
+
+        /**
+         * オートスクロールを開始
+         */
+        function startAutoScroll() {
+            // 実行中のインターバルがあれば停止
+            clearInterval(scrollInterval);
+            clearInterval(countdownInterval);
+            
+            // ★指示: 「クイズ終了」と同じ動作（正解表示）ただしトップに戻らない
+            try {
+                if (iframe.contentWindow && typeof iframe.contentWindow.finishQuiz === 'function') {
+                    iframe.contentWindow.finishQuiz(false); // false を渡してトップスクロールを抑制
+                }
+            } catch (e) {
+                console.error("Failed to call iframe.finishQuiz(false):", e);
+            }
+
+            // ★修正: ローカル変数の宣言を削除 (グローバル変数を参照するため)
+            // const speed = parseFloat(speedSelect.value) || 1.0; 
+
+            // スクロール処理
+            scrollInterval = setInterval(() => {
+                try {
+                    const iWin = iframe.contentWindow;
+                    const iDocEl = iframe.contentDocument.documentElement;
+                    
+                    // 終端チェック
+                    if ((iWin.innerHeight + iWin.scrollY + 2) >= iDocEl.scrollHeight) { // +2pxのバッファ
+                        stopAutoScroll(false); // 終端に達したらリセットせずに停止
+                    } else {
+                        // ★修正: グローバル変数を参照
+                        iWin.scrollBy(0, currentScrollSpeed); 
+                    }
+                } catch (e) {
+                    stopAutoScroll(false); // iframeにアクセスできない場合なども停止
+                }
+            }, SCROLL_INTERVAL_MS);
+
+            // カウントダウン処理
+            countdownInterval = setInterval(updateCountdownDisplay, 1000); // 1秒ごとに残り時間を更新
+            updateCountdownDisplay(); // 即時実行
+        }
+
+        /**
+         * オートスクロールを停止
+         */
+        function stopAutoScroll(shouldResetQuiz) {
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+            
+            updateCountdownDisplay(true); // 表示を00:00にリセット
+            toggleCheckbox.checked = false; // UIをOFF状態にする
+
+            // ★指示: トグルOFF時または「戻る」ボタン時
+            if (shouldResetQuiz) {
+                try {
+                    if (iframe.contentWindow && typeof iframe.contentWindow.resetQuiz === 'function') {
+                        iframe.contentWindow.resetQuiz(); // クイズリセット関数を呼び出す
+                    }
+                } catch (e) {
+                     console.error("Failed to call iframe.resetQuiz():", e);
+                }
+            }
+        }
+
+        /**
+         * トグルスイッチのON/OFFイベントハンドラ
+         */
+        function handleScrollToggle() {
+            if (toggleCheckbox.checked) {
+                // ONになった
+                startAutoScroll();
+            } else {
+                // OFFになった
+                stopAutoScroll(true); // true = ユーザーが手動でOFFにした = クイズをリセット
+            }
+        }
+
+
+        // --- 初期化処理 ---
+        const isPC = !isMobile();
+        if (isPC) {
+            // PCの場合のみスクロールUIを表示
+            scrollControls.style.display = 'flex';
+            
+            // プルダウンを生成
+            populateSpeedSelect();
+            
+            // イベントリスナーを設定
+            speedSelect.addEventListener('change', () => {
+                const newSpeed = speedSelect.value;
+                localStorage.setItem(SCROLL_SPEED_KEY, newSpeed); // ★指示: 速度を記憶
+                currentScrollSpeed = parseFloat(newSpeed); // ★修正: グローバル変数を即時更新
+                updateCountdownDisplay(); // 速度変更時に残り時間を即時再計算
+            });
+
+            toggleCheckbox.addEventListener('change', handleScrollToggle);
+        }
+        // ▲▲▲ オートスクロール機能ここまで ▲▲▲
+
+
         // ▼▼▼ 実行 ▼▼▼
         // setupNestedAccordion(); // <-- 呼び出しも削除
         setupMobileMenuLayout(); 
