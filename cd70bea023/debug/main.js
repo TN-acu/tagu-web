@@ -71,15 +71,15 @@ const displayLastUpdated = () => {
     }
 };
 
-// ▼▼▼ 追加: _quiz_list.txt からクイズ一覧を読み込む関数 ▼▼▼
+// ▼▼▼ 追加: -quiz_list.txt からクイズ一覧を読み込む関数 ▼▼▼
 const loadQuizList = async () => {
     const appList = document.getElementById('app-list');
     const closeMenuLi = document.querySelector('.close-menu-li');
     if (!appList || !closeMenuLi) return;
 
     try {
-        // ▼▼▼ 変更: ファイル名を _quiz_list.txt に変更 ▼▼▼
-        const response = await fetch('_quiz_list.txt');
+        // ▼▼▼ 変更: ファイル名を -quiz_list.txt に変更 ▼▼▼
+        const response = await fetch('-quiz_list.txt');
         // ▲▲▲ 変更ここまで ▲▲▲
 
         if (!response.ok) {
@@ -1234,4 +1234,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSearchHistory();
     updateScrollUIVisibility(); // ★新規: スクロールUIの表示判定を実行
 });
+
 // ▲▲▲ 変更ここまで ▲▲▲
