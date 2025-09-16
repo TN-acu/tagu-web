@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>taguアプリ</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="auth.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+    </head>
+<body>
+
+    <div class="container">
+        <div class="nav-column" id="nav-column">
+            <h2 id="pc-menu-title">アプリ選択<span id="last-updated" class="update-info"></span></h2>
+            <button class="menu-toggle open-btn" id="menu-toggle-open">
+                他のアプリを選択する <span class="arrow"></span>
+            </button>
+            
+            <ul id="app-list">
+                
+                <li class="timer-row">
+                    <a href="timer-portrait.html" target="contentFrame">●実技用⏰(縦)</a>
+                    <a href="timer-landscape.html" target="contentFrame">●実技用⏰(横)</a>
+                </li>
+
+                <li class="close-menu-li"> 
+                    <button class="menu-toggle close-btn" id="menu-toggle-close">
+                        他のアプリ選択メニューを閉じる <span class="arrow"></span>
+                    </button>
+                </li>
+            </ul>
+            </div>
+        <div class="content-column">
+            <iframe src="timer-portrait.html" name="contentFrame" id="contentFrame" title="コンテンツ表示エリア">
+                お使いのブラウザはiframeに対応していません。
+            </iframe>
+        </div>
+    </div>
+
+    <div id="search-history-container"></div>
+
+    <div id="footer-controls">
+        <button id="dark-mode-toggle" class="dark-mode-toggle" title="ダークモード切替">🌙</button>
+
+        <div class="scroll-controls-container" id="scroll-controls">
+            <select id="scroll-speed-select" title="スクロール速度 (0.5 ～ 5.0)">
+                </select>
+            
+            <span id="scroll-countdown">00分00秒</span> 
+
+            <label class="scroll-toggle-wrapper" title="オートスクロール ON/OFF">
+                <input type="checkbox" id="scroll-toggle-checkbox">
+                <span class="scroll-toggle-slider"></span>
+            </label>
+            
+            <select id="scroll-stop-question-select" title="スクロール停止位置 (問題番号)"></select>
+            <span id="scroll-stop-label">問目まで</span>
+            </div>
+        <div class="search-container">
+            <div class="input-wrapper">
+                <input type="search" id="search-input" placeholder="表示画面内を検索...">
+            </div>
+            <button id="search-prev" title="前を検索">△</button>
+            <button id="search-next" title="次を検索">▽</button>
+        </div>
+    </div>
+
+    <div id="toast-notification"></div>
+
+    <script src="main.js" defer></script>
+    </body>
+</html>
