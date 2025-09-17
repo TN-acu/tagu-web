@@ -229,6 +229,14 @@ window.addEventListener('message', (event) => {
     if (event.data === 'quizPositionRestored') {
         showToast("★ 新機能：前回の問題文から再開しました ★");
     }
+    // ▼▼▼ 追加: iframeのタイトルが更新された通知を受け取る ▼▼▼
+    else if (event.data && event.data.type === 'iframeTitleUpdated') {
+        const newTitle = event.data.title || '';
+        const cleanTitle = newTitle.replace(/^クイズ：/, '').trim();
+        const newPlaceholder = `検索...${cleanTitle}から`;
+        searchInput.placeholder = newPlaceholder;
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
 });
 // ▲▲▲ 追加ここまで ▲▲▲
 
@@ -1233,5 +1241,23 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMobileMenuLayout(); 
     loadSearchHistory();
     updateScrollUIVisibility(); // ★新規: スクロールUIの表示判定を実行
+});
+// ▲▲▲ 変更ここまで ▲▲▲
+
+// ▼▼▼ 変更: iframeのloadイベントでは、静的なページのタイトルのみを扱うようにする ▼▼▼
+iframe.addEventListener('load', () => {
+    try {
+        // iframe内のJSがメッセージを送らない静的なページ（タイマーなど）の場合のフォールバック
+        const iframeTitle = iframe.contentWindow.document.title;
+        if (!iframeTitle.startsWith('クイズ：')) {
+            const newPlaceholder = `検索...${iframeTitle}から`;
+            searchInput.placeholder = newPlaceholder;
+        }
+    } catch (e) {
+        // クロスオリジンエラーなどでiframeのコンテンツにアクセスできない場合
+        console.error("Failed to update search placeholder on load:", e);
+        // デフォルトのテキストに戻す
+        searchInput.placeholder = "表示画面内を検索...";
+    }
 });
 // ▲▲▲ 変更ここまで ▲▲▲

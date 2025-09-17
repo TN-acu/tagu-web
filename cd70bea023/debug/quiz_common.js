@@ -86,6 +86,13 @@ async function setupQuiz(dataTxtFile) {
         // ▼▼▼ 修正: 読み取ったタイトルをHTMLに設定 ▼▼▼
         document.title = quizTitle; // ブラウザタブのタイトル
         document.getElementById('quiz-title-main').textContent = quizTitle; // ページ内のh1タイトル
+        
+        // ▼▼▼ 追加: タイトル設定完了を親フレームに通知 ▼▼▼
+        if (window.parent && window.parent.postMessage) {
+            window.parent.postMessage({ type: 'iframeTitleUpdated', title: quizTitle }, '*');
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
+        
         // ▲▲▲ 修正ここまで ▲▲▲
 
         let currentQuiz = {};
@@ -377,6 +384,11 @@ function finishQuiz(scrollToTop = true) {
     
     updateScore(); // 最終スコアをヘッダーに反映
     
+    // ▼▼▼ 追加: 正答率も表示する ▼▼▼
+    const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
+    scoreText.innerHTML = `最終結果: ${score} / ${quizzes.length} 正解<br>正解率: ${percentage.toFixed(1)}%`;
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     // ▼▼▼ 追加: ボタンを「もう一度挑戦する」に変更 ▼▼▼
     finishBtn.textContent = 'もう一度挑戦する';
     finishBtn.removeEventListener('click', handleFinishClick);
