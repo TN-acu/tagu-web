@@ -233,7 +233,7 @@ window.addEventListener('message', (event) => {
     else if (event.data && event.data.type === 'iframeTitleUpdated') {
         const newTitle = event.data.title || '';
         const cleanTitle = newTitle.replace(/^クイズ：/, '').trim();
-        const newPlaceholder = `検索...${cleanTitle}から`;
+        const newPlaceholder = `検索..${cleanTitle}から`;
         searchInput.placeholder = newPlaceholder;
     }
     // ▲▲▲ 追加ここまで ▲▲▲
@@ -1250,7 +1250,7 @@ iframe.addEventListener('load', () => {
         // iframe内のJSがメッセージを送らない静的なページ（タイマーなど）の場合のフォールバック
         const iframeTitle = iframe.contentWindow.document.title;
         if (!iframeTitle.startsWith('クイズ：')) {
-            const newPlaceholder = `検索...${iframeTitle}から`;
+            const newPlaceholder = `検索..${iframeTitle}から`;
             searchInput.placeholder = newPlaceholder;
         }
     } catch (e) {
