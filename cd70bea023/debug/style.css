@@ -495,7 +495,8 @@ body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dar
 
 #toast-notification {
     visibility: hidden;
-    min-width: 150px;
+    /* min-width: 150px; を削除し、white-space を追加 */
+    white-space: nowrap; /* テキストを改行させない */
     background-color: rgba(29, 228, 239, 0.6);
     color: #000000;
     text-align: center;
@@ -509,7 +510,7 @@ body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dar
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
-    font-size: 1.5em; /* 文字サイズを大きくする */
+    font-size: 1.8em; /* 文字サイズを大きくする */
     font-weight: bold; /* 文字を太くする */
 }
 #toast-notification.show {
