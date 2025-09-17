@@ -332,17 +332,28 @@ body.dark-mode .search-container input[type="search"] {
     color: var(--text-color-dark);
 }
 
+/* ▼▼▼ 追加: 検索欄プレースホルダーのスタイル ▼▼▼ */
+.search-container input[type="search"]::placeholder {
+    font-weight: bold; /* 太字にする */
+    color: #6c757d;    /* ライトモード時の色 (濃いめのグレー) */
+    opacity: 1;        /* ブラウザによる透明化を無効にする */
+}
+
+body.dark-mode .search-container input[type="search"]::placeholder {
+    color: #adb5bd;    /* ダークモード時の色 (明るめのグレー) */
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
+
 .search-container button {
-    flex-shrink: 0;
-    width: 36px;
-    padding: 0;
-    border: 1px solid #c3e6cb;
-    background-color: #d4edda;
-    color: var(--text-color-light);
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
     cursor: pointer;
     font-size: 1.1em;
     line-height: 1;
-    border-radius: 5px;
+    flex-shrink: 0;
+    transition: background-color 0.3s, color 0.3s;
 }
 body.dark-mode .search-container button {
     background-color: #2a4832;
