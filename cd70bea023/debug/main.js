@@ -79,7 +79,7 @@ const loadQuizList = async () => {
 
     try {
         // ▼▼▼ 変更: ファイル名を -quiz_list.txt に変更 ▼▼▼
-        const response = await fetch('-quiz_list.txt');
+        const response = await fetch('-quiz_list.txt ');
         // ▲▲▲ 変更ここまで ▲▲▲
 
         if (!response.ok) {
@@ -227,7 +227,7 @@ const showToast = (message) => {
 window.addEventListener('message', (event) => {
     // event.origin のチェックは file:// 環境などを考慮し、メッセージ内容のみで判定
     if (event.data === 'quizPositionRestored') {
-        showToast("前回表示から再開");
+        showToast("新機能：前回の問題文から再開しました");
     }
 });
 // ▲▲▲ 追加ここまで ▲▲▲
@@ -1234,5 +1234,4 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSearchHistory();
     updateScrollUIVisibility(); // ★新規: スクロールUIの表示判定を実行
 });
-
 // ▲▲▲ 変更ここまで ▲▲▲

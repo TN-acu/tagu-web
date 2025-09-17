@@ -496,8 +496,8 @@ body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dar
 #toast-notification {
     visibility: hidden;
     min-width: 150px;
-    background-color: rgba(0,0,0,0.7);
-    color: #fff;
+    background-color: rgba(29, 228, 239, 0.6);
+    color: #000000;
     text-align: center;
     border-radius: 4px;
     padding: 12px;
