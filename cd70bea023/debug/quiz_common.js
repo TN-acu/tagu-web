@@ -106,12 +106,20 @@ async function setupQuiz(dataTxtFile) {
                 };
             } else if (line.startsWith('*')) {
                 const choice = line.substring(1).trim();
-                currentQuiz.choices.push(choice);
-                currentQuiz.correctAnswer = choice;
+                // ▼▼▼ 追加: 選択肢が「-」のみの場合は除外 ▼▼▼
+                if (choice !== '-') {
+                    currentQuiz.choices.push(choice);
+                    currentQuiz.correctAnswer = choice;
+                }
+                // ▲▲▲ 追加ここまで ▲▲▲
             } else if (line.startsWith('@')) {
                 currentQuiz.explanation = line.substring(1).trim().replace(/\\n/g, '\n');
             } else if (line.length > 0) {
-                currentQuiz.choices.push(line);
+                // ▼▼▼ 追加: 選択肢が「-」のみの場合は除外 ▼▼▼
+                if (line !== '-') {
+                    currentQuiz.choices.push(line);
+                }
+                // ▲▲▲ 追加ここまで ▲▲▲
             }
         });
         
