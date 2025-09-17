@@ -509,6 +509,8 @@ body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dar
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
+    font-size: 1.5em; /* 文字サイズを大きくする */
+    font-weight: bold; /* 文字を太くする */
 }
 #toast-notification.show {
     visibility: visible;
