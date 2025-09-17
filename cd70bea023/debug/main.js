@@ -227,7 +227,7 @@ const showToast = (message) => {
 window.addEventListener('message', (event) => {
     // event.origin のチェックは file:// 環境などを考慮し、メッセージ内容のみで判定
     if (event.data === 'quizPositionRestored') {
-        showToast("新機能：前回の問題文から再開しました");
+        showToast("★ 新機能：前回の問題文から再開しました ★");
     }
 });
 // ▲▲▲ 追加ここまで ▲▲▲
