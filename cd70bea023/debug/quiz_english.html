@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>英語学習 グルーピングクイズ</title>
+    <link rel="stylesheet" href="quiz_english.css">
+</head>
+<body>
+
+    <div id="quiz-container">
+        <div id="header">
+            <div id="status-bar">
+                <span id="card-counter">1 / 9（回答数/問題数）</span>
+                <span id="score">正解数: 0</span>
+            </div>
+        </div>
+
+        <div id="card-stack-container">
+            <div class="feedback" id="feedback-correct">✔ 正解</div>
+            <div class="feedback" id="feedback-incorrect">✖ 不正解</div>
+            </div>
+
+        <div id="controls">
+            <button id="incorrect-btn" class="control-btn incorrect-bg">✖間違い</button>
+            <button id="correct-btn" class="control-btn correct-bg">〇正しい</button>
+        </div>
+        
+        <div id="result-container" class="hidden">
+            <button id="retry-btn">もう一度やる</button>
+            <p id="final-score">あなたの点数　0 / 9</p>
+            <div id="result-details"></div>
+        </div>
+    </div>
+
+    <script src="quiz_english.js"></script>
+
+</body>
+</html>

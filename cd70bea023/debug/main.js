@@ -5,6 +5,10 @@ const searchHistoryContainer = document.getElementById('search-history-container
 const searchInput = document.getElementById('search-input');
 const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
+// ▼▼▼ 追加: 検索コンテナのDOMを取得 ▼▼▼
+const searchContainer = document.querySelector('.search-container');
+// ▲▲▲ 追加ここまで ▲▲▲
+
 // ▼▼▼ すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
 let customHistoryStack = []; 
 
@@ -764,7 +768,7 @@ function addSearchButtonsToIframe() {
 function setupIframeContent() {
     try {
         const iframeDoc = iframe.contentDocument;
-        if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display'))) {
+        if (iframeDoc && iframeDoc.body && (iframeDoc.querySelector('.choice-btn') || iframeDoc.querySelector('#timer-display') || iframeDoc.querySelector('#quiz-container'))) { // 変更: #quiz-container も対象に
             
             injectBaseStyles(iframeDoc);
             injectCustomStylesToIframe(iframeDoc);
@@ -852,9 +856,40 @@ function setupIframeContent() {
     }
 }
 
+// ▼▼▼ 追加: 検索ボックスの表示/非表示を切り替える関数 ▼▼▼
+function updateFooterUIVisibility() {
+    try {
+        const iframeSrc = iframe.contentWindow.location.href;
+        // 非表示にしたいページのファイル名を配列で指定
+        const pagesToHideSearch = [
+            'timer-portrait.html', 
+            'timer-landscape.html', 
+            'quiz_english.html'
+        ];
+        
+        // 現在のページのファイル名が配列に含まれているかチェック
+        const shouldHide = pagesToHideSearch.some(page => iframeSrc.includes(page));
+
+        if (shouldHide) {
+            searchContainer.style.display = 'none'; // 非表示
+        } else {
+            searchContainer.style.display = 'flex'; // 表示
+        }
+    } catch (e) {
+        // エラーが発生した場合もデフォルトで表示しておく
+        searchContainer.style.display = 'flex';
+        console.warn("iframeのURL取得に失敗したため、検索ボックスの表示状態を変更できませんでした:", e.message);
+    }
+}
+// ▲▲▲ 追加ここまで ▲▲▲
+
+
 iframe.addEventListener('load', () => {
     handleQuizFinished(); 
     setupIframeContent();
+    // ▼▼▼ 追加: iframeが読み込まれるたびに表示/非表示を判定 ▼▼▼
+    updateFooterUIVisibility();
+    // ▲▲▲ 追加ここまで ▲▲▲
 });
 
 
@@ -1249,7 +1284,9 @@ iframe.addEventListener('load', () => {
     try {
         // iframe内のJSがメッセージを送らない静的なページ（タイマーなど）の場合のフォールバック
         const iframeTitle = iframe.contentWindow.document.title;
-        if (!iframeTitle.startsWith('クイズ：')) {
+        if (iframe.contentWindow.location.href.includes('quiz.html')) {
+             // quiz.htmlの場合は何もしない（JSからのメッセージを待つ）
+        } else {
             const newPlaceholder = `検索..${iframeTitle}から`;
             searchInput.placeholder = newPlaceholder;
         }
