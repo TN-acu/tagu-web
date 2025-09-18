@@ -13,94 +13,59 @@ const feedbackCorrect = document.getElementById('feedback-correct');
 const feedbackIncorrect = document.getElementById('feedback-incorrect');
 
 // --- クイズデータ ---
-// 提供された画像データに基づいて作成
 const quizData = [
-    // --- 正解のペア (6組) ---
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png',
-        text: 'Move your right hand down your right side.',
-        isCorrectPair: true 
-    },
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png',
-        text: 'Move your left hand down your left side.',
-        isCorrectPair: true 
-    },
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png',
-        text: 'Lean backwards (carefully!).',
-        isCorrectPair: true 
-    },
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png',
-        text: 'Bend down. Try to touch your toes.',
-        isCorrectPair: true 
-    },
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png',
-        text: 'Turn your shoulders around to the right.',
-        isCorrectPair: true 
-    },
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png',
-        text: 'Turn your shoulders around to the left.',
-        isCorrectPair: true 
-    },
-    // --- 不正解のペア (3組) ---
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png',
-        text: 'Bend down. Try to touch your toes.', // 図a と テキストe を組み合わせ
-        isCorrectPair: false 
-    },
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png',
-        text: 'Move your left hand down your left side.', // 図c と テキストd を組み合わせ
-        isCorrectPair: false 
-    },
-    { 
-        image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png',
-        text: 'Turn your shoulders around to the right.', // 図e と テキストb を組み合わせ
-        isCorrectPair: false 
-    }
+    { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Move your right hand down your right side.', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Move your left hand down your left side.', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Lean backwards (carefully!).', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Bend down. Try to touch your toes.', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png', text: 'Turn your shoulders around to the right.', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png', text: 'Turn your shoulders around to the left.', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Bend down. Try to touch your toes.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Move your left hand down your left side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Turn your shoulders around to the right.', isCorrectPair: false }
 ];
 
 let currentCardIndex = 0;
 let userAnswers = [];
 let score = 0;
+// ▼▼▼ 追加: スワイプの重複を防ぐためのフラグ ▼▼▼
+let isCardAnimating = false;
+// ▲▲▲ 追加ここまで ▲▲▲
 
 // --- 初期化処理 ---
 function init() {
-    // 状態リセット
     currentCardIndex = 0;
     userAnswers = [];
     score = 0;
     cardStackContainer.innerHTML = '';
     resultContainer.classList.add('hidden');
     controls.classList.remove('hidden');
-
-    // クイズデータをシャッフル
     shuffleArray(quizData);
-
-    // カードを生成
     createCardStack();
     updateStatus();
-
-    // イベントリスナーを再設定
     correctBtn.onclick = () => handleUserInput(true);
     incorrectBtn.onclick = () => handleUserInput(false);
-    retryBtn.onclick = () => {
-        // 「もう一度やる」時は履歴のスタックをリセットするためリロードする
+    
+    // ▼▼▼ 修正: aタグになったため、イベントリスナーで処理する ▼▼▼
+    retryBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // リンクのデフォルト動作を防ぐ
         location.reload();
-    };
-
-    // ▼▼▼ 修正: 戻るボタンのための履歴管理を初期化 ▼▼▼
-    // 現在の履歴をクイズの開始地点として設定
-    history.replaceState({index: 0}, '');
+    });
     // ▲▲▲ 修正ここまで ▲▲▲
+
+    history.replaceState({index: 0}, '');
+    try {
+        const isParentDark = window.parent.document.body.classList.contains('dark-mode');
+        document.body.classList.toggle('dark-mode', isParentDark);
+    } catch (e) {}
 }
 
 // --- カードスタック生成 ---
 function createCardStack() {
+    cardStackContainer.innerHTML = `
+        <div class="feedback" id="feedback-correct">✔ 正解</div>
+        <div class="feedback" id="feedback-incorrect">✖ 不正解</div>
+    `;
     quizData.forEach((data, index) => {
         const card = document.createElement('div');
         card.className = 'card';
@@ -111,112 +76,102 @@ function createCardStack() {
         `;
         cardStackContainer.appendChild(card);
     });
-    setupCardEventListeners();
+    const firstCard = document.querySelector(`.card:nth-last-child(${quizData.length})`);
+    setupCardEventListeners(firstCard);
 }
 
 // --- カードのイベントリスナー設定 ---
-function setupCardEventListeners() {
-    const cards = document.querySelectorAll('.card');
-    cards.forEach((card, index) => {
-        if (index !== 0) return; // 一番上のカードのみ操作可能
-
-        let startX, startY, isDragging = false;
-
-        const onPointerDown = (e) => {
-            if (currentCardIndex >= quizData.length) return;
-            isDragging = true;
-            startX = e.clientX || e.touches[0].clientX;
-            card.classList.add('dragging');
-        };
-
-        const onPointerMove = (e) => {
-            if (!isDragging) return;
-            const currentX = e.clientX || e.touches[0].clientX;
-            const diffX = currentX - startX;
-            const rotation = diffX / 20;
-
-            card.style.transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
-            
-            // フィードバック表示
-            if (diffX > 50) {
-                feedbackCorrect.style.opacity = '1';
-                feedbackIncorrect.style.opacity = '0';
-            } else if (diffX < -50) {
-                feedbackIncorrect.style.opacity = '1';
-                feedbackCorrect.style.opacity = '0';
-            } else {
-                feedbackCorrect.style.opacity = '0';
-                feedbackIncorrect.style.opacity = '0';
-            }
-        };
-
-        const onPointerUp = (e) => {
-            if (!isDragging) return;
-            isDragging = false;
-            card.classList.remove('dragging');
-            const diffX = (e.clientX || e.changedTouches[0].clientX) - startX;
-
-            if (Math.abs(diffX) > 100) { // スワイプ成功の閾値
-                const direction = diffX > 0 ? 'correct' : 'incorrect';
-                handleUserInput(direction === 'correct');
-            } else { // 元の位置に戻る
-                card.style.transform = 'translateX(0) rotate(0)';
-            }
+function setupCardEventListeners(card) {
+    if (!card) return;
+    let startX = 0;
+    let isDragging = false;
+    const onPointerMove = (e) => {
+        if (!isDragging) return;
+        const currentX = e.clientX || e.touches[0].clientX;
+        const diffX = currentX - startX;
+        const rotation = diffX / 20;
+        card.style.transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
+        if (diffX > 50) {
+            feedbackCorrect.style.opacity = '1';
+            feedbackIncorrect.style.opacity = '0';
+        } else if (diffX < -50) {
+            feedbackIncorrect.style.opacity = '1';
+            feedbackCorrect.style.opacity = '0';
+        } else {
             feedbackCorrect.style.opacity = '0';
             feedbackIncorrect.style.opacity = '0';
-        };
-
-        card.addEventListener('mousedown', onPointerDown);
+        }
+    };
+    const onPointerUp = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        card.classList.remove('dragging');
+        document.removeEventListener('mousemove', onPointerMove);
+        document.removeEventListener('mouseup', onPointerUp);
+        document.removeEventListener('touchmove', onPointerMove);
+        document.removeEventListener('touchend', onPointerUp);
+        const diffX = (e.clientX || e.changedTouches[0].clientX) - startX;
+        if (Math.abs(diffX) > 100) {
+            const direction = diffX > 0 ? 'correct' : 'incorrect';
+            handleUserInput(direction === 'correct');
+        } else {
+            card.style.transform = 'translateX(0) rotate(0)';
+        }
+        feedbackCorrect.style.opacity = '0';
+        feedbackIncorrect.style.opacity = '0';
+    };
+    const onPointerDown = (e) => {
+        if (currentCardIndex >= quizData.length) return;
+        isDragging = true;
+        startX = e.clientX || e.touches[0].clientX;
+        card.classList.add('dragging');
         document.addEventListener('mousemove', onPointerMove);
         document.addEventListener('mouseup', onPointerUp);
-
-        card.addEventListener('touchstart', onPointerDown, { passive: true });
         document.addEventListener('touchmove', onPointerMove, { passive: true });
         document.addEventListener('touchend', onPointerUp);
-    });
+    };
+    card.addEventListener('mousedown', onPointerDown);
+    card.addEventListener('touchstart', onPointerDown, { passive: true });
 }
 
 // --- ユーザーの入力を処理 ---
-function handleUserInput(userChoice) { // userChoice: true for "Correct", false for "Incorrect"
-    if (currentCardIndex >= quizData.length) return;
+function handleUserInput(userChoice) {
+    // ▼▼▼ 修正: アニメーション中は処理を重複させない ▼▼▼
+    if (currentCardIndex >= quizData.length || isCardAnimating) return;
+    isCardAnimating = true;
+    // ▲▲▲ 修正ここまで ▲▲▲
 
     const currentQuiz = quizData[currentCardIndex];
     const isCorrect = (userChoice === currentQuiz.isCorrectPair);
     if (isCorrect) score++;
-
-    userAnswers.push({
-        ...currentQuiz,
-        userChoice: userChoice,
-        wasCorrect: isCorrect
-    });
-    
-    // カードを画面外に飛ばすアニメーション
+    userAnswers.push({ ...currentQuiz, userChoice: userChoice, wasCorrect: isCorrect });
     const topCard = document.querySelector(`.card:nth-last-child(${quizData.length - currentCardIndex})`);
     if (topCard) {
         const direction = userChoice ? 1 : -1;
         topCard.style.transform = `translateX(${direction * 500}px) rotate(${direction * 30}deg)`;
         topCard.style.opacity = '0';
     }
-
     currentCardIndex++;
-
-    // ▼▼▼ 修正: 次の問題に進んだ履歴を追加 ▼▼▼
     history.pushState({index: currentCardIndex}, '');
-    // ▲▲▲ 修正ここまで ▲▲▲
-    
     updateStatus();
-
     if (currentCardIndex < quizData.length) {
-        setupCardEventListeners(); // 次のカードにリスナーを設定
+        const nextCard = document.querySelector(`.card:nth-last-child(${quizData.length - currentCardIndex})`);
+        setupCardEventListeners(nextCard);
     } else {
-        setTimeout(showResult, 300); // 結果表示
+        setTimeout(showResult, 300);
     }
+
+    // ▼▼▼ 追加: アニメーションが終わる頃にフラグを解除 ▼▼▼
+    setTimeout(() => {
+        isCardAnimating = false;
+    }, 300); // CSSのtransition時間と合わせる
+    // ▲▲▲ 追加ここまで ▲▲▲
 }
 
 // --- ステータス表示を更新 ---
 function updateStatus() {
     if (currentCardIndex < quizData.length) {
-        cardCounter.textContent = `${currentCardIndex + 1} / ${quizData.length}（回答数/問題数）`;
+        cardCounter.textContent = `${currentCardIndex} / ${quizData.length}（回答数/問題数）`;
     } else {
         cardCounter.textContent = `クイズ終了`;
     }
@@ -228,20 +183,11 @@ function showResult() {
     controls.classList.add('hidden');
     finalScore.textContent = `あなたの点数　${score} / ${quizData.length}`;
     resultDetails.innerHTML = '';
-
     userAnswers.forEach(answer => {
         const item = document.createElement('div');
         item.className = `result-item ${answer.wasCorrect ? 'correct' : 'incorrect'}`;
-
-        const userChoiceSymbol = answer.userChoice 
-            ? '<span style="color: red; font-weight: bold;">〇</span>' 
-            : '<span style="color: blue; font-weight: bold;">✖</span>';
-
-        const actualAnswerText = answer.isCorrectPair 
-            ? '<span style="color: red; font-weight: bold;">〇</span> 正しいペア' 
-            : '<span style="color: blue; font-weight: bold;">✖</span> 間違いペア';
-
-        // 表示するHTMLに画像を追加
+        const userChoiceSymbol = answer.userChoice ? '<span style="color: red; font-weight: bold;">〇</span>' : '<span style="color: blue; font-weight: bold;">✖</span>';
+        const actualAnswerText = answer.isCorrectPair ? '<span style="color: red; font-weight: bold;">〇</span> 正しいペア' : '<span style="color: blue; font-weight: bold;">✖</span> 間違いペア';
         item.innerHTML = `
             <img src="${answer.image}" alt="問題の図" class="result-image">
             <div class="result-text-content">
@@ -254,35 +200,29 @@ function showResult() {
         `;
         resultDetails.appendChild(item);
     });
-    
     resultContainer.classList.remove('hidden');
 }
 
 // --- 1つ前の回答を取り消す関数 ---
 function undoLastAnswer() {
-    // 最初の問題より前には戻れない
     if (currentCardIndex === 0) return;
-
-    // もし結果表示画面なら、問題表示に戻す
     if (currentCardIndex === quizData.length) {
         resultContainer.classList.add('hidden');
         controls.classList.remove('hidden');
     }
-
     currentCardIndex--;
-
     const lastAnswer = userAnswers.pop();
     if (lastAnswer && lastAnswer.wasCorrect) {
         score--;
     }
-
     const cardToRestore = document.querySelector(`.card:nth-last-child(${quizData.length - currentCardIndex})`);
     if (cardToRestore) {
-        cardToRestore.style.transform = '';
-        cardToRestore.style.opacity = '';
+        const newCard = cardToRestore.cloneNode(true);
+        cardToRestore.parentNode.replaceChild(newCard, cardToRestore);
+        newCard.style.transform = '';
+        newCard.style.opacity = '';
+        setupCardEventListeners(newCard);
     }
-
-    setupCardEventListeners();
     updateStatus();
 }
 
@@ -296,29 +236,17 @@ function shuffleArray(array) {
 
 // --- 親フレームからのダークモード切り替えに対応 ---
 function toggleDarkMode(isDarkMode) {
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-    } else {
-        document.body.classList.remove('dark-mode');
-    }
+    document.body.classList.toggle('dark-mode', isDarkMode);
 }
 
 // --- 初期化実行 ---
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', init); 
 
-// ▼▼▼ 修正: ブラウザの戻るボタンが押された時の処理を全面的に見直し ▼▼▼
+// --- ブラウザの戻るボタンが押された時の処理 ---
 window.addEventListener('popstate', (event) => {
-    // 履歴に状態オブジェクトがない、またはインデックスがない場合は何もしない
-    if (!event.state || event.state.index === undefined) {
-        return;
-    }
-
+    if (!event.state || event.state.index === undefined) return;
     const targetIndex = event.state.index;
-
-    // 戻るボタンが押され、現在の問題番号より履歴の番号が小さい場合
-    // (例: 3問目(index=2)から2問目(index=1)に戻る時)
     if (targetIndex < currentCardIndex) {
         undoLastAnswer();
     }
 });
-// ▲▲▲ 修正ここまで ▲▲▲

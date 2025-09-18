@@ -32,14 +32,6 @@ body.dark-mode {
     color: var(--dark-text);
 }
 
-/* ▼▼▼ 追加: ダークモード時のテキスト色を明示的に指定 ▼▼▼ */
-body.dark-mode .card-text,
-body.dark-mode .result-item p {
-    color: var(--dark-text);
-}
-/* ▲▲▲ 追加ここまで ▲▲▲ */
-
-
 #quiz-container {
     width: 100%;
     max-width: 400px;
@@ -86,13 +78,17 @@ body.dark-mode .result-item p {
     box-sizing: border-box;
     cursor: grab;
     transition: transform 0.3s, opacity 0.3s;
-    touch-action: none; /* ポインターイベントで操作するため */
-}
-body.dark-mode .card {
-    background-color: var(--dark-card-bg);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    touch-action: none;
 }
 
+body.dark-mode .card {
+    background-color: var(--light-card-bg) !important;
+    box-shadow: 0 4px 10px rgba(255,255,255,0.1);
+}
+
+body.dark-mode .card-text {
+    color: var(--light-text) !important;
+}
 
 .card.dragging {
     cursor: grabbing;
@@ -172,7 +168,6 @@ body.dark-mode .card {
     text-align: left;
 }
 
-/* ▼▼▼ 変更: 結果表示をflexboxレイアウトに変更 ▼▼▼ */
 .result-item {
     padding: 10px;
     margin-bottom: 5px;
@@ -181,12 +176,14 @@ body.dark-mode .card {
     align-items: center;
     gap: 10px;
 }
-/* ▲▲▲ 変更ここまで ▲▲▲ */
 
 .result-item.correct { background-color: rgba(40, 167, 69, 0.1); }
 .result-item.incorrect { background-color: rgba(220, 53, 69, 0.1); }
 
-/* ▼▼▼ 追加: 結果表示の画像とテキストのスタイル ▼▼▼ */
+body.dark-mode .result-item p {
+    color: var(--dark-text);
+}
+
 .result-image {
     width: 80px;
     height: 60px;
@@ -198,7 +195,7 @@ body.dark-mode .card {
 
 body.dark-mode .result-image {
     border-color: #555;
-    background-color: #fff; /* 画像背景が透明な場合のため白背景を指定 */
+    background-color: #fff;
 }
 
 .result-text-content {
@@ -208,19 +205,28 @@ body.dark-mode .result-image {
 .result-text-content p {
     margin: 4px 0;
 }
-/* ▲▲▲ 追加ここまで ▲▲▲ */
 
+/* ▼▼▼ 修正: aタグをボタンのように見せるためのスタイル ▼▼▼ */
 #retry-btn {
-    padding: 15px 30px;
-    font-size: 1.2em;
+    display: inline-block; /* 中央配置のため */
+    text-decoration: none; /* リンクの下線を消す */
+    padding: 15px 10px;
+    font-size: 2em;
+    font-weight: bold;
     cursor: pointer;
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 8px;
+    box-sizing: border-box;
 }
+/* ▲▲▲ 修正ここまで ▲▲▲ */
 
 body.dark-mode #retry-btn {
     background-color: #343a40;
     border: 1px solid #495057;
+}
+
+@media (max-width: 768px) {
+    /* 以前のwidth: 100%指定は不要 */
 }
