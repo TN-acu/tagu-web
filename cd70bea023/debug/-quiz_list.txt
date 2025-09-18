@@ -1,4 +1,4 @@
-quiz.html?data=quiz_data_sizenkagaku2025zenki_kimatu.txt	●１日目 自然科学 2025前期末(過去40問)
+quiz.html?data=quiz_data_sizenkagaku2025zenki_kimatu.txt	●１日目 自然科学 2025前期末(過去40問+予想14問)
 quiz.html?data=quiz_data_iryoutoshakai2025zenki_kimatu.txt	●１日目 医療と社会 2025前期末(予想27問+過去21問)
 quiz_english.html	●１日目 外国語 2025前期末(予想 9問)
 quiz.html?data=quiz_data_seirigaku2025zenki_kimatu.txt	●２日目 生理学 2025前期末(生理学復習問題①PDF38問(38～72、74、76～77)+過去74問)
