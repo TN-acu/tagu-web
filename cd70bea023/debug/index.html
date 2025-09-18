@@ -81,5 +81,19 @@
     <div id="toast-notification"></div>
 
     <script src="main.js" defer></script>
-    </body>
+    
+    <!-- ▼▼▼ 追加: サービスワーカーを登録してキャッシュを制御 ▼▼▼ -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      }
+    </script>
+    <!-- ▲▲▲ 追加ここまで ▲▲▲ -->
+</body>
 </html>
