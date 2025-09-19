@@ -71,6 +71,8 @@ let allCards = [];
 
 // --- 初期化 ---
 function initializeQuiz() {
+    setupDarkMode();
+
     currentCardIndex = 0;
     score = 0;
     userAnswers = [];
@@ -117,7 +119,6 @@ function createCards() {
         cardStackContainer.appendChild(card);
         allCards.push(card);
     });
-    // 最初のカードにだけイベントリスナーを設定
     if (allCards.length > 0) {
         setupCardEventListeners(allCards[0]);
     }
@@ -134,7 +135,6 @@ function attachEventListeners() {
     window.addEventListener('popstate', handlePopState);
 }
 
-// ★★★ 全カードに適用されるようリスナー管理を修正 ★★★
 function setupCardEventListeners(card) {
     let isDragging = false;
     let startX = 0;
@@ -146,7 +146,6 @@ function setupCardEventListeners(card) {
         startX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
         card.classList.add('dragging');
         
-        // ドラッグ開始時にmoveとendのリスナーを追加
         document.addEventListener('mousemove', onDragMove);
         document.addEventListener('mouseup', onDragEnd);
         document.addEventListener('touchmove', onDragMove, { passive: false });
@@ -178,7 +177,6 @@ function setupCardEventListeners(card) {
         isDragging = false;
         card.classList.remove('dragging');
 
-        // ドラッグ終了時にmoveとendのリスナーを削除
         document.removeEventListener('mousemove', onDragMove);
         document.removeEventListener('mouseup', onDragEnd);
         document.removeEventListener('touchmove', onDragMove);
@@ -227,7 +225,6 @@ function handleAnswer(userChoice, direction = null) {
         updateStatus();
         isAnimating = false;
         if (currentCardIndex < currentQuizSet.length) {
-            // 次のカードにイベントリスナーを設定
             setupCardEventListeners(allCards[currentCardIndex]);
             history.pushState({ index: currentCardIndex }, '', '');
         } else {
@@ -326,9 +323,20 @@ function shuffleArray(array) {
     }
 }
 
-// --- 親フレームからのダークモード切り替えに対応 ---
-function toggleDarkMode(isDarkMode) {
-    document.body.classList.toggle('dark-mode', isDarkMode);
+// ★★★ ダークモード設定用の関数（修正版） ★★★
+function setupDarkMode() {
+    // 親フレームがダークモードクラスを持っているかだけを確認する
+    try {
+        if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
+            document.body.classList.add('dark-mode');
+        } else {
+            // 親がダークモードでない場合は、クラスを確実に削除
+            document.body.classList.remove('dark-mode');
+        }
+    } catch (e) {
+        // 親フレームにアクセスできない場合は何もしない（ライトモードのまま）
+        console.info('Could not access parent frame for dark mode check.');
+    }
 }
 
 // --- 初期化実行 ---
