@@ -12,219 +12,311 @@ const controls = document.getElementById('controls');
 const feedbackCorrect = document.getElementById('feedback-correct');
 const feedbackIncorrect = document.getElementById('feedback-incorrect');
 
-// --- クイズデータ ---
+// --- クイズデータ（全36問のマスターデータ） ---
 const quizData = [
+    // --- 正しいペア ---
     { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Move your right hand down your right side.', isCorrectPair: true },
-    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Move your left hand down your left side.', isCorrectPair: true },
-    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Lean backwards (carefully!).', isCorrectPair: true },
-    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Bend down. Try to touch your toes.', isCorrectPair: true },
     { image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png', text: 'Turn your shoulders around to the right.', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Lean backwards (carefully!).', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Move your left hand down your left side.', isCorrectPair: true },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Bend down. Try to touch your toes.', isCorrectPair: true },
     { image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png', text: 'Turn your shoulders around to the left.', isCorrectPair: true },
+
+    // --- 間違ったペア（ひっかけ問題）---
+    // イラスト a
+    { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Turn your shoulders around to the right.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Lean backwards (carefully!).', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Move your left hand down your left side.', isCorrectPair: false },
     { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Bend down. Try to touch your toes.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/a_Move your right hand down your right side..png', text: 'Turn your shoulders around to the left.', isCorrectPair: false },
+    // イラスト b
+    { image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png', text: 'Move your right hand down your right side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png', text: 'Lean backwards (carefully!).', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png', text: 'Move your left hand down your left side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png', text: 'Bend down. Try to touch your toes.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/b_Turn your shoulders around to the right..png', text: 'Turn your shoulders around to the left.', isCorrectPair: false },
+    // イラスト c
+    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Move your right hand down your right side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Turn your shoulders around to the right.', isCorrectPair: false },
     { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Move your left hand down your left side.', isCorrectPair: false },
-    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Turn your shoulders around to the right.', isCorrectPair: false }
+    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Bend down. Try to touch your toes.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/c_Lean backwards (carefully!).png', text: 'Turn your shoulders around to the left.', isCorrectPair: false },
+    // イラスト d
+    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Move your right hand down your right side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Turn your shoulders around to the right.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Lean backwards (carefully!).', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Bend down. Try to touch your toes.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/d_Move your left hand down your left side.png', text: 'Turn your shoulders around to the left.', isCorrectPair: false },
+    // イラスト e
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Move your right hand down your right side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Turn your shoulders around to the right.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Lean backwards (carefully!).', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Move your left hand down your left side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/e_Bend down. Try to touch your toes..png', text: 'Turn your shoulders around to the left.', isCorrectPair: false },
+    // イラスト f
+    { image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png', text: 'Move your right hand down your right side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png', text: 'Turn your shoulders around to the right.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png', text: 'Lean backwards (carefully!).', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png', text: 'Move your left hand down your left side.', isCorrectPair: false },
+    { image: 'pic_quiz_data_english2025zenki_kimatu/f_Turn your shoulders around to the left..png', text: 'Bend down. Try to touch your toes.', isCorrectPair: false }
 ];
 
+// --- グローバル変数 ---
 let currentCardIndex = 0;
-let userAnswers = [];
 let score = 0;
-// ▼▼▼ 追加: スワイプの重複を防ぐためのフラグ ▼▼▼
-let isCardAnimating = false;
-// ▲▲▲ 追加ここまで ▲▲▲
+let userAnswers = [];
+let isAnimating = false;
+let currentQuizSet = [];
+let allCards = [];
 
-// --- 初期化処理 ---
-function init() {
+// --- 初期化 ---
+function initializeQuiz() {
     currentCardIndex = 0;
-    userAnswers = [];
     score = 0;
-    cardStackContainer.innerHTML = '';
+    userAnswers = [];
+    isAnimating = false;
+    
+    const correctPairs = quizData.filter(item => item.isCorrectPair);
+    const incorrectPairs = quizData.filter(item => !item.isCorrectPair);
+
+    shuffleArray(incorrectPairs);
+    const selectedIncorrectPairs = incorrectPairs.slice(0, 4);
+
+    currentQuizSet = [...correctPairs, ...selectedIncorrectPairs];
+    shuffleArray(currentQuizSet);
+
     resultContainer.classList.add('hidden');
     controls.classList.remove('hidden');
-    shuffleArray(quizData);
-    createCardStack();
+    cardStackContainer.innerHTML = '';
+    createCards();
     updateStatus();
-    correctBtn.onclick = () => handleUserInput(true);
-    incorrectBtn.onclick = () => handleUserInput(false);
+    attachEventListeners();
     
-    // ▼▼▼ 修正: aタグになったため、イベントリスナーで処理する ▼▼▼
-    retryBtn.addEventListener('click', (e) => {
-        e.preventDefault(); // リンクのデフォルト動作を防ぐ
-        location.reload();
-    });
-    // ▲▲▲ 修正ここまで ▲▲▲
+    history.replaceState({ index: 0 }, '', '');
 
-    history.replaceState({index: 0}, '');
-    try {
-        const isParentDark = window.parent.document.body.classList.contains('dark-mode');
-        document.body.classList.toggle('dark-mode', isParentDark);
-    } catch (e) {}
+    if (allCards.length > 0) {
+        const firstCard = allCards[0];
+        firstCard.classList.add('swipe-hint-animation');
+        firstCard.addEventListener('animationend', () => {
+            firstCard.classList.remove('swipe-hint-animation');
+        }, { once: true });
+    }
 }
 
-// --- カードスタック生成 ---
-function createCardStack() {
-    cardStackContainer.innerHTML = `
-        <div class="feedback" id="feedback-correct">✔ 正解</div>
-        <div class="feedback" id="feedback-incorrect">✖ 不正解</div>
-    `;
-    quizData.forEach((data, index) => {
+// --- カードの生成 ---
+function createCards() {
+    allCards = [];
+    currentQuizSet.forEach((item, index) => {
         const card = document.createElement('div');
-        card.className = 'card';
-        card.style.zIndex = quizData.length - index;
+        card.classList.add('card');
         card.innerHTML = `
-            <img src="${data.image}" alt="Posture image" class="card-image">
-            <p class="card-text">${data.text}</p>
+            <img src="${item.image}" alt="Quiz Image" class="quiz-image">
+            <p class="quiz-text"><b>${item.text}</b></p>
         `;
+        card.style.zIndex = currentQuizSet.length - index;
         cardStackContainer.appendChild(card);
+        allCards.push(card);
     });
-    const firstCard = document.querySelector(`.card:nth-last-child(${quizData.length})`);
-    setupCardEventListeners(firstCard);
+    // 最初のカードにだけイベントリスナーを設定
+    if (allCards.length > 0) {
+        setupCardEventListeners(allCards[0]);
+    }
 }
 
-// --- カードのイベントリスナー設定 ---
+// --- イベントリスナーの設定 ---
+function attachEventListeners() {
+    correctBtn.onclick = () => handleAnswer(true);
+    incorrectBtn.onclick = () => handleAnswer(false);
+    retryBtn.onclick = (e) => {
+        e.preventDefault();
+        initializeQuiz();
+    };
+    window.addEventListener('popstate', handlePopState);
+}
+
+// ★★★ 全カードに適用されるようリスナー管理を修正 ★★★
 function setupCardEventListeners(card) {
-    if (!card) return;
-    let startX = 0;
     let isDragging = false;
-    const onPointerMove = (e) => {
-        if (!isDragging) return;
-        const currentX = e.clientX || e.touches[0].clientX;
-        const diffX = currentX - startX;
-        const rotation = diffX / 20;
+    let startX = 0;
+    let diffX = 0;
+
+    const onDragStart = (e) => {
+        if (isAnimating) return;
+        isDragging = true;
+        startX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+        card.classList.add('dragging');
+        
+        // ドラッグ開始時にmoveとendのリスナーを追加
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+        document.addEventListener('touchmove', onDragMove, { passive: false });
+        document.addEventListener('touchend', onDragEnd);
+        
+        e.preventDefault();
+    };
+
+    const onDragMove = (e) => {
+        if (!isDragging || isAnimating) return;
+        const currentX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+        diffX = currentX - startX;
+        const rotation = diffX / 15;
+
         card.style.transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
-        if (diffX > 50) {
-            feedbackCorrect.style.opacity = '1';
-            feedbackIncorrect.style.opacity = '0';
-        } else if (diffX < -50) {
-            feedbackIncorrect.style.opacity = '1';
-            feedbackCorrect.style.opacity = '0';
+
+        const opacity = Math.min(Math.abs(diffX) / 100, 1);
+        if (diffX > 0) {
+            feedbackCorrect.style.opacity = opacity;
+            feedbackIncorrect.style.opacity = 0;
         } else {
-            feedbackCorrect.style.opacity = '0';
-            feedbackIncorrect.style.opacity = '0';
+            feedbackIncorrect.style.opacity = opacity;
+            feedbackCorrect.style.opacity = 0;
         }
     };
-    const onPointerUp = (e) => {
-        if (!isDragging) return;
+
+    const onDragEnd = () => {
+        if (!isDragging || isAnimating) return;
         isDragging = false;
         card.classList.remove('dragging');
-        document.removeEventListener('mousemove', onPointerMove);
-        document.removeEventListener('mouseup', onPointerUp);
-        document.removeEventListener('touchmove', onPointerMove);
-        document.removeEventListener('touchend', onPointerUp);
-        const diffX = (e.clientX || e.changedTouches[0].clientX) - startX;
-        if (Math.abs(diffX) > 100) {
-            const direction = diffX > 0 ? 'correct' : 'incorrect';
-            handleUserInput(direction === 'correct');
+
+        // ドラッグ終了時にmoveとendのリスナーを削除
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+        document.removeEventListener('touchmove', onDragMove);
+        document.removeEventListener('touchend', onDragEnd);
+
+        const swipeThreshold = 100;
+
+        if (Math.abs(diffX) > swipeThreshold) {
+            handleAnswer(diffX > 0, diffX > 0 ? 'right' : 'left');
         } else {
-            card.style.transform = 'translateX(0) rotate(0)';
+            card.style.transform = '';
         }
+        feedbackCorrect.style.opacity = 0;
+        feedbackIncorrect.style.opacity = 0;
+    };
+
+    card.addEventListener('mousedown', onDragStart);
+    card.addEventListener('touchstart', onDragStart, { passive: false });
+}
+
+// --- 回答処理 ---
+function handleAnswer(userChoice, direction = null) {
+    if (currentCardIndex >= currentQuizSet.length || isAnimating) return;
+    isAnimating = true;
+
+    const quizItem = currentQuizSet[currentCardIndex];
+    const card = allCards[currentCardIndex];
+    const wasCorrect = (userChoice === quizItem.isCorrectPair);
+
+    userAnswers.push({ quizItem, userChoice, wasCorrect });
+
+    if (wasCorrect) {
+        score++;
+        showFeedback(true);
+    } else {
+        showFeedback(false);
+    }
+    
+    const rotation = direction === 'left' ? -30 : (direction === 'right' ? 30 : (userChoice ? 30 : -30));
+    card.style.transform = `translateX(${rotation * 15}px) rotate(${rotation}deg)`;
+    card.style.opacity = '0';
+    card.classList.add('removing');
+
+    setTimeout(() => {
+        currentCardIndex++;
+        updateStatus();
+        isAnimating = false;
+        if (currentCardIndex < currentQuizSet.length) {
+            // 次のカードにイベントリスナーを設定
+            setupCardEventListeners(allCards[currentCardIndex]);
+            history.pushState({ index: currentCardIndex }, '', '');
+        } else {
+            showResult();
+            history.pushState({ index: currentCardIndex }, '', '');
+        }
+    }, 500);
+}
+
+// --- 正解・不正解のフィードバック表示 ---
+function showFeedback(isCorrect) {
+    if (isCorrect) {
+        feedbackCorrect.style.opacity = '1';
+    } else {
+        feedbackIncorrect.style.opacity = '1';
+    }
+    setTimeout(() => {
         feedbackCorrect.style.opacity = '0';
         feedbackIncorrect.style.opacity = '0';
-    };
-    const onPointerDown = (e) => {
-        if (currentCardIndex >= quizData.length) return;
-        isDragging = true;
-        startX = e.clientX || e.touches[0].clientX;
-        card.classList.add('dragging');
-        document.addEventListener('mousemove', onPointerMove);
-        document.addEventListener('mouseup', onPointerUp);
-        document.addEventListener('touchmove', onPointerMove, { passive: true });
-        document.addEventListener('touchend', onPointerUp);
-    };
-    card.addEventListener('mousedown', onPointerDown);
-    card.addEventListener('touchstart', onPointerDown, { passive: true });
+    }, 500);
 }
 
-// --- ユーザーの入力を処理 ---
-function handleUserInput(userChoice) {
-    // ▼▼▼ 修正: アニメーション中は処理を重複させない ▼▼▼
-    if (currentCardIndex >= quizData.length || isCardAnimating) return;
-    isCardAnimating = true;
-    // ▲▲▲ 修正ここまで ▲▲▲
-
-    const currentQuiz = quizData[currentCardIndex];
-    const isCorrect = (userChoice === currentQuiz.isCorrectPair);
-    if (isCorrect) score++;
-    userAnswers.push({ ...currentQuiz, userChoice: userChoice, wasCorrect: isCorrect });
-    const topCard = document.querySelector(`.card:nth-last-child(${quizData.length - currentCardIndex})`);
-    if (topCard) {
-        const direction = userChoice ? 1 : -1;
-        topCard.style.transform = `translateX(${direction * 500}px) rotate(${direction * 30}deg)`;
-        topCard.style.opacity = '0';
-    }
-    currentCardIndex++;
-    history.pushState({index: currentCardIndex}, '');
-    updateStatus();
-    if (currentCardIndex < quizData.length) {
-        const nextCard = document.querySelector(`.card:nth-last-child(${quizData.length - currentCardIndex})`);
-        setupCardEventListeners(nextCard);
-    } else {
-        setTimeout(showResult, 300);
-    }
-
-    // ▼▼▼ 追加: アニメーションが終わる頃にフラグを解除 ▼▼▼
-    setTimeout(() => {
-        isCardAnimating = false;
-    }, 300); // CSSのtransition時間と合わせる
-    // ▲▲▲ 追加ここまで ▲▲▲
-}
-
-// --- ステータス表示を更新 ---
+// --- ステータス更新 ---
 function updateStatus() {
-    if (currentCardIndex < quizData.length) {
-        cardCounter.textContent = `${currentCardIndex} / ${quizData.length}（回答数/問題数）`;
-    } else {
-        cardCounter.textContent = `クイズ終了`;
-    }
+    cardCounter.textContent = `${currentCardIndex} / ${currentQuizSet.length}（回答数/問題数）`;
     scoreDisplay.textContent = `正解数: ${score}`;
 }
 
-// --- 結果を表示 ---
+// --- 結果表示 ---
 function showResult() {
-    controls.classList.add('hidden');
-    finalScore.textContent = `あなたの点数　${score} / ${quizData.length}`;
+    finalScore.textContent = `あなたの点数　${score} / ${currentQuizSet.length}`;
     resultDetails.innerHTML = '';
-    userAnswers.forEach(answer => {
-        const item = document.createElement('div');
-        item.className = `result-item ${answer.wasCorrect ? 'correct' : 'incorrect'}`;
-        const userChoiceSymbol = answer.userChoice ? '<span style="color: red; font-weight: bold;">〇</span>' : '<span style="color: blue; font-weight: bold;">✖</span>';
-        const actualAnswerText = answer.isCorrectPair ? '<span style="color: red; font-weight: bold;">〇</span> 正しいペア' : '<span style="color: blue; font-weight: bold;">✖</span> 間違いペア';
-        item.innerHTML = `
-            <img src="${answer.image}" alt="問題の図" class="result-image">
-            <div class="result-text-content">
-                <p>"${answer.text}"</p>
-                <p>
-                    <strong>あなたの回答:</strong> ${userChoiceSymbol} | 
-                    <strong>正解:</strong> ${actualAnswerText}
-                </p>
+    userAnswers.forEach(({ quizItem, userChoice, wasCorrect }) => {
+        const resultItem = document.createElement('div');
+        resultItem.classList.add('result-item', wasCorrect ? 'correct' : 'incorrect');
+        const userAnswerText = userChoice ? '<span class="user-choice-correct">〇正しい</span>' : '<span class="user-choice-incorrect">✖間違い</span>';
+        const correctAnswerText = quizItem.isCorrectPair ? '〇正しい' : '✖間違い';
+        resultItem.innerHTML = `
+            <img src="${quizItem.image}" alt="Result Image" class="result-image">
+            <div class="result-item-text">
+                <p>${quizItem.text}</p>
+                <small>あなたの回答: ${userAnswerText} | 正解: ${correctAnswerText}</small>
             </div>
         `;
-        resultDetails.appendChild(item);
+        resultDetails.appendChild(resultItem);
     });
+    controls.classList.add('hidden');
     resultContainer.classList.remove('hidden');
 }
 
-// --- 1つ前の回答を取り消す関数 ---
+// --- 戻るボタンが押された時の処理 ---
+function handlePopState(event) {
+    if (!event.state) return;
+    const targetIndex = event.state.index;
+
+    if (targetIndex === undefined || targetIndex === currentCardIndex) return;
+
+    while (currentCardIndex > targetIndex) {
+        undoLastAnswer();
+    }
+}
+
+// --- 直前の回答を１つ取り消す関数 ---
 function undoLastAnswer() {
     if (currentCardIndex === 0) return;
-    if (currentCardIndex === quizData.length) {
+
+    if (currentCardIndex === currentQuizSet.length) {
         resultContainer.classList.add('hidden');
         controls.classList.remove('hidden');
     }
+
     currentCardIndex--;
+
     const lastAnswer = userAnswers.pop();
     if (lastAnswer && lastAnswer.wasCorrect) {
         score--;
     }
-    const cardToRestore = document.querySelector(`.card:nth-last-child(${quizData.length - currentCardIndex})`);
+
+    const cardToRestore = allCards[currentCardIndex];
     if (cardToRestore) {
-        const newCard = cardToRestore.cloneNode(true);
-        cardToRestore.parentNode.replaceChild(newCard, cardToRestore);
-        newCard.style.transform = '';
-        newCard.style.opacity = '';
-        setupCardEventListeners(newCard);
+        cardToRestore.classList.remove('removing');
+        cardToRestore.style.transform = '';
+        cardToRestore.style.opacity = '1';
+        setupCardEventListeners(cardToRestore);
     }
+
     updateStatus();
 }
+
 
 // --- ヘルパー関数 ---
 function shuffleArray(array) {
@@ -240,13 +332,4 @@ function toggleDarkMode(isDarkMode) {
 }
 
 // --- 初期化実行 ---
-document.addEventListener('DOMContentLoaded', init); 
-
-// --- ブラウザの戻るボタンが押された時の処理 ---
-window.addEventListener('popstate', (event) => {
-    if (!event.state || event.state.index === undefined) return;
-    const targetIndex = event.state.index;
-    if (targetIndex < currentCardIndex) {
-        undoLastAnswer();
-    }
-});
+document.addEventListener('DOMContentLoaded', initializeQuiz);
