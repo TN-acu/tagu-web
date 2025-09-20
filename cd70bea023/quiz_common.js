@@ -477,6 +477,16 @@ function prepareForPrint() {
                 if (questionTextElement) {
                     questionTextElement.textContent = `問題 ${newQuestionCounter}:`;
                 }
+                
+                const questionBodyElement = quizItem.querySelector('.question-text');
+                if (questionBodyElement) {
+                    let html = questionBodyElement.innerHTML;
+                    if (html.includes('★')) {
+                        html = html.replace(/(★[\s\S]*)/, '<span class="source-info">$1</span>');
+                        questionBodyElement.innerHTML = html;
+                    }
+                }
+
                 newQuestionCounter++;
             } else {
                 quizItem.classList.add('print-hidden');
@@ -494,27 +504,24 @@ function prepareForPrint() {
         @page {
             size: A4;
             margin: 2cm;
-            
             @top-left { content: ""; }
             @top-center { content: ""; }
-            
             @top-right {
                 content: "${quizTitle.replace(/"/g, '\\"')}";
                 font-family: 'Hirino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 12pt; /* ★修正: 10pt -> 12pt */
+                font-size: 12pt;
                 color: #666;
             }
-
             @bottom-left {
                 content: "last update ${timestamp}";
                 font-family: 'Hirino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 12pt; /* ★修正: 10pt -> 12pt */
+                font-size: 12pt;
                 color: #666;
             }
             @bottom-right {
                 content: counter(page) " / " counter(pages);
                 font-family: 'Hirino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 12pt; /* ★修正: 10pt -> 12pt */
+                font-size: 12pt;
                 color: #666;
             }
         }
@@ -531,6 +538,10 @@ function prepareForPrint() {
                 margin-bottom: 5px !important;
                 font-weight: bold !important;
             }
+            .source-info {
+                font-weight: normal !important;
+                font-size: 9pt !important;
+            }
             .choice-btn {
                 font-size: 11pt !important;
                 padding: 2px 4px !important;
@@ -538,8 +549,12 @@ function prepareForPrint() {
                 border-radius: 0 !important;
                 background-color: transparent !important;
                 font-weight: normal !important;
-                color: #000 !important;
             }
+            /* ▼▼▼ 修正: :disabledセレクタを追加して優先順位を上げる ▼▼▼ */
+            .choice-btn, .choice-btn:disabled {
+                color: #000 !important; /* 文字色を黒に */
+            }
+            /* ▲▲▲ 修正ここまで ▲▲▲ */
             .choices-container {
                 display: flex !important;
                 flex-direction: column !important;
@@ -578,6 +593,7 @@ function prepareForPrint() {
         location.reload();
     }, 1000);
 }
+
 
 function populateJumpMenu(quizCount, interval) {
     jumpMenu.innerHTML = '<option value="">問題を選択</option>';
