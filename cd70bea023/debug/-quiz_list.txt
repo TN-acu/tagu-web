@@ -5,4 +5,4 @@ quiz.html?data=quiz_data_seirigaku2025zenki_kimatu.txt	●２日目 生理学 20
 quiz.html?data=quiz_data_kaibougaku.txt	●２日目 解剖学 2025前期末(Forms全316問+過去170問以上)
 quiz.html?data=quiz_data_keirokeiketugairon2025zenki_kimatu.txt	●３日目 経絡経穴概論 2025前期末(過去20問+予想30問)
 quiz.html?data=quiz_data_touyouigakugairon2025zenki_kimatu.txt	●３日目 東洋医学概論 2025前期末(Forms試験範囲復習60問＋Forms練習問題70問)
-quiz.html?data=quiz_data_iryougairon2025zenki_kimatu.txt	●３日目 医療概論 2025前期末(過去55問+国試13問)
+quiz.html?data=quiz_data_iryougairon2025zenki_kimatu.txt	●３日目 医療概論 2025前期末(前期末試験前の総復習50問+過去55問+国試13問)
