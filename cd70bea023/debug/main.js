@@ -82,8 +82,8 @@ const loadQuizList = async () => {
     if (!appList || !closeMenuLi) return;
 
     try {
-        // ▼▼▼ 変更: ファイル名を -quiz_list.txt に変更 ▼▼▼
-        const response = await fetch('-quiz_list.txt ');
+        // ▼▼▼ 変更: fetchするURLにキャッシュ対策のタイムスタンプを追加 ▼▼▼
+        const response = await fetch(`-quiz_list.txt?v=${new Date().getTime()}`);
         // ▲▲▲ 変更ここまで ▲▲▲
 
         if (!response.ok) {
