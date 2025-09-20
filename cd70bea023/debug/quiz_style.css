@@ -58,13 +58,27 @@ h1 {
     text-align: left;
     flex-grow: 1; 
     white-space: nowrap; 
-    overflow: hidden;
-    text-overflow: ellipsis;
+    /* ▼▼▼ 修正 ▼▼▼ */
+    flex-shrink: 0; /* 要素が縮んで省略されるのを防ぐ */
+    /* overflow: hidden; と text-overflow: ellipsis; の2行を削除 */
 }
 .controls {
     display: flex; 
     align-items: center;
+    flex-wrap: wrap; /* ★修正: 要素の折り返しを許可 */
+    justify-content: flex-end; /* ★追加: 右寄せにする */
 }
+
+/* ▼▼▼ 追加: 2行目右寄せ用のラッパースタイル ▼▼▼ */
+.pdf-controls-wrapper {
+    display: flex;
+    justify-content: flex-end; /* 中身を右寄せ */
+    align-items: center;
+    flex-basis: 100%; /* 横幅全体を専有して強制的に改行させる */
+    margin-top: 5px; /* 上の行との間隔を空ける */
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
+
 .controls button, .controls select {
     font-size: 1em;
     padding: 5px 10px;
@@ -253,9 +267,9 @@ mark.search-highlight.active {
         margin-bottom: 5px; /* 3px から 5px へ（解剖学HTMLの指定に合わせる） */
         padding-bottom: 5px; /* 2px から 5px へ（解剖学HTMLの指定に合わせる） */
     }
-    /* 医療概論HTMLに合わせて 6n ごとの改ページ指定を追加 */
-    .quiz-item:nth-child(6n):not(:last-child) {
-        page-break-after: always; 
+    /* 印刷時に無駄に改ページしない */
+.quiz-item:nth-child(6n):not(:last-child) {
+    page-break-after: auto !important;
     }
     .answer-display {
         display: flex; 

@@ -677,19 +677,32 @@ function addSearchButtonsToIframe() {
             const originalTextContent = targetElement.textContent;
 
             if (targetElement.matches('.question-text')) {
-                textToSearch = originalTextContent
-                    .replace(/^問題 \d+:\s*/, '')
-                    .replace(/※?【[^】]*】にも出題/g, '')
-                    .replace(/（[^）]*）/g, '')
-                    .replace(/\([^)]*\)/g, (match) => {
-                        const content = match.slice(1, -1);
-                        return /^\d+$/.test(content) ? match : '';
-                    })
-                    .replace(/<[^>]*>/g, '')
-                    .replace(/『[^』]*』/g, '')
-                    .replace(/予想問題/g, '')
-                    .trim();
+                // ▼▼▼ 修正: ここからが今回の修正箇所 ▼▼▼
+                // 「★」の有無で検索クエリの生成ロジックを分岐
+                if (originalTextContent.includes('★')) {
+                    // 「★」がある場合: 「問題 ●●:」のみを削除し、他は全て残す
+                    textToSearch = originalTextContent
+                        .split('★')[0] // 「★」より前の部分を取得
+                        .replace(/^問題 \d+:\s*/, '') // 「問題 ●●:」形式の接頭辞のみを削除
+                        .trim();
+                } else {
+                    // 「★」がない場合: 従来のトリミング処理を適用
+                    textToSearch = originalTextContent
+                        .replace(/^問題 \d+:\s*/, '')
+                        .replace(/※?【[^】]*】にも出題/g, '')
+                        .replace(/（[^）]*）/g, '')
+                        .replace(/\([^)]*\)/g, (match) => {
+                            const content = match.slice(1, -1);
+                            return /^\d+$/.test(content) ? match : '';
+                        })
+                        .replace(/<[^>]*>/g, '')
+                        .replace(/『[^』]*』/g, '')
+                        .replace(/予想問題/g, '')
+                        .trim();
+                }
+                // ▲▲▲ 修正ここまで ▲▲▲
                 
+                // 選択肢の追加（共通処理）
                 const choicesContainer = targetElement.closest('.question-content').querySelector('.choices-container');
                 let choiceTexts = '';
                 if (choicesContainer) {
@@ -733,7 +746,6 @@ function addSearchButtonsToIframe() {
                     window.open(searchUrl, '_blank');
                 }
             };
-            // ▲▲▲ 変更ここまで ▲▲▲
             
             const wrapper = iframeDoc.createElement('div');
             wrapper.className = 'search-button-wrapper';
