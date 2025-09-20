@@ -12,6 +12,11 @@ const pdfRangeStart = document.getElementById('pdf-range-start');
 const pdfRangeEnd = document.getElementById('pdf-range-end');
 // ▲▲▲ 修正ここまで ▲▲▲
 
+// ▼▼▼ 追加 ▼▼▼
+const pdfOptionsToggle = document.getElementById('pdf-options-toggle');
+const pdfControlsWrapper = document.getElementById('pdf-controls-wrapper');
+// ▲▲▲ 追加ここまで ▲▲▲
+
 let quizzes = [];
 let userAnswers = {};
 let currentFontScale = 1.0;
@@ -54,8 +59,9 @@ async function setupQuiz(dataTxtFile) {
     try {
         if (isMobileDevice()) {
             pdfBtn.style.display = 'none';
-            // ▼▼▼ 追加: モバイルでは範囲指定UIを強制的に非表示にする ▼▼▼
             pdfRangeContainer.style.display = 'none';
+            // ▼▼▼ 追加 ▼▼▼
+            pdfOptionsToggle.style.display = 'none';
             // ▲▲▲ 追加ここまで ▲▲▲
         } else {
             pdfRangeContainer.style.display = 'flex';
@@ -670,6 +676,14 @@ document.addEventListener('DOMContentLoaded', () => {
     fontDecreaseBtn.addEventListener('click', () => changeFontSize(currentFontScale - 0.1));
     
     pdfBtn.addEventListener('click', handlePdfButtonClick);
+
+        // ▼▼▼ 追加: PDF設定ボタンのクリックイベント ▼▼▼
+    if (pdfOptionsToggle) {
+        pdfOptionsToggle.addEventListener('click', () => {
+            pdfControlsWrapper.classList.toggle('collapsed');
+        });
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
 });
 
 window.addEventListener('scroll', () => {

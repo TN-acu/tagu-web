@@ -69,15 +69,34 @@ h1 {
     justify-content: flex-end; /* ★追加: 右寄せにする */
 }
 
-/* ▼▼▼ 追加: 2行目右寄せ用のラッパースタイル ▼▼▼ */
+/* pdf-controls-wrapper のスタイル定義を修正 */
 .pdf-controls-wrapper {
     display: flex;
-    justify-content: flex-end; /* 中身を右寄せ */
+    justify-content: flex-end;
     align-items: center;
-    flex-basis: 100%; /* 横幅全体を専有して強制的に改行させる */
-    margin-top: 5px; /* 上の行との間隔を空ける */
+    flex-basis: 100%;
+    margin-top: 5px;
+    /* ▼▼▼ 追加: アニメーションのためのスタイル ▼▼▼ */
+    overflow: hidden;
+    height: 34px; /* ボタンの高さに合わせて調整 */
+    transition: height 0.3s ease-out, margin-top 0.3s ease-out;
 }
-/* ▲▲▲ 追加ここまで ▲▲▲ */
+
+/* ▼▼▼ 追加: 折りたたまれた状態のスタイル ▼▼▼ */
+.pdf-controls-wrapper.collapsed {
+    height: 0;
+    margin-top: 0;
+}
+
+/* media query (mobile) の中に以下を追加 */
+@media (max-width: 768px) {
+    /* ... 既存のモバイル用スタイル ... */
+
+    /* ▼▼▼ 追加: モバイルではPDF設定ボタンを非表示 ▼▼▼ */
+    #pdf-options-toggle {
+        display: none;
+    }
+}
 
 .controls button, .controls select {
     font-size: 1em;
@@ -89,6 +108,12 @@ h1 {
     border-radius: 5px;
     cursor: pointer;
     white-space: nowrap; 
+}
+
+/* controls button, select のスタイル定義の近くに追加 */
+#pdf-options-toggle {
+    background-color: #6c757d;
+    color: white;
 }
 
 .icon-btn {

@@ -15,7 +15,7 @@
 
     <div id="quiz-header">
         <p id="score-text">正解数: 0 / 0</p>
-<div class="controls">
+        <div class="controls">
             <select id="jump-menu">
                 <option value="">問題を選択</option>
             </select>
@@ -30,7 +30,9 @@
                 </svg>
             </button>
             
-            <div class="pdf-controls-wrapper">
+            <button id="pdf-options-toggle" title="PDFオプションの表示/非表示">PDF設定</button>
+            
+            <div class="pdf-controls-wrapper collapsed" id="pdf-controls-wrapper">
                 <div id="pdf-range-container" style="display: flex; align-items: center; margin-right: 5px;">
                     <select id="pdf-range-start" title="PDF化する開始問題"></select>
                     <span style="margin: 0 3px;">から</span>
@@ -39,22 +41,20 @@
                 </div>
                 <button id="pdf-btn" aria-label="PDF/印刷用">正答PDF化</button>
             </div>
-            </div>
-    </div>
-
-    <div class="quiz-container">
+        </div>
+    </div> <div class="quiz-container">
         <h1>
             <span id="quiz-title-main">クイズ読み込み中...</span>
             <span id="last-updated" class="update-info"></span>
         </h1>
         
         <div id="quiz-body">
-            </div>
+        </div>
 
         <button id="finish-btn">採点する</button>
     </div>
 
     <script src="quiz_common.js"></script>
 
-    </body>
+</body>
 </html>
