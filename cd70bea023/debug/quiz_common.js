@@ -36,22 +36,24 @@ function shuffleArray(array) {
     }
 }
 
+// ▼▼▼ 変更: ルビの重複を防ぐロジックに修正 ▼▼▼
 function applyRuby(text) {
     if (Object.keys(rubyDictionary).length === 0 || !text) {
         return text;
     }
-    const sortedKeys = Object.keys(rubyDictionary).sort((a, b) => b.length - a.length);
 
-    sortedKeys.forEach(key => {
-        if (text.includes(key)) {
-            const reading = rubyDictionary[key];
-            const rubyHtml = `<ruby>${key}<rt>${reading}</rt></ruby>`;
-            const regex = new RegExp(escapeRegExp(key), 'g');
-            text = text.replace(regex, rubyHtml);
-        }
+    // 辞書のキーを文字数の長い順にソートし、正規表現の|で連結
+    const sortedKeys = Object.keys(rubyDictionary).sort((a, b) => b.length - a.length);
+    const pattern = sortedKeys.map(key => escapeRegExp(key)).join('|');
+    const regex = new RegExp(pattern, 'g');
+
+    // マッチした部分（辞書にある単語）だけを<ruby>タグに置換する
+    return text.replace(regex, (match) => {
+        const reading = rubyDictionary[match];
+        return `<ruby>${match}<rt>${reading}</rt></ruby>`;
     });
-    return text;
 }
+// ▲▲▲ 変更ここまで ▲▲▲
 
 
 // テキストファイルからクイズデータを読み込んで表示する
