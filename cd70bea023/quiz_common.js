@@ -166,7 +166,10 @@ async function setupQuiz(dataTxtFile) {
                 
                 choiceBtn.innerHTML = choice.replace(/\\n/g, '<br>');
                 choiceBtn.dataset.choiceValue = choice; 
-                choiceBtn.onclick = () => selectAnswer(index, choiceBtn); 
+                
+                // ▼▼▼ 変更: クリックイベントの登録方法をonclickからaddEventListenerに変更 ▼▼▼
+                choiceBtn.addEventListener('click', () => selectAnswer(index, choiceBtn)); 
+                // ▲▲▲ 変更ここまで ▲▲▲
                 
                 choicesContainer.appendChild(choiceBtn);
             });
@@ -293,7 +296,7 @@ function selectAnswer(quizIndex, btnElement) {
     const choice = btnElement.dataset.choiceValue;
     userAnswers[quizIndex] = choice;
     
-    const quizItem = document.getElementById(`quiz-${index}`);
+    const quizItem = document.getElementById(`quiz-${quizIndex}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text'); 
     
