@@ -244,18 +244,31 @@ window.addEventListener('message', (event) => {
         const newPlaceholder = `検索..${cleanTitle}から`;
         searchInput.placeholder = newPlaceholder;
     }
-    // ▼▼▼ 追加: 検索結果の更新通知を受け取る ▼▼▼
+    // ▼▼▼ 変更: 検索結果なしの表示とブリンクアニメーションを追加 ▼▼▼
     else if (event.data && event.data.type === 'searchResultUpdate') {
         const { currentIndex, totalHits, term } = event.data;
-        if (term && totalHits > 0) {
-            searchResultsCount.textContent = `${currentIndex + 1} / ${totalHits}`;
+
+        if (term) {
+            // 検索が実行された場合（結果の有無を問わず）
+            if (totalHits > 0) {
+                searchResultsCount.textContent = `${currentIndex + 1} / ${totalHits}`;
+            } else {
+                searchResultsCount.textContent = '０／０';
+            }
             searchResultsCount.style.display = 'block';
+
+            // ブリンクアニメーションを実行
+            searchResultsCount.classList.remove('blink');
+            void searchResultsCount.offsetWidth; // アニメーションを再実行するためのリフロー強制
+            searchResultsCount.classList.add('blink');
+
         } else {
+            // 検索がクリアされた場合
             searchResultsCount.textContent = '';
             searchResultsCount.style.display = 'none';
         }
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
+    // ▲▲▲ 変更ここまで ▲▲▲
 });
 // ▲▲▲ 変更ここまで ▲▲▲
 
