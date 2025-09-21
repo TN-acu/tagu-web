@@ -883,7 +883,7 @@ function navigateToHighlight(direction, isNewSearch = false) {
     if (currentElement) {
         currentElement.classList.add('active');
         
-        // ▼▼▼ 修正: 要素がすでに表示されている場合はスクロールしないロジックを追加 ▼▼▼
+        // ▼▼▼ 変更: 要素がすでに表示されている場合はスクロールしないロジックを追加 ▼▼▼
         const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
         const elementRect = currentElement.getBoundingClientRect();
         
@@ -899,8 +899,11 @@ function navigateToHighlight(direction, isNewSearch = false) {
         } else {
             // それ以外の場合はスクロールする
             const elementTop = elementRect.top + window.pageYOffset;
-            // ヘッダー分と、画面中央に近づけるためのオフセットを考慮
-            const offsetPosition = elementTop - headerOffset - (window.innerHeight / 4);
+            
+            // ▼▼▼ 変更: スマホのキーボード表示を考慮し、表示領域の中央にスクロールするよう計算式を修正 ▼▼▼
+            // ヘッダーを除いた可視領域の中央に要素の上端が来るようにスクロール位置を計算
+            const offsetPosition = elementTop - headerOffset - ((window.innerHeight - headerOffset) / 2);
+            // ▲▲▲ 変更ここまで ▲▲▲
 
             window.scrollTo({
                 top: offsetPosition,
