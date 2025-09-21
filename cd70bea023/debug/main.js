@@ -9,10 +9,7 @@ const searchContainer = document.querySelector('.search-container');
 const searchResultsCount = document.getElementById('search-results-count');
 const searchClearBtn = document.getElementById('search-clear-btn');
 let blinkTimeout = null;
-
-// ▼▼▼ 変更: ルビボタンの管理をmain.jsに集約 ▼▼▼
 const rubyToggleBtn = document.getElementById('ruby-toggle-btn');
-// ▲▲▲ 変更ここまで ▲▲▲
 
 let customHistoryStack = []; 
 
@@ -190,9 +187,7 @@ window.addEventListener('message', (event) => {
             searchResultsCount.textContent = `${currentIndex + 1} / ${totalHits}`;
             searchResultsCount.style.display = 'block';
         } else if (term && totalHits === 0) {
-            // ▼▼▼ 変更: 表示テキストを「0 / 0」から「該当無し」に変更 ▼▼▼
             searchResultsCount.textContent = '該当無し';
-            // ▲▲▲ 変更ここまで ▲▲▲
             searchResultsCount.style.display = 'block';
             searchResultsCount.classList.add('blink');
             blinkTimeout = setTimeout(() => {
@@ -284,10 +279,7 @@ const toggleMenu = () => {
     const isOpening = !navColumn.classList.contains('menu-open');
     navColumn.classList.toggle('menu-open');
     if (isOpening) {
-        // ▼▼▼ 変更（追加）: メニューを開くときにルビボタンを隠す ▼▼▼
         rubyToggleBtn.style.display = 'none';
-        // ▲▲▲ 変更ここまで ▲▲▲
-
         history.pushState({uiState: 'menu'}, ''); 
         customHistoryStack.push('menu');          
         menuToggleOpenBtn.style.display = 'none';
@@ -299,11 +291,7 @@ const toggleMenu = () => {
             appList.style.paddingTop = '10px'; 
         }, 10);
     } else {
-
-        // ▼▼▼ 変更（追加）: メニューを閉じるときにルビボタンの表示を元に戻す ▼▼▼
         updateRubyButtonVisibility();
-        // ▲▲▲ 変更ここまで ▲▲▲
-
         if (history.state && history.state.uiState === 'menu') { 
             history.back(); 
         }
@@ -542,11 +530,9 @@ function addSearchButtonsToIframe() {
         const createSearchButton = (targetElement) => {
             let textToSearch = "";
             
-            // ▼▼▼ 変更: 検索キーワードからルビを除外するロジック ▼▼▼
             const clone = targetElement.cloneNode(true);
             clone.querySelectorAll('rt').forEach(rt => rt.remove());
             const originalTextContent = clone.textContent;
-            // ▲▲▲ 変更ここまで ▲▲▲
 
             if (targetElement.matches('.question-text')) {
                 if (originalTextContent.includes('★')) {
@@ -614,7 +600,6 @@ function addSearchButtonsToIframe() {
     }
 }
 
-// ▼▼▼ 追加: ルビボタンの表示/非表示と状態を管理するロジック ▼▼▼
 function updateRubyButtonVisibility() {
     try {
         const iframeSrc = iframe.contentWindow.location.href;
@@ -628,27 +613,65 @@ function updateRubyButtonVisibility() {
     }
 }
 
+// ▼▼▼ 変更: ルビボタンのクリック処理に「画面記憶」機能を追加 ▼▼▼
 function syncRubyButtonState() {
     const isRubyEnabled = localStorage.getItem('rubyVisible') === 'true';
     if (isRubyEnabled) {
         rubyToggleBtn.classList.add('active');
-        rubyToggleBtn.innerHTML = 'ルビ<br>ON中';
+        rubyToggleBtn.innerHTML = 'ルビ<br>ON';
     } else {
         rubyToggleBtn.classList.remove('active');
-        rubyToggleBtn.innerHTML = 'ルビ<br>OFF中';
+        rubyToggleBtn.innerHTML = 'ルビ<br>OFF';
     }
-    // iframeに現在の状態を通知
     try {
         iframe.contentWindow.postMessage({ type: 'setRubyState', state: isRubyEnabled }, '*');
     } catch(e) {}
 }
 
 rubyToggleBtn.addEventListener('click', () => {
+    // 1. 記憶: 現在画面に見えている一番上の問題要素のIDを記憶する
+    let topVisibleQuizId = null;
+    try {
+        const iframeDoc = iframe.contentDocument;
+        const headerHeight = iframeDoc.getElementById('quiz-header')?.offsetHeight || 70;
+        const quizItems = iframeDoc.querySelectorAll('.quiz-item');
+        for (const item of quizItems) {
+            if (item.getBoundingClientRect().top >= headerHeight) {
+                topVisibleQuizId = item.id;
+                break;
+            }
+        }
+    } catch (e) {
+        console.error("記憶処理エラー:", e);
+    }
+
+    // 2. 変更: ルビの状態を切り替える
     const isRubyEnabled = !(localStorage.getItem('rubyVisible') === 'true');
     localStorage.setItem('rubyVisible', isRubyEnabled);
     syncRubyButtonState();
+
+    // 3. 復元: 画面の再描画が終わった少し後に、記憶した問題の位置にスクロールを戻す
+    setTimeout(() => {
+        if (topVisibleQuizId) {
+            try {
+                const iframeDoc = iframe.contentDocument;
+                const iframeWin = iframe.contentWindow;
+                const headerHeight = iframeDoc.getElementById('quiz-header')?.offsetHeight || 70;
+                const elementToRestore = iframeDoc.getElementById(topVisibleQuizId);
+                if (elementToRestore) {
+                    const newPosition = elementToRestore.offsetTop;
+                    iframeWin.scrollTo({
+                        top: newPosition - headerHeight - 10,
+                        behavior: 'auto'
+                    });
+                }
+            } catch (e) {
+                console.error("復元処理エラー:", e);
+            }
+        }
+    }, 100);
 });
-// ▲▲▲ 追加ここまで ▲▲▲
+// ▲▲▲ 変更ここまで ▲▲▲
 
 function setupIframeContent() {
     try {
