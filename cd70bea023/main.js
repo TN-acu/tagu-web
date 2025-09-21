@@ -573,21 +573,21 @@ darkModeButton.addEventListener('click', () => {
 const searchPrevBtn = document.getElementById('search-prev');
 const searchNextBtn = document.getElementById('search-next');
 
-// ▼▼▼ 変更: performSearchで停止問題番号をiframeに渡す ▼▼▼
+// ▼▼▼ 変更: 検索ボタンのイベントをclickに統一し、不具合を解消 ▼▼▼
+searchNextBtn.addEventListener('click', () => performSearch('next'));
+searchPrevBtn.addEventListener('click', () => performSearch('prev'));
+// ▲▲▲ 変更ここまで ▲▲▲
+
 const performSearch = (direction) => {
     const searchTerm = searchInput.value;
     saveSearchTerm(searchTerm);
     
-    // ▼▼▼ 追加: 停止問題番号を取得 ▼▼▼
     const stopQuestionNumber = stopQuestionSelect.value;
-    // ▲▲▲ 追加ここまで ▲▲▲
     
     try {
         const iframeWin = iframe.contentWindow;
         if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-            // ▼▼▼ 変更: 第3引数に停止問題番号を渡す ▼▼▼
             iframeWin.handleSearch(searchTerm, direction, stopQuestionNumber);
-            // ▲▲▲ 変更ここまで ▲▲▲
             
             setTimeout(() => {
                 if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
@@ -602,31 +602,23 @@ const performSearch = (direction) => {
         console.error("Error calling iframe search function:", e.message);
     }
 };
-// ▲▲▲ 変更ここまで ▲▲▲
 
-searchNextBtn.addEventListener('click', () => performSearch('next'));
-searchPrevBtn.addEventListener('click', () => performSearch('prev'));
-
-// ▼▼▼ 変更: 検索(Enter)イベントリスナーにデバッグトグル機能を追加 ▼▼▼
 searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault();
         
-        // ▼▼▼ 追加: デバッグモードトグル機能 ▼▼▼
         if (searchInput.value.toLowerCase() === 'debug') {
-            toggleDebugScrollMode(); // デバッグモード切り替え
-            searchInput.value = ''; // 入力欄をクリア
-            searchHistoryContainer.style.display = 'none'; // 履歴を閉じる
-            searchInput.blur(); // フォーカスを外す
-            return; // 検索は実行しない
+            toggleDebugScrollMode(); 
+            searchInput.value = '';
+            searchHistoryContainer.style.display = 'none';
+            searchInput.blur();
+            return; 
         }
-        // ▲▲▲ 追加ここまで ▲▲▲
 
         performSearch('next');
         searchHistoryContainer.style.display = 'none';
     }
 });
-// ▲▲▲ 変更ここまで ▲▲▲
 
 // ▼▼▼ 追加: カスタムクリアボタンの制御ロジック ▼▼▼
 searchInput.addEventListener('input', () => {
@@ -679,8 +671,13 @@ searchInput.addEventListener('click', () => {
     }
 });
 
-// ▼▼▼ 変更: blurイベントで検索結果表示もクリアするロジックを追加 ▼▼▼
-searchInput.addEventListener('blur', () => {
+// ▼▼▼ 変更: blurイベントでフォーカス移動先を判定し、誤作動を防止 ▼▼▼
+searchInput.addEventListener('blur', (e) => {
+    // フォーカスの移動先が検索ボタンの場合は、キャンセル動作（history.back）をしない
+    if (e.relatedTarget === searchNextBtn || e.relatedTarget === searchPrevBtn) {
+        return;
+    }
+
     setTimeout(() => {
         if (searchHistoryContainer.style.display === 'block') {
             if (history.state && history.state.uiState === 'search') { 
@@ -688,7 +685,6 @@ searchInput.addEventListener('blur', () => {
             }
             searchHistoryContainer.style.display = 'none';
         }
-        // ▼▼▼ 追加: 検索入力が空になったら、ハイライトと結果表示をクリアする ▼▼▼
         if (searchInput.value.trim() === '') {
              try {
                 const iframeWin = iframe.contentWindow;
@@ -696,9 +692,8 @@ searchInput.addEventListener('blur', () => {
                     iframeWin.clearHighlights();
                 }
             } catch(e) {}
-            searchResultsCount.style.display = 'none'; // 結果表示も消す
+            searchResultsCount.style.display = 'none';
         }
-        // ▲▲▲ 追加ここまで ▲▲▲
     }, 200);
 });
 // ▲▲▲ 変更ここまで ▲▲▲

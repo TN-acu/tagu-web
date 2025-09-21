@@ -733,10 +733,18 @@ function postSearchResults() {
  * ハイライトをすべてクリアし、DOMを元に戻す
  */
 function clearHighlights() {
-    // <span> タグ (ハイライト) を解除
+    // ▼▼▼ 変更: イベントリスナーを破壊しないように、要素自体ではなくその子ノードのみを元に戻す ▼▼▼
     searchState.originalNodes.forEach((originalNode, parent) => {
-        parent.replaceWith(originalNode);
+        // 現在の要素（parent）の子ノードをすべて削除
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+        // 保存しておいた元のノード（originalNode）の子ノードをすべて移動して復元
+        while (originalNode.firstChild) {
+            parent.appendChild(originalNode.firstChild);
+        }
     });
+    // ▲▲▲ 変更ここまで ▲▲▲
 
     // .active クラスを削除 (念のため)
     searchState.elements.forEach(el => el.classList.remove('active'));

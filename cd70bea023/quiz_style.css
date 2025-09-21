@@ -220,6 +220,9 @@ mark.search-highlight {
     border-radius: 3px;
     padding: 1px 0;
     box-shadow: 0 0 3px rgba(0,0,0,0.3);
+    /* ▼▼▼ 追加: ハイライトされたテキストがクリックイベントを妨害しないようにする ▼▼▼ */
+    pointer-events: none;
+    /* ▲▲▲ 追加ここまで ▲▲▲ */
 }
 mark.search-highlight.active {
     background-color: #f90; /* オレンジ色の背景（現在位置） */
