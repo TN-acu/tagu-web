@@ -5,8 +5,10 @@ const searchHistoryContainer = document.getElementById('search-history-container
 const searchInput = document.getElementById('search-input');
 const SEARCH_HISTORY_KEY = 'quizAppSearchHistory';
 
-// ▼▼▼ 追加: 検索コンテナのDOMを取得 ▼▼▼
+// ▼▼▼ 追加: 検索UI関連のDOMを取得 ▼▼▼
 const searchContainer = document.querySelector('.search-container');
+const searchResultsCount = document.getElementById('search-results-count');
+const searchClearBtn = document.getElementById('search-clear-btn');
 // ▲▲▲ 追加ここまで ▲▲▲
 
 // ▼▼▼ すべてのカスタムUI状態を一元管理する内部スタック ▼▼▼
@@ -82,8 +84,8 @@ const loadQuizList = async () => {
     if (!appList || !closeMenuLi) return;
 
     try {
-        // ▼▼▼ 変更: ファイル名を -quiz_list.txt に変更 ▼▼▼
-        const response = await fetch('-quiz_list.txt ');
+        // ▼▼▼ 変更: fetchするURLにキャッシュ対策のタイムスタンプを追加 ▼▼▼
+        const response = await fetch(`-quiz_list.txt?v=${new Date().getTime()}`);
         // ▲▲▲ 変更ここまで ▲▲▲
 
         if (!response.ok) {
@@ -184,6 +186,9 @@ const loadSearchHistory = () => {
                 } catch(err) {}
                 
                 searchInput.value = term;
+                // ▼▼▼ 変更（追加）: 履歴選択時にinputイベントを強制発火させ、クリアボタンを表示 ▼▼▼
+                searchInput.dispatchEvent(new Event('input'));
+                // ▲▲▲ 変更ここまで ▲▲▲
 
                 performSearch('next');
                 searchHistoryContainer.style.display = 'none';
@@ -227,22 +232,45 @@ const showToast = (message) => {
     // ▲▲▲ 変更ここまで ▲▲▲
 };
 
-// ▼▼▼ 新規追加: iframeからのメッセージをリッスン (位置復元トースト用) ▼▼▼
+// ▼▼▼ 変更: 検索結果更新のメッセージリスナーを追加 ▼▼▼
 window.addEventListener('message', (event) => {
     // event.origin のチェックは file:// 環境などを考慮し、メッセージ内容のみで判定
     if (event.data === 'quizPositionRestored') {
         showToast("★ 新機能：前回の問題文から再開しました ★");
     }
-    // ▼▼▼ 追加: iframeのタイトルが更新された通知を受け取る ▼▼▼
     else if (event.data && event.data.type === 'iframeTitleUpdated') {
         const newTitle = event.data.title || '';
         const cleanTitle = newTitle.replace(/^クイズ：/, '').trim();
         const newPlaceholder = `検索..${cleanTitle}から`;
         searchInput.placeholder = newPlaceholder;
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
+    // ▼▼▼ 変更: 検索結果なしの表示とブリンクアニメーションを追加 ▼▼▼
+    else if (event.data && event.data.type === 'searchResultUpdate') {
+        const { currentIndex, totalHits, term } = event.data;
+
+        if (term) {
+            // 検索が実行された場合（結果の有無を問わず）
+            if (totalHits > 0) {
+                searchResultsCount.textContent = `${currentIndex + 1} / ${totalHits}`;
+            } else {
+                searchResultsCount.textContent = '０／０';
+            }
+            searchResultsCount.style.display = 'block';
+
+            // ブリンクアニメーションを実行
+            searchResultsCount.classList.remove('blink');
+            void searchResultsCount.offsetWidth; // アニメーションを再実行するためのリフロー強制
+            searchResultsCount.classList.add('blink');
+
+        } else {
+            // 検索がクリアされた場合
+            searchResultsCount.textContent = '';
+            searchResultsCount.style.display = 'none';
+        }
+    }
+    // ▲▲▲ 変更ここまで ▲▲▲
 });
-// ▲▲▲ 追加ここまで ▲▲▲
+// ▲▲▲ 変更ここまで ▲▲▲
 
 function handleQuizChoiceMade(quizIndexStr) {
     const quizIndex = parseInt(quizIndexStr, 10);
@@ -401,15 +429,20 @@ const toggleMenu = () => {
 menuToggleOpenBtn.addEventListener('click', toggleMenu);
 menuToggleCloseBtn.addEventListener('click', toggleMenu);
 
-// ▼▼▼ 変更: app-list が動的に生成されるため、イベントリスナーの登録を
-//          loadQuizList の成功後、または appList 全体への委任に変更する必要がある。
-//          ここでは簡潔にするため、appList へのイベント委任に変更する。
+// ▼▼▼ 変更: メニュークリック時に検索UIをリセットする処理を追加 ▼▼▼
 appList.addEventListener('click', (e) => {
     // クリックされた要素が <a> タグ、または <a> タグの子要素か確認
     const link = e.target.closest('a');
     
     if (link && appList.contains(link)) {
         handleQuizFinished(); 
+        
+        // ▼▼▼ 追加: 新しいページに移動する際に検索UIをリセット ▼▼▼
+        searchInput.value = ''; // 検索入力欄をクリア
+        searchResultsCount.style.display = 'none'; // カウンターを非表示
+        searchResultsCount.textContent = ''; // カウンターのテキストをクリア
+        // ▲▲▲ 追加ここまで ▲▲▲
+
         if (navColumn.classList.contains('menu-open')) { 
             toggleMenu(); 
         }
@@ -540,14 +573,22 @@ darkModeButton.addEventListener('click', () => {
 const searchPrevBtn = document.getElementById('search-prev');
 const searchNextBtn = document.getElementById('search-next');
 
+// ▼▼▼ 変更: performSearchで停止問題番号をiframeに渡す ▼▼▼
 const performSearch = (direction) => {
     const searchTerm = searchInput.value;
     saveSearchTerm(searchTerm);
     
+    // ▼▼▼ 追加: 停止問題番号を取得 ▼▼▼
+    const stopQuestionNumber = stopQuestionSelect.value;
+    // ▲▲▲ 追加ここまで ▲▲▲
+    
     try {
         const iframeWin = iframe.contentWindow;
         if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-            iframeWin.handleSearch(searchTerm, direction);
+            // ▼▼▼ 変更: 第3引数に停止問題番号を渡す ▼▼▼
+            iframeWin.handleSearch(searchTerm, direction, stopQuestionNumber);
+            // ▲▲▲ 変更ここまで ▲▲▲
+            
             setTimeout(() => {
                 if (searchTerm && iframeWin.searchState && iframeWin.searchState.elements.length === 0) {
                     showToast('検索結果無し');
@@ -561,6 +602,7 @@ const performSearch = (direction) => {
         console.error("Error calling iframe search function:", e.message);
     }
 };
+// ▲▲▲ 変更ここまで ▲▲▲
 
 searchNextBtn.addEventListener('click', () => performSearch('next'));
 searchPrevBtn.addEventListener('click', () => performSearch('prev'));
@@ -586,6 +628,38 @@ searchInput.addEventListener('keydown', (e) => {
 });
 // ▲▲▲ 変更ここまで ▲▲▲
 
+// ▼▼▼ 追加: カスタムクリアボタンの制御ロジック ▼▼▼
+searchInput.addEventListener('input', () => {
+    if (searchInput.value.length > 0) {
+        searchClearBtn.style.display = 'block';
+    } else {
+        searchClearBtn.style.display = 'none';
+        // テキストが手動で空になった場合もハイライトをクリア
+        try {
+            const iframeWin = iframe.contentWindow;
+            if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+                iframeWin.clearHighlights();
+            }
+        } catch(e) {}
+    }
+});
+
+searchClearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    searchClearBtn.style.display = 'none';
+    searchInput.focus();
+    // iframe内のハイライトとカウンターもクリア
+    try {
+        const iframeWin = iframe.contentWindow;
+        if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+            iframeWin.clearHighlights();
+        }
+    } catch(e) {
+        console.error("Error clearing iframe highlights:", e.message);
+    }
+});
+// ▲▲▲ 追加ここまで ▲▲▲
+
 const showSearchHistoryIfNeeded = () => {
     loadSearchHistory();
     if (searchHistoryContainer.children.length > 0) {
@@ -605,6 +679,7 @@ searchInput.addEventListener('click', () => {
     }
 });
 
+// ▼▼▼ 変更: blurイベントで検索結果表示もクリアするロジックを追加 ▼▼▼
 searchInput.addEventListener('blur', () => {
     setTimeout(() => {
         if (searchHistoryContainer.style.display === 'block') {
@@ -613,10 +688,22 @@ searchInput.addEventListener('blur', () => {
             }
             searchHistoryContainer.style.display = 'none';
         }
+        // ▼▼▼ 追加: 検索入力が空になったら、ハイライトと結果表示をクリアする ▼▼▼
+        if (searchInput.value.trim() === '') {
+             try {
+                const iframeWin = iframe.contentWindow;
+                if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
+                    iframeWin.clearHighlights();
+                }
+            } catch(e) {}
+            searchResultsCount.style.display = 'none'; // 結果表示も消す
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
     }, 200);
 });
+// ▲▲▲ 変更ここまで ▲▲▲
 
-// ▼▼▼ 変更: popstateからサブメニュー関連の処理を削除 ▼▼▼
+// ▼▼▼ 変更: popstateで検索結果表示もクリアする ▼▼▼
 window.addEventListener('popstate', (event) => {
 
     // ▼▼▼ 追加: オートスクロール作動中に「戻る」が押された場合の処理 ▼▼▼
@@ -639,24 +726,26 @@ window.addEventListener('popstate', (event) => {
             }
             return; 
         } 
+        // ▼▼▼ 変更: 「戻る」ボタンで検索をキャンセルする際の動作を修正 ▼▼▼
         else if (lastStateToPop === 'search') {
-            if (searchHistoryContainer.style.display === 'block' || document.activeElement === searchInput) {
-                if (searchHistoryContainer.style.display === 'block') {
-                     searchHistoryContainer.style.display = 'none';
+            const wasSearchActive = searchInput.value !== '';
+            const wasHistoryVisible = searchHistoryContainer.style.display === 'block';
+
+            // 検索語があるか、検索履歴が表示されている場合にUIをリセットする
+            if (wasSearchActive || wasHistoryVisible) {
+                if (wasHistoryVisible) {
+                    searchHistoryContainer.style.display = 'none';
                 }
-                if (searchInput.value !== '') {
+                if (wasSearchActive) {
                     searchInput.value = '';
-                    try {
-                        const iframeWin = iframe.contentWindow;
-                        if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                            iframeWin.clearHighlights();
-                        }
-                    } catch(e) {}
+                    // inputイベントを発火させ、関連するUI（クリアボタン、ハイライト、カウンター）をリセットする
+                    searchInput.dispatchEvent(new Event('input'));
                 }
                 searchInput.blur();
             }
-            return; 
+            return; // ページ遷移は行わない
         }
+        // ▲▲▲ 変更ここまで ▲▲▲
         else if (lastStateToPop && lastStateToPop.type === 'quiz') {
             clearIframeChoice(lastStateToPop.index);
             return; 
