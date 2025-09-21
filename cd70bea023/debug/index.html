@@ -71,7 +71,9 @@
             </div>
         <div class="search-container">
             <div class="input-wrapper">
+                <span id="search-clear-btn" style="display: none;">×</span>
                 <input type="search" id="search-input" placeholder="表示画面内を検索...">
+                <span id="search-results-count"></span>
             </div>
             <button id="search-prev" title="前を検索">△</button>
             <button id="search-next" title="次を検索">▽</button>
@@ -82,7 +84,6 @@
 
     <script src="main.js" defer></script>
     
-    <!-- ▼▼▼ 追加: サービスワーカーを登録してキャッシュを制御 ▼▼▼ -->
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
@@ -94,6 +95,5 @@
           });
       }
     </script>
-    <!-- ▲▲▲ 追加ここまで ▲▲▲ -->
-</body>
+    </body>
 </html>

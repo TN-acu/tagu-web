@@ -318,7 +318,7 @@ body.dark-mode #scroll-stop-label {
 }
 .search-container input[type="search"] {
     flex-grow: 1;
-    padding: 8px;
+    padding: 8px 8px 8px 28px; /* 変更: 左パディングを追加 */
     border: 1px solid var(--border-color-light);
     border-radius: 5px;
     font-size: 0.9em;
@@ -326,6 +326,12 @@ body.dark-mode #scroll-stop-label {
     color: var(--text-color-light);
     min-width: 50px; 
 }
+/* ▼▼▼ 追加: 標準の検索消去ボタンを非表示にする ▼▼▼ */
+.search-container input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
 body.dark-mode .search-container input[type="search"] {
     border-color: var(--border-color-dark);
     background-color: var(--secondary-bg-dark);
@@ -375,6 +381,47 @@ body.dark-mode #search-prev {
  body.dark-mode #search-next {
     border-left-color: #3b6145;
 }
+
+/* ▼▼▼ 追加: カスタム検索消去ボタンのスタイル ▼▼▼ */
+#search-clear-btn {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    font-weight: bold;
+    font-size: 1.2em;
+    line-height: 1;
+    z-index: 2;
+}
+body.dark-mode #search-clear-btn {
+    color: #bbb;
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
+
+/* ▼▼▼ 変更: 検索ヒット数表示のスタイル ▼▼▼ */
+#search-results-count {
+    position: absolute;
+    right: 8px; /* フォーム内の右からの位置 */
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明の背景 */
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: calc(0.8em + 8px); /* 変更箇所 */
+    font-weight: bold;
+    pointer-events: none; /* クリックイベントを透過させる */
+    display: none; /* デフォルトは非表示 */
+    white-space: nowrap; /* 折り返さない */
+}
+
+body.dark-mode #search-results-count {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-color-dark);
+}
+/* ▲▲▲ 変更ここまで ▲▲▲ */
 
 @media (max-width: 768px) {
     .container { 

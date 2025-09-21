@@ -293,7 +293,7 @@ function selectAnswer(quizIndex, btnElement) {
     const choice = btnElement.dataset.choiceValue;
     userAnswers[quizIndex] = choice;
     
-    const quizItem = document.getElementById(`quiz-${quizIndex}`);
+    const quizItem = document.getElementById(`quiz-${index}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text'); 
     
@@ -713,6 +713,19 @@ const searchState = {
     originalNodes: new Map() // ハイライト解除用に元のDOMノードを保持
 };
 
+// ▼▼▼ 追加: 検索結果を親フレームに通知するヘルパー関数 ▼▼▼
+function postSearchResults() {
+    if (window.parent && window.parent.postMessage) {
+        window.parent.postMessage({
+            type: 'searchResultUpdate',
+            currentIndex: searchState.currentIndex,
+            totalHits: searchState.elements.length,
+            term: searchState.term
+        }, '*');
+    }
+}
+// ▲▲▲ 追加ここまで ▲▲▲
+
 /**
  * ハイライトをすべてクリアし、DOMを元に戻す
  */
@@ -730,28 +743,46 @@ function clearHighlights() {
     searchState.elements = [];
     searchState.currentIndex = -1;
     searchState.originalNodes.clear();
+    
+    // ▼▼▼ 追加: 親フレームにクリアを通知 ▼▼▼
+    postSearchResults();
+    // ▲▲▲ 追加ここまで ▲▲▲
 }
 
 /**
  * 検索を実行し、DOMをハイライトする
  * @param {string} term - 検索キーワード
+ * @param {number|string|null} stopQuestionNumber - 検索を終了する問題番号
  */
-function performHighlight(term) {
+function performHighlight(term, stopQuestionNumber) {
     clearHighlights();
     if (!term) return;
 
     searchState.term = term;
     const regex = new RegExp(escapeRegExp(term), 'gi');
     
-    // 検索対象のノード (質問文と選択肢)
-    const nodesToSearch = document.querySelectorAll('.question-text, .choice-btn');
+    // ▼▼▼ 変更: 検索対象ノードを範囲指定で取得 ▼▼▼
+    let nodesToSearch = [];
+    // stopQuestionNumber が未定義または不正な値の場合は、全問題を対象とする
+    const endQuestionIndex = (stopQuestionNumber && !isNaN(parseInt(stopQuestionNumber, 10))) 
+        ? parseInt(stopQuestionNumber, 10) - 1 
+        : quizzes.length - 1;
+
+    for (let i = 0; i <= endQuestionIndex; i++) {
+        const quizItem = document.getElementById(`quiz-${i}`);
+        if (quizItem) {
+            // .question-text と .choice-btn の両方を取得
+            nodesToSearch.push(...quizItem.querySelectorAll('.question-text, .choice-btn'));
+        }
+    }
+    // ▲▲▲ 変更ここまで ▲▲▲
 
     nodesToSearch.forEach(node => {
         // 子ノードを走査してテキストノードを見つける
         findAndReplaceText(node, regex, term);
     });
 
-    // ハイライトされた <span> 要素をすべて取得
+    // ハイライトされた <mark> 要素をすべて取得
     searchState.elements = Array.from(document.querySelectorAll('mark.search-highlight'));
 }
 
@@ -813,9 +844,13 @@ function findAndReplaceText(node, regex, term) {
 /**
  * 次または前のハイライトに移動する
  * @param {string} direction - 'next' または 'prev'
+ * @param {boolean} [isNewSearch=false] - これが新しい検索の最初のナビゲーションか
  */
-function navigateToHighlight(direction) {
-    if (searchState.elements.length === 0) return;
+function navigateToHighlight(direction, isNewSearch = false) {
+    if (searchState.elements.length === 0) {
+        postSearchResults(); 
+        return;
+    }
 
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
         searchState.elements[searchState.currentIndex].classList.remove('active');
@@ -837,34 +872,76 @@ function navigateToHighlight(direction) {
     if (currentElement) {
         currentElement.classList.add('active');
         
-        // ▼▼▼ 修正: ヘッダーオフセットを考慮したスクロール ▼▼▼
+        // ▼▼▼ 修正: 要素がすでに表示されている場合はスクロールしないロジックを追加 ▼▼▼
         const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
         const elementRect = currentElement.getBoundingClientRect();
-        const elementTop = elementRect.top + window.pageYOffset;
-        const offsetPosition = elementTop - headerOffset - (window.innerHeight / 4); // ヘッダー分+画面1/4上に来るように調整
+        
+        // 要素がヘッダーの下から画面の下端までの間に完全に表示されているかチェック
+        const isVisible = (
+            elementRect.top >= headerOffset &&
+            elementRect.bottom <= window.innerHeight
+        );
 
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-        });
+        // 新規検索で、最初のターゲットがすでに見えている場合はスクロールしない
+        if (isNewSearch && isVisible) {
+            // スクロールしない
+        } else {
+            // それ以外の場合はスクロールする
+            const elementTop = elementRect.top + window.pageYOffset;
+            // ヘッダー分と、画面中央に近づけるためのオフセットを考慮
+            const offsetPosition = elementTop - headerOffset - (window.innerHeight / 4);
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
         // ▲▲▲ 修正ここまで ▲▲▲
     }
+    
+    postSearchResults();
 }
 
 /**
  * 親フレームから呼び出される検索ハンドラ
  * @param {string} term - 検索キーワード
  * @param {string} direction - 'next' または 'prev'
+ * @param {number|string|null} stopQuestionNumber - 検索範囲の終点となる問題番号
  */
-function handleSearch(term, direction) {
+function handleSearch(term, direction, stopQuestionNumber) {
     if (term !== searchState.term) {
         // 新しい検索語
-        performHighlight(term);
-        searchState.currentIndex = -1; // インデックスをリセット
-        navigateToHighlight('next'); // 最初の要素に移動
+        performHighlight(term, stopQuestionNumber);
+
+        if (searchState.elements.length > 0) {
+            // ▼▼▼ 追加: 現在の画面表示位置から検索を開始するロジック ▼▼▼
+            let startIndex = 0;
+            // 固定ヘッダーの高さを取得し、それより下にある最初の要素を探す
+            const headerOffset = document.getElementById('quiz-header').offsetHeight;
+
+            for (let i = 0; i < searchState.elements.length; i++) {
+                const rect = searchState.elements[i].getBoundingClientRect();
+                // 要素の上端がヘッダーの下端より下に来た最初のものを開始点とする
+                if (rect.top >= headerOffset) {
+                    startIndex = i;
+                    break;
+                }
+            }
+            
+            // currentIndexをstartIndexの直前に設定し、次に'next'を呼ぶとstartIndexが選択されるようにする
+            searchState.currentIndex = startIndex - 1; 
+            
+            // isNewSearchフラグを立てて、不要な初回スクロールを抑制する
+            navigateToHighlight('next', true); 
+            // ▲▲▲ 追加ここまで ▲▲▲
+        } else {
+            // ヒットがなかった場合も親フレームに通知を送る
+            postSearchResults();
+        }
+
     } else if (term) {
-        // 同じ検索語で次へ/前へ
-        navigateToHighlight(direction);
+        // 同じ検索語で次へ/前へ（通常ナビゲーション）
+        navigateToHighlight(direction, false);
     } else {
         // 検索語が空 = クリア
         clearHighlights();
