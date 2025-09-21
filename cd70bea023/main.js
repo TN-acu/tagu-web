@@ -253,7 +253,7 @@ window.addEventListener('message', (event) => {
             if (totalHits > 0) {
                 searchResultsCount.textContent = `${currentIndex + 1} / ${totalHits}`;
             } else {
-                searchResultsCount.textContent = '０／０';
+                searchResultsCount.textContent = '該当無し';
             }
             searchResultsCount.style.display = 'block';
 
@@ -1394,3 +1394,4 @@ iframe.addEventListener('load', () => {
     }
 });
 // ▲▲▲ 変更ここまで ▲▲▲
+
