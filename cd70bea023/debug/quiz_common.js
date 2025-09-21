@@ -6,31 +6,22 @@ const fontIncreaseBtn = document.getElementById('font-increase-btn');
 const fontDecreaseBtn = document.getElementById('font-decrease-btn');
 const pdfBtn = document.getElementById('pdf-btn');
 const jumpMenu = document.getElementById('jump-menu');
-// ▼▼▼ 修正: 欠落していた変数宣言をここに追加 ▼▼▼
 const pdfRangeContainer = document.getElementById('pdf-range-container');
 const pdfRangeStart = document.getElementById('pdf-range-start');
 const pdfRangeEnd = document.getElementById('pdf-range-end');
-// ▲▲▲ 修正ここまで ▲▲▲
-
-// ▼▼▼ 追加 ▼▼▼
 const pdfOptionsToggle = document.getElementById('pdf-options-toggle');
 const pdfControlsWrapper = document.getElementById('pdf-controls-wrapper');
-// ▲▲▲ 追加ここまで ▲▲▲
 
 let quizzes = [];
 let userAnswers = {};
 let currentFontScale = 1.0;
 let isReadyForPrint = false;
-
-// ▼▼▼ 追加: PDF範囲保存用キー ▼▼▼
 let currentPdfRangeKey = '';
-// ▲▲▲ 追加ここまで ▲▲▲
-
-// ▼▼▼ 追加: スクロール位置保存用 ▼▼▼
 let scrollSaveTimer = null;
-const SAVE_SCROLL_DEBOUNCE_MS = 500; // 500ms スクロールが止まったら保存
-let currentDataFileKey = ''; // 保存用キー (例: quizLastPosition_data_file.txt)
-// ▲▲▲ 追加ここまで ▲▲▲
+const SAVE_SCROLL_DEBOUNCE_MS = 500;
+let currentDataFileKey = '';
+
+let rubyDictionary = {};
 
 // デバイスがモバイル（iOS/Android）かどうかを判定する
 function isMobileDevice() {
@@ -45,6 +36,24 @@ function shuffleArray(array) {
     }
 }
 
+function applyRuby(text) {
+    if (Object.keys(rubyDictionary).length === 0 || !text) {
+        return text;
+    }
+    const sortedKeys = Object.keys(rubyDictionary).sort((a, b) => b.length - a.length);
+
+    sortedKeys.forEach(key => {
+        if (text.includes(key)) {
+            const reading = rubyDictionary[key];
+            const rubyHtml = `<ruby>${key}<rt>${reading}</rt></ruby>`;
+            const regex = new RegExp(escapeRegExp(key), 'g');
+            text = text.replace(regex, rubyHtml);
+        }
+    });
+    return text;
+}
+
+
 // テキストファイルからクイズデータを読み込んで表示する
 async function setupQuiz(dataTxtFile) {
     
@@ -53,26 +62,35 @@ async function setupQuiz(dataTxtFile) {
     quizBody.innerHTML = ''; 
 
     currentDataFileKey = 'quizLastPosition_' + dataTxtFile;
-
     currentPdfRangeKey = 'pdfPrintRange_' + dataTxtFile;
 
     try {
+        const [quizResponse, rubyResponse] = await Promise.all([
+            fetch(dataTxtFile),
+            fetch('ruby_dictionary.json').catch(e => {
+                console.log("ルビ辞書は任意です。読み込みに失敗しました:", e);
+                return null;
+            })
+        ]);
+
+        if (rubyResponse && rubyResponse.ok) {
+            rubyDictionary = await rubyResponse.json();
+        }
+
+        if (!quizResponse.ok) {
+            throw new Error(`HTTP error! status: ${quizResponse.status}`);
+        }
+        const text = await quizResponse.text();
+
         if (isMobileDevice()) {
             pdfBtn.style.display = 'none';
             pdfRangeContainer.style.display = 'none';
-            // ▼▼▼ 追加 ▼▼▼
             pdfOptionsToggle.style.display = 'none';
-            // ▲▲▲ 追加ここまで ▲▲▲
         } else {
             pdfRangeContainer.style.display = 'flex';
         }
-        const response = await fetch(dataTxtFile);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const text = await response.text();
-        const lines = text.split('\n');
 
+        const lines = text.split('\n');
         let quizTitle = "クイズ"; 
         let pdfInterval = 6;     
 
@@ -150,7 +168,8 @@ async function setupQuiz(dataTxtFile) {
             const questionText = document.createElement('div');
             questionText.className = 'question-text';
             
-            questionText.innerHTML = `<strong>問題 ${index + 1}:</strong> ${quiz.question.replace(/\\n/g, '<br>')}`;
+            const questionWithRuby = applyRuby(quiz.question);
+            questionText.innerHTML = `<strong>問題 ${index + 1}:</strong> ${questionWithRuby.replace(/\\n/g, '<br>')}`;
             
             questionContent.appendChild(questionText);
             
@@ -164,12 +183,11 @@ async function setupQuiz(dataTxtFile) {
                 const choiceBtn = document.createElement('button');
                 choiceBtn.className = 'choice-btn';
                 
-                choiceBtn.innerHTML = choice.replace(/\\n/g, '<br>');
-                choiceBtn.dataset.choiceValue = choice; 
+                const choiceWithRuby = applyRuby(choice);
+                choiceBtn.innerHTML = choiceWithRuby.replace(/\\n/g, '<br>');
                 
-                // ▼▼▼ 変更: クリックイベントの登録方法をonclickからaddEventListenerに変更 ▼▼▼
-                choiceBtn.addEventListener('click', () => selectAnswer(index, choiceBtn)); 
-                // ▲▲▲ 変更ここまで ▲▲▲
+                choiceBtn.dataset.choiceValue = choice;
+                choiceBtn.dataset.quizIndex = index;
                 
                 choicesContainer.appendChild(choiceBtn);
             });
@@ -185,7 +203,7 @@ async function setupQuiz(dataTxtFile) {
             const answerDisplay = document.createElement('div');
             answerDisplay.className = 'answer-display';
             answerDisplay.id = `answer-display-${index}`;
-            answerDisplay.textContent = quiz.correctAnswer;
+            answerDisplay.innerHTML = applyRuby(quiz.correctAnswer);
             quizItem.appendChild(answerDisplay);
             
             quizBody.appendChild(quizItem);
@@ -216,10 +234,8 @@ async function setupQuiz(dataTxtFile) {
         if (savedY) {
             const y = parseInt(savedY, 10);
             if (!isNaN(y) && y > 0) {
-                
                 setTimeout(() => {
                     window.scrollTo({ top: y, behavior: 'auto' });
-                    
                     if (window.parent && window.parent.postMessage) {
                         window.parent.postMessage('quizPositionRestored', '*');
                     }
@@ -231,84 +247,56 @@ async function setupQuiz(dataTxtFile) {
     }
 }
 
-// ▼▼▼ 新規追加: PDF範囲指定プルダウンの生成とイベント設定 ▼▼▼
 function populatePdfRangeControls(totalQuestions) {
     pdfRangeStart.innerHTML = '';
     pdfRangeEnd.innerHTML = '';
-
     for (let i = 1; i <= totalQuestions; i++) {
         const optionStart = document.createElement('option');
         optionStart.value = i;
         optionStart.textContent = `問題 ${i}`;
         pdfRangeStart.appendChild(optionStart);
-
         const optionEnd = document.createElement('option');
         optionEnd.value = i;
         optionEnd.textContent = `問題 ${i}`;
         pdfRangeEnd.appendChild(optionEnd);
     }
-
-    // 保存された範囲を読み込む
     const savedRange = JSON.parse(localStorage.getItem(currentPdfRangeKey));
-    
-    // デフォルト値を設定
     let defaultStart = 1;
     let defaultEnd = totalQuestions;
-
     if (savedRange && savedRange.start && savedRange.end) {
-        // 保存された値が現在の問題数範囲内かチェック
         if (savedRange.start >= 1 && savedRange.end <= totalQuestions && savedRange.start <= savedRange.end) {
             defaultStart = savedRange.start;
             defaultEnd = savedRange.end;
         }
     }
-    
     pdfRangeStart.value = defaultStart;
     pdfRangeEnd.value = defaultEnd;
-
-    // イベントリスナーをセット
     pdfRangeStart.addEventListener('change', handlePdfRangeChange);
     pdfRangeEnd.addEventListener('change', handlePdfRangeChange);
 }
-// ▲▲▲ 追加ここまで ▲▲▲
 
-
-// ▼▼▼ 新規追加: PDF範囲変更時の処理（localStorageへの保存） ▼▼▼
 function handlePdfRangeChange() {
     let start = parseInt(pdfRangeStart.value, 10);
     let end = parseInt(pdfRangeEnd.value, 10);
-
-    // 開始が終了より大きい場合は、終了を開始に合わせる
     if (start > end) {
         end = start;
         pdfRangeEnd.value = end;
     }
-
-    // 選択範囲を保存
     const rangeToSave = { start: start, end: end };
     localStorage.setItem(currentPdfRangeKey, JSON.stringify(rangeToSave));
 }
-// ▲▲▲ 追加ここまで ▲▲▲
 
 function selectAnswer(quizIndex, btnElement) {
     if (isReadyForPrint || isFinished) return; 
-
     const choice = btnElement.dataset.choiceValue;
     userAnswers[quizIndex] = choice;
-    
     const quizItem = document.getElementById(`quiz-${quizIndex}`);
     const choiceButtons = quizItem.querySelectorAll('.choice-btn');
     const feedbackText = quizItem.querySelector('.feedback-text'); 
-    
     const quiz = quizzes[quizIndex];
     const isCorrect = (choice === quiz.correctAnswer);
-
-    choiceButtons.forEach(btn => {
-        btn.classList.remove('selected');
-    });
-    
+    choiceButtons.forEach(btn => { btn.classList.remove('selected'); });
     btnElement.classList.add('selected');
-
     if (isCorrect) {
         feedbackText.textContent = `正解！ ${quiz.explanation}`;
         feedbackText.style.color = 'green';
@@ -316,7 +304,6 @@ function selectAnswer(quizIndex, btnElement) {
         feedbackText.textContent = `不正解... 正解は「${quiz.correctAnswer}」 ${quiz.explanation}`;
         feedbackText.style.color = 'red';
     }
-    
     updateScore();
 }
 
@@ -338,11 +325,11 @@ let isFinished = false;
 
 function handleFinishClick() {
     finishQuiz(true);
-    
     isReadyForPrint = true;
     pdfBtn.textContent = '印刷プレビューを開く';
     pdfBtn.classList.add('ready');
 }
+
 function handleResetClick() {
     resetQuiz();
 }
@@ -350,87 +337,60 @@ function handleResetClick() {
 function finishQuiz(scrollToTop = true) {
     if (isFinished) return;
     isFinished = true;
-
     let score = 0;
-    
     quizzes.forEach((quiz, index) => {
         const quizItem = document.getElementById(`quiz-${index}`);
         const choiceButtons = quizItem.querySelectorAll('.choice-btn');
         const feedbackText = quizItem.querySelector('.feedback-text');
-        
         let userAnswer = userAnswers[index];
         let isCorrect = (userAnswer === quiz.correctAnswer);
-        
-        if (isCorrect) {
-            score++;
-        }
-        
+        if (isCorrect) { score++; }
         choiceButtons.forEach(btn => {
             const btnChoice = btn.dataset.choiceValue;
-            
-            if (btnChoice === quiz.correctAnswer) {
-                btn.classList.add('correct');
-            } 
-            else if (btnChoice === userAnswer && !isCorrect) {
-                btn.classList.add('incorrect');
-            }
+            if (btnChoice === quiz.correctAnswer) { btn.classList.add('correct'); } 
+            else if (btnChoice === userAnswer && !isCorrect) { btn.classList.add('incorrect'); }
             btn.disabled = true;
         });
-        
         if (userAnswer === null || userAnswer === undefined) {
-            feedbackText.textContent = `正解は「${quiz.correctAnswer}」 ${quiz.explanation}`;
+            feedbackText.innerHTML = `正解は「${applyRuby(quiz.correctAnswer)}」 ${applyRuby(quiz.explanation)}`;
             feedbackText.style.color = 'blue';
         }
     });
-    
     updateScore();
-    
     const percentage = quizzes.length > 0 ? (score / quizzes.length) * 100 : 0;
     scoreText.innerHTML = `最終結果: ${score} / ${quizzes.length} 正解<br>正解率: ${percentage.toFixed(1)}%`;
-
     finishBtn.textContent = 'もう一度挑戦する';
     finishBtn.removeEventListener('click', handleFinishClick);
     finishBtn.addEventListener('click', handleResetClick);
-
-    if (scrollToTop) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (scrollToTop) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
 
 function resetQuiz() {
     isFinished = false;
     userAnswers = {};
-
     quizzes.forEach((quiz, index) => {
         userAnswers[index] = null;
-
         const quizItem = document.getElementById(`quiz-${index}`);
         const choiceButtons = quizItem.querySelectorAll('.choice-btn');
         const feedbackText = quizItem.querySelector('.feedback-text');
-        
         choiceButtons.forEach(btn => {
             btn.classList.remove('selected', 'correct', 'incorrect');
             btn.disabled = false;
         });
-        
         if (feedbackText) {
             feedbackText.textContent = '';
             feedbackText.style.color = ''; 
         }
     });
-
     finishBtn.textContent = '採点する';
     finishBtn.removeEventListener('click', handleResetClick);
     finishBtn.addEventListener('click', handleFinishClick);
-    
     isReadyForPrint = false;
     pdfBtn.textContent = '正答PDF化';
     pdfBtn.classList.remove('ready');
-
     updateScore();
     window.scrollTo({ top: 0, behavior: 'auto' });
 }
-
 
 function changeFontSize(scale) {
     currentFontScale = scale;
@@ -438,21 +398,12 @@ function changeFontSize(scale) {
 }
 
 function handlePdfButtonClick() {
-    if (isFinished) {
-        prepareForPrint();
-        return;
-    }
-
+    if (isFinished) { prepareForPrint(); return; }
     const password = prompt("パスワードを入力してください:", "");
-    
     if (password === "89") {
         const isConfirmed = confirm('PDF化をするとクイズが終了します。よろしいですか？');
-        if (isConfirmed) {
-            prepareForPrint();
-        }
-    } else if (password !== null) {
-        alert("パスワードが違います。");
-    }
+        if (isConfirmed) { prepareForPrint(); }
+    } else if (password !== null) { alert("パスワードが違います。"); }
 }
 
 function prepareForPrint() {
@@ -469,12 +420,8 @@ function prepareForPrint() {
     let quizTitle = "クイズ";
     try {
         const titleElement = document.getElementById('quiz-title-main');
-        if (titleElement) {
-            quizTitle = titleElement.textContent;
-        }
-    } catch (e) {
-        console.warn("Failed to get quiz title for printing:", e);
-    }
+        if (titleElement) { quizTitle = titleElement.textContent; }
+    } catch (e) { console.warn("Failed to get quiz title for printing:", e); }
     const startNum = parseInt(pdfRangeStart.value, 10);
     const endNum = parseInt(pdfRangeEnd.value, 10);
     let newQuestionCounter = 1;
@@ -483,10 +430,7 @@ function prepareForPrint() {
             const quizItem = document.getElementById(`quiz-${index}`);
             if (index >= startNum - 1 && index <= endNum - 1) {
                 const questionTextElement = quizItem.querySelector('.question-text > strong');
-                if (questionTextElement) {
-                    questionTextElement.textContent = `問題 ${newQuestionCounter}:`;
-                }
-                
+                if (questionTextElement) { questionTextElement.textContent = `問題 ${newQuestionCounter}:`; }
                 const questionBodyElement = quizItem.querySelector('.question-text');
                 if (questionBodyElement) {
                     let html = questionBodyElement.innerHTML;
@@ -495,118 +439,26 @@ function prepareForPrint() {
                         questionBodyElement.innerHTML = html;
                     }
                 }
-
                 newQuestionCounter++;
-            } else {
-                quizItem.classList.add('print-hidden');
-            }
+            } else { quizItem.classList.add('print-hidden'); }
         });
     }
     const styleId = 'dynamic-print-style';
     let printStyle = document.getElementById(styleId);
-    if (printStyle) {
-        printStyle.remove();
-    }
+    if (printStyle) { printStyle.remove(); }
     printStyle = document.createElement('style');
     printStyle.id = styleId;
     printStyle.innerHTML = `
-        @page {
-            size: A4;
-            margin: 2cm;
-            @top-left { content: ""; }
-            @top-center { content: ""; }
-            @top-right {
-                content: "${quizTitle.replace(/"/g, '\\"')}";
-                font-family: 'Hirino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 12pt;
-                color: #666;
-            }
-            @bottom-left {
-                content: "last update ${timestamp}";
-                font-family: 'Hirino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 12pt;
-                color: #666;
-            }
-            @bottom-right {
-                content: counter(page) " / " counter(pages);
-                font-family: 'Hirino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif;
-                font-size: 12pt;
-                color: #666;
-            }
-        }
-        @media print {
-            .print-hidden {
-                display: none !important;
-            }
-            body {
-                font-family: 'Hirino KyoKaSho', 'ヒラギノ教科書体', 'IPAex教科書体', serif !important;
-            }
-            .question-text {
-                font-size: 11pt !important;
-                line-height: 1.2 !important;
-                margin-bottom: 5px !important;
-                font-weight: bold !important;
-            }
-            .source-info {
-                font-weight: normal !important;
-                font-size: 9pt !important;
-            }
-            .choice-btn {
-                font-size: 11pt !important;
-                padding: 2px 4px !important;
-                border: none !important;
-                border-radius: 0 !important;
-                background-color: transparent !important;
-                font-weight: normal !important;
-            }
-            /* ▼▼▼ 修正: :disabledセレクタを追加して優先順位を上げる ▼▼▼ */
-            .choice-btn, .choice-btn:disabled {
-                color: #000 !important; /* 文字色を黒に */
-            }
-            /* ▲▲▲ 修正ここまで ▲▲▲ */
-            .choices-container {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 0 !important;
-            }
-            .answer-display {
-                display: flex !important; 
-                align-items: center !important;
-                justify-content: center !important;
-                border-left: 1px solid #666 !important; 
-                font-size: 12pt !important;
-                font-weight: bold !important;
-                padding: 0 8px !important;
-                text-align: left !important;
-                color: #000 !important;
-            }
-            #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight {
-                display: none !important;
-            }
-            .quiz-item {
-                page-break-inside: avoid !important;
-            }
-            .quiz-item:nth-child(6n):not(:last-child) {
-                page-break-after: auto !important;
-            }
-        }
-    `;
+        @page { size: A4; margin: 2cm; @top-left { content: ""; } @top-center { content: ""; } @top-right { content: "${quizTitle.replace(/"/g, '\\"')}"; font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } @bottom-left { content: "last update ${timestamp}"; font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } @bottom-right { content: counter(page) " / " counter(pages); font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } }
+        @media print { .print-hidden { display: none !important; } body { font-family: 'Hirino KyoKaSho', serif !important; } .question-text { font-size: 11pt !important; line-height: 1.2 !important; margin-bottom: 5px !important; font-weight: bold !important; } .source-info { font-weight: normal !important; font-size: 9pt !important; } .choice-btn { font-size: 11pt !important; padding: 2px 4px !important; border: none !important; border-radius: 0 !important; background-color: transparent !important; font-weight: normal !important; } .choice-btn, .choice-btn:disabled { color: #000 !important; } .choices-container { display: flex !important; flex-direction: column !important; gap: 0 !important; } .answer-display { display: flex !important; align-items: center !important; justify-content: center !important; border-left: 1px solid #666 !important; font-size: 12pt !important; font-weight: bold !important; padding: 0 8px !important; text-align: left !important; color: #000 !important; } #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight { display: none !important; } .quiz-item { page-break-inside: avoid !important; } .quiz-item:nth-child(6n):not(:last-child) { page-break-after: auto !important; } rt { display: none !important; } }`;
     document.head.appendChild(printStyle);
-    setTimeout(() => {
-        window.print();
-    }, 500);
-    setTimeout(() => {
-        if (document.getElementById(styleId)) {
-            document.getElementById(styleId).remove();
-        }
-        location.reload();
-    }, 1000);
+    setTimeout(() => { window.print(); }, 500);
+    setTimeout(() => { if (document.getElementById(styleId)) { document.getElementById(styleId).remove(); } location.reload(); }, 1000);
 }
 
 
 function populateJumpMenu(quizCount, interval) {
     jumpMenu.innerHTML = '<option value="">問題を選択</option>';
-
     if (interval > 1) {
         for (let i = 0; i < quizCount; i += interval) {
             const option = document.createElement('option');
@@ -624,7 +476,6 @@ function populateJumpMenu(quizCount, interval) {
             jumpMenu.appendChild(option);
         }
     }
-    
     const jumpMenuHandler = (e) => {
         const quizIndex = e.target.value;
         if (quizIndex !== "") {
@@ -633,16 +484,11 @@ function populateJumpMenu(quizCount, interval) {
                 const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
                 const elementPosition = targetQuiz.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: "smooth"
-                });
+                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
             }
             e.target.value = ""; 
         }
     };
-    
     jumpMenu.removeEventListener('change', jumpMenu.lastChangeHandler); 
     jumpMenu.addEventListener('change', jumpMenuHandler);
     jumpMenu.lastChangeHandler = jumpMenuHandler;
@@ -652,15 +498,12 @@ function populateJumpMenu(quizCount, interval) {
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const dataFile = urlParams.get('data');
-
-    if (dataFile) {
-        setupQuiz(dataFile);
-    } else {
+    if (dataFile) { setupQuiz(dataFile); }
+    else {
         document.title = "エラー";
         document.getElementById('quiz-title-main').textContent = "クイズデータが指定されていません";
         document.getElementById('quiz-body').innerHTML = '<p style="color: red; font-weight: bold;">URLに ?data=... の形式でクイズデータを指定してください。</p>';
     }
-
     const lastModified = new Date(document.lastModified);
     const year = lastModified.getFullYear();
     const month = String(lastModified.getMonth() + 1).padStart(2, '0');
@@ -670,308 +513,153 @@ document.addEventListener('DOMContentLoaded', () => {
     const seconds = String(lastModified.getSeconds()).padStart(2, '0');
     const formattedDate = `${year}${month}${day} ${hours}:${minutes}:${seconds}`;
     const updateElement = document.getElementById('last-updated');
-    if (updateElement) {
-        updateElement.innerHTML = `last update ${formattedDate}`;
-    }
-
+    if (updateElement) { updateElement.innerHTML = `last update ${formattedDate}`; }
     finishBtn.addEventListener('click', handleFinishClick); 
     fontIncreaseBtn.addEventListener('click', () => changeFontSize(currentFontScale + 0.1));
     fontDecreaseBtn.addEventListener('click', () => changeFontSize(currentFontScale - 0.1));
-    
     pdfBtn.addEventListener('click', handlePdfButtonClick);
-
-        // ▼▼▼ 追加: PDF設定ボタンのクリックイベント ▼▼▼
-    if (pdfOptionsToggle) {
-        pdfOptionsToggle.addEventListener('click', () => {
-            pdfControlsWrapper.classList.toggle('collapsed');
-        });
-    }
-    // ▲▲▲ 追加ここまで ▲▲▲
+    if (pdfOptionsToggle) { pdfOptionsToggle.addEventListener('click', () => { pdfControlsWrapper.classList.toggle('collapsed'); }); }
+    
+    quizBody.addEventListener('click', (event) => {
+        const clickedButton = event.target.closest('.choice-btn');
+        if (clickedButton && clickedButton.dataset.quizIndex) {
+            const quizIndex = parseInt(clickedButton.dataset.quizIndex, 10);
+            selectAnswer(quizIndex, clickedButton);
+        }
+    });
 });
 
 window.addEventListener('scroll', () => {
     if (!currentDataFileKey) return;
-
     clearTimeout(scrollSaveTimer);
     scrollSaveTimer = setTimeout(() => {
         try {
             const scrollY = window.scrollY;
-            if (scrollY > 0) { 
-                localStorage.setItem(currentDataFileKey, scrollY);
-            }
-        } catch (e) {
-            console.warn('Failed to save scroll position:', e);
-        }
+            if (scrollY > 0) { localStorage.setItem(currentDataFileKey, scrollY); }
+        } catch (e) { console.warn('Failed to save scroll position:', e); }
     }, SAVE_SCROLL_DEBOUNCE_MS);
 });
 
-
 // --- 検索機能 ---
+const searchState = { term: '', elements: [], currentIndex: -1, originalNodes: new Map() };
 
-// 検索状態を保持するグローバルオブジェクト
-const searchState = {
-    term: '',
-    elements: [],
-    currentIndex: -1,
-    originalNodes: new Map() // ハイライト解除用に元のDOMノードを保持
-};
-
-// ▼▼▼ 追加: 検索結果を親フレームに通知するヘルパー関数 ▼▼▼
 function postSearchResults() {
     if (window.parent && window.parent.postMessage) {
-        window.parent.postMessage({
-            type: 'searchResultUpdate',
-            currentIndex: searchState.currentIndex,
-            totalHits: searchState.elements.length,
-            term: searchState.term
-        }, '*');
+        window.parent.postMessage({ type: 'searchResultUpdate', currentIndex: searchState.currentIndex, totalHits: searchState.elements.length, term: searchState.term }, '*');
     }
 }
-// ▲▲▲ 追加ここまで ▲▲▲
-
-/**
- * ハイライトをすべてクリアし、DOMを元に戻す
- */
 function clearHighlights() {
-    // ▼▼▼ 変更: イベントリスナーを破壊しないように、要素自体ではなくその子ノードのみを元に戻す ▼▼▼
     searchState.originalNodes.forEach((originalNode, parent) => {
-        // 現在の要素（parent）の子ノードをすべて削除
-        while (parent.firstChild) {
-            parent.removeChild(parent.firstChild);
-        }
-        // 保存しておいた元のノード（originalNode）の子ノードをすべて移動して復元
-        while (originalNode.firstChild) {
-            parent.appendChild(originalNode.firstChild);
-        }
+        while (parent.firstChild) { parent.removeChild(parent.firstChild); }
+        while (originalNode.firstChild) { parent.appendChild(originalNode.firstChild); }
     });
-    // ▲▲▲ 変更ここまで ▲▲▲
-
-    // .active クラスを削除 (念のため)
     searchState.elements.forEach(el => el.classList.remove('active'));
-
-    // 状態をリセット
     searchState.term = '';
     searchState.elements = [];
     searchState.currentIndex = -1;
     searchState.originalNodes.clear();
-    
-    // ▼▼▼ 追加: 親フレームにクリアを通知 ▼▼▼
     postSearchResults();
-    // ▲▲▲ 追加ここまで ▲▲▲
 }
-
-/**
- * 検索を実行し、DOMをハイライトする
- * @param {string} term - 検索キーワード
- * @param {number|string|null} stopQuestionNumber - 検索を終了する問題番号
- */
 function performHighlight(term, stopQuestionNumber) {
     clearHighlights();
     if (!term) return;
-
     searchState.term = term;
     const regex = new RegExp(escapeRegExp(term), 'gi');
-    
-    // ▼▼▼ 変更: 検索対象ノードを範囲指定で取得 ▼▼▼
     let nodesToSearch = [];
-    // stopQuestionNumber が未定義または不正な値の場合は、全問題を対象とする
-    const endQuestionIndex = (stopQuestionNumber && !isNaN(parseInt(stopQuestionNumber, 10))) 
-        ? parseInt(stopQuestionNumber, 10) - 1 
-        : quizzes.length - 1;
-
+    const endQuestionIndex = (stopQuestionNumber && !isNaN(parseInt(stopQuestionNumber, 10))) ? parseInt(stopQuestionNumber, 10) - 1 : quizzes.length - 1;
     for (let i = 0; i <= endQuestionIndex; i++) {
         const quizItem = document.getElementById(`quiz-${i}`);
-        if (quizItem) {
-            // .question-text と .choice-btn の両方を取得
-            nodesToSearch.push(...quizItem.querySelectorAll('.question-text, .choice-btn'));
-        }
+        if (quizItem) { nodesToSearch.push(...quizItem.querySelectorAll('.question-text, .choice-btn')); }
     }
-    // ▲▲▲ 変更ここまで ▲▲▲
-
-    nodesToSearch.forEach(node => {
-        // 子ノードを走査してテキストノードを見つける
-        findAndReplaceText(node, regex, term);
-    });
-
-    // ハイライトされた <mark> 要素をすべて取得
+    nodesToSearch.forEach(node => { findAndReplaceText(node, regex, term); });
     searchState.elements = Array.from(document.querySelectorAll('mark.search-highlight'));
 }
-
-/**
- * (ヘルパー) 正規表現の特殊文字をエスケープする
- */
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
-}
-
-/**
- * (ヘルパー) DOMノードを再帰的に走査し、テキストノード内の文字列を置換する
- */
+function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function findAndReplaceText(node, regex, term) {
     if (node.nodeType === Node.TEXT_NODE) {
         const text = node.textContent;
         const matches = [...text.matchAll(regex)];
-        
         if (matches.length > 0) {
-            // 親ノードを保存 (ハイライト解除用)
             const parent = node.parentNode;
             if (parent && !searchState.originalNodes.has(parent)) {
                 searchState.originalNodes.set(parent, parent.cloneNode(true));
             }
-
             const fragment = document.createDocumentFragment();
             let lastIndex = 0;
-
             matches.forEach(match => {
                 const foundText = match[0];
                 const index = match.index;
-                
-                // マッチ前のテキスト
                 fragment.appendChild(document.createTextNode(text.substring(lastIndex, index)));
-                
-                // マッチしたテキスト (ハイライト)
                 const mark = document.createElement('mark');
                 mark.className = 'search-highlight';
                 mark.textContent = foundText;
                 fragment.appendChild(mark);
-                
                 lastIndex = index + foundText.length;
             });
-            
-            // マッチ後の残りテキスト
             fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
             node.parentNode.replaceChild(fragment, node);
         }
-    } else if (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== 'MARK') {
-        // 子ノードを再帰的に処理
-        // NodeListをArrayに変換してからループ (DOM操作でNodeListが変化するため)
-        Array.from(node.childNodes).forEach(child => {
-            findAndReplaceText(child, regex, term);
-        });
+    } else if (node.nodeType === Node.ELEMENT_NODE && !['MARK', 'RT', 'RP'].includes(node.nodeName)) {
+        Array.from(node.childNodes).forEach(child => { findAndReplaceText(child, regex, term); });
     }
 }
-
-
-/**
- * 次または前のハイライトに移動する
- * @param {string} direction - 'next' または 'prev'
- * @param {boolean} [isNewSearch=false] - これが新しい検索の最初のナビゲーションか
- */
 function navigateToHighlight(direction, isNewSearch = false) {
-    if (searchState.elements.length === 0) {
-        postSearchResults(); 
-        return;
-    }
-
+    if (searchState.elements.length === 0) { postSearchResults(); return; }
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
         searchState.elements[searchState.currentIndex].classList.remove('active');
     }
-
     if (direction === 'next') {
         searchState.currentIndex++;
-        if (searchState.currentIndex >= searchState.elements.length) {
-            searchState.currentIndex = 0; 
-        }
+        if (searchState.currentIndex >= searchState.elements.length) { searchState.currentIndex = 0; }
     } else if (direction === 'prev') {
         searchState.currentIndex--;
-        if (searchState.currentIndex < 0) {
-            searchState.currentIndex = searchState.elements.length - 1; 
-        }
+        if (searchState.currentIndex < 0) { searchState.currentIndex = searchState.elements.length - 1; }
     }
-
     const currentElement = searchState.elements[searchState.currentIndex];
     if (currentElement) {
         currentElement.classList.add('active');
-        
-        // ▼▼▼ 変更: 要素がすでに表示されている場合はスクロールしないロジックを追加 ▼▼▼
         const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
         const elementRect = currentElement.getBoundingClientRect();
-        
-        // 要素がヘッダーの下から画面の下端までの間に完全に表示されているかチェック
-        const isVisible = (
-            elementRect.top >= headerOffset &&
-            elementRect.bottom <= window.innerHeight
-        );
-
-        // 新規検索で、最初のターゲットがすでに見えている場合はスクロールしない
+        const isVisible = (elementRect.top >= headerOffset && elementRect.bottom <= window.innerHeight);
         if (isNewSearch && isVisible) {
-            // スクロールしない
+            // no scroll
         } else {
-            // それ以外の場合はスクロールする
             const elementTop = elementRect.top + window.pageYOffset;
-            
-            // ▼▼▼ 変更: スマホのキーボード表示を考慮し、表示領域の中央にスクロールするよう計算式を修正 ▼▼▼
-            // ヘッダーを除いた可視領域の中央に要素の上端が来るようにスクロール位置を計算
             const offsetPosition = elementTop - headerOffset - ((window.innerHeight - headerOffset) / 2);
-            // ▲▲▲ 変更ここまで ▲▲▲
-
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
+            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
         }
-        // ▲▲▲ 修正ここまで ▲▲▲
     }
-    
     postSearchResults();
 }
-
-/**
- * 親フレームから呼び出される検索ハンドラ
- * @param {string} term - 検索キーワード
- * @param {string} direction - 'next' または 'prev'
- * @param {number|string|null} stopQuestionNumber - 検索範囲の終点となる問題番号
- */
 function handleSearch(term, direction, stopQuestionNumber) {
     if (term !== searchState.term) {
-        // 新しい検索語
         performHighlight(term, stopQuestionNumber);
-
         if (searchState.elements.length > 0) {
-            // ▼▼▼ 追加: 現在の画面表示位置から検索を開始するロジック ▼▼▼
             let startIndex = 0;
-            // 固定ヘッダーの高さを取得し、それより下にある最初の要素を探す
             const headerOffset = document.getElementById('quiz-header').offsetHeight;
-
             for (let i = 0; i < searchState.elements.length; i++) {
                 const rect = searchState.elements[i].getBoundingClientRect();
-                // 要素の上端がヘッダーの下端より下に来た最初のものを開始点とする
-                if (rect.top >= headerOffset) {
-                    startIndex = i;
-                    break;
-                }
+                if (rect.top >= headerOffset) { startIndex = i; break; }
             }
-            
-            // currentIndexをstartIndexの直前に設定し、次に'next'を呼ぶとstartIndexが選択されるようにする
             searchState.currentIndex = startIndex - 1; 
-            
-            // isNewSearchフラグを立てて、不要な初回スクロールを抑制する
             navigateToHighlight('next', true); 
-            // ▲▲▲ 追加ここまで ▲▲▲
-        } else {
-            // ヒットがなかった場合も親フレームに通知を送る
-            postSearchResults();
-        }
-
+        } else { postSearchResults(); }
     } else if (term) {
-        // 同じ検索語で次へ/前へ（通常ナビゲーション）
         navigateToHighlight(direction, false);
-    } else {
-        // 検索語が空 = クリア
-        clearHighlights();
-    }
+    } else { clearHighlights(); }
+}
+function toggleDarkMode(isDarkMode) {
+    if (isDarkMode) { document.body.classList.add('dark-mode'); }
+    else { document.body.classList.remove('dark-mode'); }
 }
 
-// ▼▼▼ 新規追加: ダークモード切り替え (親フレームから呼び出される) ▼▼▼
-/**
- * 親フレーム (main.js) から呼び出され、ダークモードを切り替える
- * @param {boolean} isDarkMode - ダークモードにするかどうか
- */
-function toggleDarkMode(isDarkMode) {
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-    } else {
-        document.body.classList.remove('dark-mode');
+window.addEventListener('message', (event) => {
+    if (event.source !== window.parent) return;
+    if (event.data && event.data.type === 'setRubyState') {
+        if (event.data.state) {
+            document.body.classList.add('ruby-visible');
+        } else {
+            document.body.classList.remove('ruby-visible');
+        }
     }
-}
-// ▲▲▲ 新規追加ここまで ▲▲▲
+});
