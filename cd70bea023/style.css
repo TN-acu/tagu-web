@@ -35,23 +35,52 @@ body.dark-mode {
     color: var(--text-color-dark);
 }
 
-/* ▼▼▼ モバイル閲覧抑止用CSS ▼▼▼ */
-body.mobile-no-select {
-    -webkit-touch-callout: none; /* iOS: リンクや画像の長押しメニュー(保存等)を禁止 */
-    -webkit-user-select: none;   /* Safari: テキスト選択禁止 */
-    -moz-user-select: none;      /* Firefox */
-    -ms-user-select: none;       /* IE/Edge */
-    user-select: none;           /* Standard: テキスト選択禁止 */
+/* ▼▼▼ 変更: ルビボタンの位置を画面左上に変更 ▼▼▼ */
+#ruby-toggle-btn {
+    position: fixed;
+    top: 2px;
+    left: 5px;
+    z-index: 99; 
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background-color: #004896;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.8em;
+    font-weight: bold;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+/* ▲▲▲ 変更ここまで ▲▲▲ */
+#ruby-toggle-btn:hover {
+    transform: scale(1.05);
+}
+#ruby-toggle-btn.active {
+    background: linear-gradient(145deg, #699983, #003b23); /* ON */
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
 
-/* ▼▼▼ 検索入力欄の選択(コピー/ペースト)のみを許可する例外ルール ▼▼▼ */
-body.mobile-no-select #search-input {
-     -webkit-user-select: auto; /* Safari/Chrome */
-    -moz-user-select: auto;    /* Firefox */
-    -ms-user-select: auto;     /* IE/Edge */
-    user-select: auto;         /* Standard */
+
+body.mobile-no-select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
-/* ▲▲▲ CSSここまで ▲▲▲ */
+body.mobile-no-select #search-input {
+     -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+}
 
 .container { 
     display: flex; 
@@ -122,11 +151,10 @@ body.dark-mode .nav-column a:hover {
     margin-left: 10px;
 }
 
-/* ▼▼▼ 追加: タイマー横並び用スタイル ▼▼▼ */
 .timer-row {
     display: flex;
-    justify-content: space-around; /* 均等配置 */
-    gap: 5px; /* 間の隙間 */
+    justify-content: space-around;
+    gap: 5px;
     border-bottom: 1px solid var(--border-color-light);
     padding-bottom: 5px;
 }
@@ -134,19 +162,18 @@ body.dark-mode .timer-row {
      border-bottom-color: var(--border-color-dark);
 }
 .timer-row a {
-    flex: 1; /* 均等幅 */
-    text-align: center; /* リンク内のテキストを中央揃え */
+    flex: 1;
+    text-align: center;
     padding: 8px 5px;
     font-size: 1.0em;
     font-weight: bold;
-    background-color: #e6f7ec; /* 色は維持（リクエストになかったため、前の色を流用） */
+    background-color: #e6f7ec;
     color: #0d47a1;
 }
 body.dark-mode .timer-row a {
     background-color: var(--secondary-bg-dark);
     color: var(--text-color-dark);
 }
- /* ▲▲▲ 追加ここまで ▲▲▲ */
 
 
 #footer-controls {
@@ -183,18 +210,17 @@ body.dark-mode .dark-mode-toggle {
     background-color: var(--bg-color-dark);
 }
 
-/* ▼▼▼ 追加: オートスクロールUI用CSS ▼▼▼ */
 .scroll-controls-container {
-    display: none; /* デフォルト非表示。JSでPC判定時にflexにする */
+    display: none;
     align-items: center;
     flex-shrink: 0;
-    margin-left: 10px; /* ★指示: ダークモードボタンの右隣10px */
-    margin-right: 10px; /* 検索コンテナとのマージン */
+    margin-left: 10px;
+    margin-right: 10px;
 }
 #scroll-speed-select {
     padding: 5px;
     font-size: 0.9em;
-    height: 36px; /* ボタン類と高さを合わせる */
+    height: 36px;
     border: 1px solid var(--border-color-light);
     background-color: var(--secondary-bg-light);
     color: var(--text-color-light);
@@ -208,38 +234,30 @@ body.dark-mode #scroll-speed-select {
 #scroll-countdown {
     font-size: 0.9em;
     font-weight: bold;
-    color: #007bff; /* ★指示: 青文字 */
-    margin-left: 5px; /* プルダウンとのマージン */
-    /* ▼▼▼ 変更: トグルスイッチとのマージン(18px)指定を削除 ▼▼▼ */
-    /* margin-right: 18px; */ 
-    /* ▲▲▲ 変更ここまで ▲▲▲ */
-    width: 55px; /* "00分00秒" が入る幅 */
+    color: #007bff;
+    margin-left: 5px;
+    width: 55px;
     white-space: nowrap;
     text-align: right;
     flex-shrink: 0;
 }
 body.dark-mode #scroll-countdown {
-    color: #66bfff; /* ダークモード用の青 */
+    color: #66bfff;
 }
 
-/* トグルスイッチのラッパー */
 .scroll-toggle-wrapper {
     position: relative;
     display: inline-block;
-    width: 44px; /* 幅 */
-    height: 24px; /* 高さ */
+    width: 44px;
+    height: 24px;
     flex-shrink: 0;
-    /* ▼▼▼ 追加: カウントダウンとのマージン(18px)をこちらに指定 ▼▼▼ */
     margin-left: 18px;
-    /* ▲▲▲ 追加ここまで ▲▲▲ */
 }
-/* チェックボックス本体は隠す */
 .scroll-toggle-wrapper input {
     opacity: 0;
     width: 0;
     height: 0;
 }
-/* スライダー（背景） */
 .scroll-toggle-slider {
     position: absolute;
     cursor: pointer;
@@ -249,36 +267,32 @@ body.dark-mode #scroll-countdown {
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
-    border-radius: 24px; /* 高さに合わせる */
+    border-radius: 24px;
 }
-/* スライダー（丸） */
 .scroll-toggle-slider:before {
     position: absolute;
     content: "";
-    height: 20px; /* (高さ - 4px) */
-    width: 20px;  /* (高さ - 4px) */
-    left: 2px;   /* (マージン) */
-    bottom: 2px;  /* (マージン) */
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
     transition: .4s;
     border-radius: 50%;
 }
-/* ONの時の背景色 */
 input:checked + .scroll-toggle-slider {
-    background-color: #28a745; /* 緑 */
+    background-color: #28a745;
 }
-/* ONの時の丸の位置 */
 input:checked + .scroll-toggle-slider:before {
-    transform: translateX(20px); /* (44px - 20px - 2px - 2px) */
+    transform: translateX(20px);
 }
 
-/* ▼▼▼ 追加: 停止問題プルダウンとラベルのCSS ▼▼▼ */
 #scroll-stop-question-select {
-    display: none; /* JSでクイズページ判定時に inline-block にする */
-    margin-left: 3px; /* ★指示: トグルスイッチとの間隔 */
+    display: none;
+    margin-left: 3px;
     padding: 5px;
     font-size: 0.9em;
-    height: 36px; /* ボタン類と高さを合わせる */
+    height: 36px;
     border: 1px solid var(--border-color-light);
     background-color: var(--secondary-bg-light);
     color: var(--text-color-light);
@@ -290,7 +304,7 @@ body.dark-mode #scroll-stop-question-select {
     color: var(--text-color-dark);
 }
 #scroll-stop-label {
-    display: none; /* JSでクイズページ判定時に inline にする */
+    display: none;
     font-size: 0.9em; 
     margin-left: 5px; 
     flex-shrink: 0; 
@@ -300,9 +314,6 @@ body.dark-mode #scroll-stop-question-select {
 body.dark-mode #scroll-stop-label {
     color: var(--text-color-dark);
 }
-/* ▲▲▲ 追加ここまで ▲▲▲ */
-
-/* ▲▲▲ オートスクロールUI CSSここまで ▲▲▲ */
 
 
 .search-container {
@@ -318,7 +329,7 @@ body.dark-mode #scroll-stop-label {
 }
 .search-container input[type="search"] {
     flex-grow: 1;
-    padding: 8px 8px 8px 28px; /* 変更: 左パディングを追加 */
+    padding: 8px 8px 8px 28px;
     border: 1px solid var(--border-color-light);
     border-radius: 5px;
     font-size: 0.9em;
@@ -326,29 +337,25 @@ body.dark-mode #scroll-stop-label {
     color: var(--text-color-light);
     min-width: 50px; 
 }
-/* ▼▼▼ 追加: 標準の検索消去ボタンを非表示にする ▼▼▼ */
 .search-container input[type="search"]::-webkit-search-cancel-button {
     -webkit-appearance: none;
     appearance: none;
 }
-/* ▲▲▲ 追加ここまで ▲▲▲ */
 body.dark-mode .search-container input[type="search"] {
     border-color: var(--border-color-dark);
     background-color: var(--secondary-bg-dark);
     color: var(--text-color-dark);
 }
 
-/* ▼▼▼ 追加: 検索欄プレースホルダーのスタイル ▼▼▼ */
 .search-container input[type="search"]::placeholder {
-    font-weight: bold; /* 太字にする */
-    color: #6c757d;    /* ライトモード時の色 (濃いめのグレー) */
-    opacity: 1;        /* ブラウザによる透明化を無効にする */
+    font-weight: bold;
+    color: #6c757d;
+    opacity: 1;
 }
 
 body.dark-mode .search-container input[type="search"]::placeholder {
-    color: #adb5bd;    /* ダークモード時の色 (明るめのグレー) */
+    color: #adb5bd;
 }
-/* ▲▲▲ 追加ここまで ▲▲▲ */
 
 .search-container button {
     background-color: #f0f0f0;
@@ -382,7 +389,6 @@ body.dark-mode #search-prev {
     border-left-color: #3b6145;
 }
 
-/* ▼▼▼ 追加: カスタム検索消去ボタンのスタイル ▼▼▼ */
 #search-clear-btn {
     position: absolute;
     left: 8px;
@@ -398,9 +404,28 @@ body.dark-mode #search-prev {
 body.dark-mode #search-clear-btn {
     color: #bbb;
 }
-/* ▲▲▲ 追加ここまで ▲▲▲ */
 
-/* ▼▼▼ 変更: 検索カウンターのブリンクアニメーション定義を修正 ▼▼▼ */
+#search-results-count {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: calc(0.8em + 8px);
+    font-weight: bold;
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+}
+
+body.dark-mode #search-results-count {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-color-dark);
+}
+
 @keyframes blink-light {
   50% {
     background-color: rgba(255, 255, 255, 0.7);
@@ -424,30 +449,6 @@ body.dark-mode #search-clear-btn {
 body.dark-mode #search-results-count.blink {
   animation-name: blink-dark;
 }
-/* ▲▲▲ 変更ここまで ▲▲▲ */
-
-/* ▼▼▼ 変更: 検索ヒット数表示のスタイル ▼▼▼ */
-#search-results-count {
-    position: absolute;
-    right: 8px; /* フォーム内の右からの位置 */
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明の背景 */
-    color: white;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: calc(0.8em + 8px); /* 変更箇所 */
-    font-weight: bold;
-    pointer-events: none; /* クリックイベントを透過させる */
-    display: none; /* デフォルトは非表示 */
-    white-space: nowrap; /* 折り返さない */
-}
-
-body.dark-mode #search-results-count {
-    background-color: rgba(255, 255, 255, 0.3);
-    color: var(--text-color-dark);
-}
-/* ▲▲▲ 変更ここまで ▲▲▲ */
 
 @media (max-width: 768px) {
     .container { 
@@ -468,66 +469,39 @@ body.dark-mode #search-results-count {
     .nav-column h2 { display: none; }
     .menu-toggle { display: flex; }
     #menu-toggle-open { border-bottom: 2px solid var(--border-color-light); }
-    /* ▼▼▼ 修正: #menu-toggle-open のダークモードボーダーをCSS変数に変更 ▼▼▼ */
     body.dark-mode #menu-toggle-open { border-bottom-color: var(--border-color-dark); }
-    /* ▲▲▲ 修正ここまで ▲▲▲ */
     #menu-toggle-close { display: none; }
     .nav-column ul { height: 0; padding: 0 15px; flex-direction: column; }
 
-    /* ▼▼▼ メニューパネルのCSS（維持） ▼▼▼ */
     .nav-column.menu-open ul {
-        height: auto; /* JSがピクセル高さを設定する */
+        height: auto;
         display: flex; 
-        padding: 10px 15px 70px 15px; /* 下部70pxの余白はStickyフッターのために維持 */
+        padding: 10px 15px 70px 15px;
         border-bottom: 2px solid var(--border-color-light); 
-        
         max-height: calc(var(--app-height) - 100px); 
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-
-        /* ▼▼▼ 追加: 指示されたアコーディオンパネルの背景色(モバイル時) ▼▼▼ */
         background-color: #ffffe0;
-        /* ▲▲▲ 追加ここまで ▲▲▲ */
     }
-    /* ▲▲▲ 修正ここまで ▲▲▲ */
 
     body.dark-mode .nav-column.menu-open ul { 
         border-bottom-color: var(--border-color-dark); 
-        /* ▼▼▼ 追加: ダークモード時の背景色 ▼▼▼ */
         background-color: #4d4d33;
-        /* ▲▲▲ 追加ここまで ▲▲▲ */
     }
     
-    /* ▼▼▼ 変更: liのテキストアラインを center から left に変更 ▼▼▼ */
     .nav-column li { margin-bottom: 5px; text-align: left; } 
-    /* ▲▲▲ 変更ここまで ▲▲▲ */
-
-    .nav-column.menu-open ul li a {
-        text-align: left;
-    }
-
-    /* タイマー行の内部リンクのみ中央揃えに戻す */
-    .timer-row a {
-        text-align: center;
-    }
-
+    .nav-column.menu-open ul li a { text-align: left; }
+    .timer-row a { text-align: center; }
     .nav-column a { margin: 0; font-size: 1.1em; padding: 8px 10px; }
     .content-column { flex-grow: 1; min-height: 0; }
+    .search-container input[type="search"] { flex-grow: 0; width: 23ch; }
     
-    .search-container input[type="search"] {
-        flex-grow: 0;
-        width: 23ch;
-    }
-    
-    /* ▼▼▼ 閉じるボタンのSticky（固定）設定（維持） ▼▼▼ */
     .nav-column.menu-open ul li.close-menu-li {
-        position: -webkit-sticky; /* iOS Safari対応 */
+        position: -webkit-sticky;
         position: sticky;
-        bottom: -1px; /* わずかな隙間を消すために-1pxを指定 */
+        bottom: -1px;
         z-index: 10;
-        margin-bottom: 0; /* デフォルトのliマージンを削除 */
-        
-        /* ▼▼▼ 修正: 背景色を強制的にデフォルトに戻す（親の黄色指定を上書き） ▼▼▼ */
+        margin-bottom: 0;
         background-color: var(--bg-color-light) !important; 
         border-top: 2px solid var(--border-color-light); 
     }
@@ -535,7 +509,6 @@ body.dark-mode #search-results-count {
         background-color: var(--bg-color-dark) !important;
         border-top-color: var(--border-color-dark);
     }
-    /* ▲▲▲ 修正ここまで ▲▲▲ */
 
     .nav-column.menu-open ul li.close-menu-li .close-btn {
          margin-top: 0; 
@@ -543,7 +516,6 @@ body.dark-mode #search-results-count {
          width: 100%;
          box-sizing: border-box; 
     }
-    /* ▲▲▲ Sticky設定ここまで ▲▲▲ */
 }
 
 .menu-toggle {
@@ -558,11 +530,6 @@ body.dark-mode .menu-toggle {
     color: #b8bbbf;
 }
 
-/* ▼▼▼ 削除: アコーディオン「ボタン」の背景色変更ルールを削除 ▼▼▼ */
-/* (削除対応: #menu-toggle-open への黄色指定ルールをすべて削除しました) */
-/* ▲▲▲ 削除ここまで ▲▲▲ */
-
-
 .menu-toggle.close-btn { border-top: 2px solid var(--border-color-light); margin-top: 10px; }
 body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dark); }
 .menu-toggle .arrow {
@@ -571,9 +538,6 @@ body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dar
     vertical-align: middle; transition: transform 0.3s ease-out;
 }
 .menu-toggle.open-btn .arrow { border-top: 6px solid white; }
-/* ▼▼▼ 修正: 黄色ボタン削除に伴い、open-btn .arrow のルールが復活 ▼▼▼ */
-/* (CSSルール削除により、この .arrow 指定が再び有効になります) */
-/* ▲▲▲ 修正ここまで ▲▲▲ */
 .menu-toggle.close-btn .arrow { border-bottom: 6px solid white; }
 
 
@@ -589,12 +553,11 @@ body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dar
     z-index: 200;
     left: 50%;
     bottom: 80px;
-    font-size: 1em;
+    font-size: 1.4em;
+    font-weight: bold;
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
-    font-size: 1.4em; /* 文字サイズを大きくする */
-    font-weight: bold; /* 文字を太くする */
 }
 #toast-notification.show {
     visibility: visible;

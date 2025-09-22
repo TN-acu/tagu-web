@@ -110,6 +110,59 @@ h1 {
     white-space: nowrap; 
 }
 
+/* ▼▼▼ 変更: ルビ関連のスタイルを全面的に刷新 ▼▼▼ */
+#ruby-toggle-btn {
+    /* 配置: ヘッダー右上に固定 */
+    position: fixed;
+    top: 10px;
+    right: 15px;
+    z-index: 101; /* ヘッダー(100)より手前に表示 */
+
+    /* デザイン: OFFの状態（青色） */
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    
+    /* テキスト関連 */
+    font-size: 0.8em;
+    font-weight: bold;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#ruby-toggle-btn:hover {
+    transform: scale(1.05);
+}
+/* デザイン: ONの状態（緑色） */
+#ruby-toggle-btn.active {
+    background-color: #28a745;
+}
+
+/* ルビの表示切り替え (iOS対応強化) */
+rt {
+    /* 非表示時は完全にレンダリング対象外にする */
+    visibility: hidden;
+    opacity: 0;
+    font-size: 0;
+    pointer-events: none;
+    transition: all 0.2s;
+}
+body.ruby-visible rt {
+    /* 表示時は設定を戻す */
+    visibility: visible;
+    opacity: 1;
+    font-size: 0.5em;
+}
+/* ▲▲▲ 変更ここまで ▲▲▲ */
+
 /* controls button, select のスタイル定義の近くに追加 */
 #pdf-options-toggle {
     background-color: #6c757d;
@@ -328,4 +381,52 @@ mark.search-highlight.active {
         border: none;
         font-weight: normal;
     }
+}
+
+/* --- デバッグ表示用スタイル（ここから下を追記） --- */
+.debug-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.debug-instructions {
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.debug-textarea {
+    width: 90%;
+    height: 70%;
+    font-family: monospace;
+    font-size: 14px;
+    padding: 10px;
+    border: 3px solid #ffc107;
+    background-color: #fff;
+    color: #000;
+}
+
+.debug-close-btn {
+    margin-top: 15px;
+    padding: 12px 30px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #ffc107;
+    border: none;
+    border-radius: 5px;
+    color: #000;
 }
