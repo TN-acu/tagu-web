@@ -36,24 +36,20 @@ function shuffleArray(array) {
     }
 }
 
-// ▼▼▼ 変更: ルビの重複を防ぐロジックに修正 ▼▼▼
 function applyRuby(text) {
     if (Object.keys(rubyDictionary).length === 0 || !text) {
         return text;
     }
 
-    // 辞書のキーを文字数の長い順にソートし、正規表現の|で連結
     const sortedKeys = Object.keys(rubyDictionary).sort((a, b) => b.length - a.length);
     const pattern = sortedKeys.map(key => escapeRegExp(key)).join('|');
     const regex = new RegExp(pattern, 'g');
 
-    // マッチした部分（辞書にある単語）だけを<ruby>タグに置換する
     return text.replace(regex, (match) => {
         const reading = rubyDictionary[match];
         return `<ruby>${match}<rt>${reading}</rt></ruby>`;
     });
 }
-// ▲▲▲ 変更ここまで ▲▲▲
 
 
 // テキストファイルからクイズデータを読み込んで表示する
@@ -543,68 +539,165 @@ window.addEventListener('scroll', () => {
 });
 
 // --- 検索機能 ---
-const searchState = { term: '', elements: [], currentIndex: -1, originalNodes: new Map() };
+// ▼▼▼ 全面改修: 新しいハイライトエンジン ▼▼▼
+const searchState = { term: '', elements: [], currentIndex: -1 };
+const originalContentMap = new Map();
 
 function postSearchResults() {
     if (window.parent && window.parent.postMessage) {
         window.parent.postMessage({ type: 'searchResultUpdate', currentIndex: searchState.currentIndex, totalHits: searchState.elements.length, term: searchState.term }, '*');
     }
 }
+
 function clearHighlights() {
-    searchState.originalNodes.forEach((originalNode, parent) => {
-        while (parent.firstChild) { parent.removeChild(parent.firstChild); }
-        while (originalNode.firstChild) { parent.appendChild(originalNode.firstChild); }
+    originalContentMap.forEach((originalInnerHTML, element) => {
+        try {
+            element.innerHTML = originalInnerHTML;
+        } catch (e) {
+            // 要素が存在しない場合は何もしない
+        }
     });
-    searchState.elements.forEach(el => el.classList.remove('active'));
-    searchState.term = '';
+    originalContentMap.clear();
     searchState.elements = [];
+    searchState.term = '';
     searchState.currentIndex = -1;
-    searchState.originalNodes.clear();
     postSearchResults();
 }
+
+function getSearchableText(node) {
+    let text = '';
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, (node) => {
+        return ['RT', 'RP', 'SCRIPT', 'STYLE'].includes(node.parentNode.tagName) ?
+               NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    });
+    while(walker.nextNode()) text += walker.currentNode.nodeValue;
+    return text;
+}
+
+function findRangeFromCleanIndices(container, targetStart, targetEnd) {
+    const range = document.createRange();
+    let charCount = 0;
+    let startFound = false;
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, (node) => {
+        return ['RT', 'RP', 'SCRIPT', 'STYLE'].includes(node.parentNode.tagName) ?
+               NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    });
+
+    let currentNode;
+    while (currentNode = walker.nextNode()) {
+        const textNode = currentNode;
+        const nodeLength = textNode.nodeValue.length;
+        const endCharCount = charCount + nodeLength;
+
+        if (!startFound && endCharCount >= targetStart) {
+            const startOffset = targetStart - charCount;
+            if (startOffset < 0 || startOffset > nodeLength) { return null; }
+            range.setStart(textNode, startOffset);
+            startFound = true;
+        }
+
+        if (startFound && endCharCount >= targetEnd) {
+            const endOffset = targetEnd - charCount;
+            if (endOffset < 0 || endOffset > nodeLength) { return null; }
+            range.setEnd(textNode, endOffset);
+            return range;
+        }
+        charCount = endCharCount;
+    }
+    return null;
+}
+
+/**
+ * 新しいハイライト処理関数
+ * @param {Range} range - ハイライトするDOMの範囲
+ */
+// ▼▼▼ 修正: 複数のハイライトが生成される不具合を修正 ▼▼▼
+function highlightRange(range) {
+    if (range.collapsed) return;
+
+    // 1. ハイライト全体を囲むための<mark>タグを一つだけ作成
+    const mark = document.createElement('mark');
+    mark.className = 'search-highlight';
+
+    // 2. 範囲内のコンテンツを DocumentFragment として抽出
+    const fragment = range.extractContents();
+
+    // 3. 抽出したすべてのコンテンツを、作成した単一の<mark>タグの中に移動
+    mark.appendChild(fragment);
+
+    // 4. コンテンツが入った<mark>タグを、元の位置に挿入
+    range.insertNode(mark);
+}
+// ▲▲▲ 修正ここまで ▲▲▲
+
+
 function performHighlight(term, stopQuestionNumber) {
     clearHighlights();
-    if (!term) return;
+    if (!term || term.trim() === '') {
+        postSearchResults();
+        return;
+    }
     searchState.term = term;
-    const regex = new RegExp(escapeRegExp(term), 'gi');
-    let nodesToSearch = [];
-    const endQuestionIndex = (stopQuestionNumber && !isNaN(parseInt(stopQuestionNumber, 10))) ? parseInt(stopQuestionNumber, 10) - 1 : quizzes.length - 1;
+
+    const endQuestionIndex = (stopQuestionNumber && !isNaN(parseInt(stopQuestionNumber, 10)))
+        ? parseInt(stopQuestionNumber, 10) - 1
+        : quizzes.length - 1;
+
+    const allRanges = [];
+
     for (let i = 0; i <= endQuestionIndex; i++) {
         const quizItem = document.getElementById(`quiz-${i}`);
-        if (quizItem) { nodesToSearch.push(...quizItem.querySelectorAll('.question-text, .choice-btn')); }
+        if (!quizItem) continue;
+
+        const elementsToSearch = quizItem.querySelectorAll('.question-text, .choice-btn');
+        elementsToSearch.forEach(element => {
+            const cleanText = getSearchableText(element);
+            const lowerCaseCleanText = cleanText.toLowerCase();
+            const lowerCaseTerm = term.toLowerCase();
+            
+            let startIndex = -1;
+            while ((startIndex = lowerCaseCleanText.indexOf(lowerCaseTerm, startIndex + 1)) !== -1) {
+                const endIndex = startIndex + lowerCaseTerm.length;
+                const range = findRangeFromCleanIndices(element, startIndex, endIndex);
+                if (range) {
+                    allRanges.push(range);
+                }
+            }
+        });
     }
-    nodesToSearch.forEach(node => { findAndReplaceText(node, regex, term); });
+
+    if (allRanges.length > 0) {
+        const affectedNodes = new Set();
+        allRanges.forEach(r => {
+            const commonAncestor = r.commonAncestorContainer;
+            const parentElement = commonAncestor.nodeType === 1 ? commonAncestor : commonAncestor.parentNode;
+            if (parentElement) {
+                const closest = parentElement.closest('.question-text, .choice-btn');
+                if(closest) affectedNodes.add(closest);
+            }
+        });
+        affectedNodes.forEach(n => {
+            if (n && !originalContentMap.has(n)) {
+                originalContentMap.set(n, n.innerHTML);
+            }
+        });
+
+        allRanges.reverse().forEach(range => {
+            try {
+                highlightRange(range);
+            } catch (e) {
+                console.warn("ハイライト処理に失敗しました:", range, e);
+            }
+        });
+    }
+
     searchState.elements = Array.from(document.querySelectorAll('mark.search-highlight'));
 }
+
+
 function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-function findAndReplaceText(node, regex, term) {
-    if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent;
-        const matches = [...text.matchAll(regex)];
-        if (matches.length > 0) {
-            const parent = node.parentNode;
-            if (parent && !searchState.originalNodes.has(parent)) {
-                searchState.originalNodes.set(parent, parent.cloneNode(true));
-            }
-            const fragment = document.createDocumentFragment();
-            let lastIndex = 0;
-            matches.forEach(match => {
-                const foundText = match[0];
-                const index = match.index;
-                fragment.appendChild(document.createTextNode(text.substring(lastIndex, index)));
-                const mark = document.createElement('mark');
-                mark.className = 'search-highlight';
-                mark.textContent = foundText;
-                fragment.appendChild(mark);
-                lastIndex = index + foundText.length;
-            });
-            fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
-            node.parentNode.replaceChild(fragment, node);
-        }
-    } else if (node.nodeType === Node.ELEMENT_NODE && !['MARK', 'RT', 'RP'].includes(node.nodeName)) {
-        Array.from(node.childNodes).forEach(child => { findAndReplaceText(child, regex, term); });
-    }
-}
+
 function navigateToHighlight(direction, isNewSearch = false) {
     if (searchState.elements.length === 0) { postSearchResults(); return; }
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
@@ -612,10 +705,14 @@ function navigateToHighlight(direction, isNewSearch = false) {
     }
     if (direction === 'next') {
         searchState.currentIndex++;
-        if (searchState.currentIndex >= searchState.elements.length) { searchState.currentIndex = 0; }
+        if (searchState.currentIndex >= searchState.elements.length) { 
+            searchState.currentIndex = 0; 
+        }
     } else if (direction === 'prev') {
         searchState.currentIndex--;
-        if (searchState.currentIndex < 0) { searchState.currentIndex = searchState.elements.length - 1; }
+        if (searchState.currentIndex < 0) { 
+            searchState.currentIndex = searchState.elements.length - 1; 
+        }
     }
     const currentElement = searchState.elements[searchState.currentIndex];
     if (currentElement) {

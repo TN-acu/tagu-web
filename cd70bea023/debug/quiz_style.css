@@ -382,3 +382,51 @@ mark.search-highlight.active {
         font-weight: normal;
     }
 }
+
+/* --- デバッグ表示用スタイル（ここから下を追記） --- */
+.debug-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.debug-instructions {
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.debug-textarea {
+    width: 90%;
+    height: 70%;
+    font-family: monospace;
+    font-size: 14px;
+    padding: 10px;
+    border: 3px solid #ffc107;
+    background-color: #fff;
+    color: #000;
+}
+
+.debug-close-btn {
+    margin-top: 15px;
+    padding: 12px 30px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #ffc107;
+    border: none;
+    border-radius: 5px;
+    color: #000;
+}
