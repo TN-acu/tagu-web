@@ -613,15 +613,15 @@ function updateRubyButtonVisibility() {
     }
 }
 
-// ▼▼▼ 変更: ルビボタンのクリック処理に「画面記憶」機能を追加 ▼▼▼
+// ▼▼▼ 変更: iOSのタイミング問題を解決するため、setTimeoutをrequestAnimationFrameに変更 ▼▼▼
 function syncRubyButtonState() {
     const isRubyEnabled = localStorage.getItem('rubyVisible') === 'true';
     if (isRubyEnabled) {
         rubyToggleBtn.classList.add('active');
-        rubyToggleBtn.innerHTML = 'ルビ<br>ON';
+        rubyToggleBtn.innerHTML = 'ルビ<br>ON中';
     } else {
         rubyToggleBtn.classList.remove('active');
-        rubyToggleBtn.innerHTML = 'ルビ<br>OFF';
+        rubyToggleBtn.innerHTML = 'ルビ<br>OFF中';
     }
     try {
         iframe.contentWindow.postMessage({ type: 'setRubyState', state: isRubyEnabled }, '*');
@@ -629,7 +629,6 @@ function syncRubyButtonState() {
 }
 
 rubyToggleBtn.addEventListener('click', () => {
-    // 1. 記憶: 現在画面に見えている一番上の問題要素のIDを記憶する
     let topVisibleQuizId = null;
     try {
         const iframeDoc = iframe.contentDocument;
@@ -645,31 +644,32 @@ rubyToggleBtn.addEventListener('click', () => {
         console.error("記憶処理エラー:", e);
     }
 
-    // 2. 変更: ルビの状態を切り替える
     const isRubyEnabled = !(localStorage.getItem('rubyVisible') === 'true');
     localStorage.setItem('rubyVisible', isRubyEnabled);
     syncRubyButtonState();
 
-    // 3. 復元: 画面の再描画が終わった少し後に、記憶した問題の位置にスクロールを戻す
-    setTimeout(() => {
-        if (topVisibleQuizId) {
-            try {
-                const iframeDoc = iframe.contentDocument;
-                const iframeWin = iframe.contentWindow;
-                const headerHeight = iframeDoc.getElementById('quiz-header')?.offsetHeight || 70;
-                const elementToRestore = iframeDoc.getElementById(topVisibleQuizId);
-                if (elementToRestore) {
-                    const newPosition = elementToRestore.offsetTop;
-                    iframeWin.scrollTo({
-                        top: newPosition - headerHeight - 10,
-                        behavior: 'auto'
-                    });
+    // requestAnimationFrameを2回呼び出して、DOMの更新と再描画を確実に待つ
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (topVisibleQuizId) {
+                try {
+                    const iframeDoc = iframe.contentDocument;
+                    const iframeWin = iframe.contentWindow;
+                    const headerHeight = iframeDoc.getElementById('quiz-header')?.offsetHeight || 70;
+                    const elementToRestore = iframeDoc.getElementById(topVisibleQuizId);
+                    if (elementToRestore) {
+                        const newPosition = elementToRestore.offsetTop;
+                        iframeWin.scrollTo({
+                            top: newPosition - headerHeight - 10,
+                            behavior: 'auto'
+                        });
+                    }
+                } catch (e) {
+                    console.error("復元処理エラー:", e);
                 }
-            } catch (e) {
-                console.error("復元処理エラー:", e);
             }
-        }
-    }, 100);
+        });
+    });
 });
 // ▲▲▲ 変更ここまで ▲▲▲
 
@@ -968,17 +968,4 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSearchHistory();
     updateScrollUIVisibility();
     syncRubyButtonState();
-});
-
-iframe.addEventListener('load', () => {
-    try {
-        const iframeTitle = iframe.contentWindow.document.title;
-        if (!iframe.contentWindow.location.href.includes('quiz.html')) {
-            const newPlaceholder = `検索..${iframeTitle}から`;
-            searchInput.placeholder = newPlaceholder;
-        }
-    } catch (e) {
-        console.error("Failed to update search placeholder on load:", e);
-        searchInput.placeholder = "表示画面内を検索...";
-    }
 });
