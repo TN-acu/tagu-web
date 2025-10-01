@@ -166,19 +166,24 @@ const saveSearchTerm = (term) => {
 };
 
 let toastTimer;
+// ▼▼▼ 変更箇所(1/2) ▼▼▼
 const showToast = (message) => {
     clearTimeout(toastTimer);
-    toastElement.textContent = message;
+    // textContentからinnerHTMLに変更して、<br>タグを解釈できるようにする
+    toastElement.innerHTML = message;
     toastElement.classList.add('show');
     toastTimer = setTimeout(() => {
         toastElement.classList.remove('show');
     }, 2000); 
 };
+// ▲▲▲ 変更ここまで ▲▲▲
 
+// ▼▼▼ 変更箇所(2/2) ▼▼▼
 window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'quizPositionRestored') {
         const { title, question } = event.data;
-        const message = `「${title}」の${question}問目から再開しました`;
+        // 「の」の後に<br>（改行タグ）を追加
+        const message = `「${title}」<br>の<br>${question}問目から再開しました`;
         showToast(message);
     }
     else if (event.data && event.data.type === 'iframeTitleUpdated') {
@@ -207,6 +212,7 @@ window.addEventListener('message', (event) => {
         }
     }
 });
+// ▲▲▲ 変更ここまで ▲▲▲
 
 function handleQuizChoiceMade(quizIndexStr) {
     const quizIndex = parseInt(quizIndexStr, 10);
@@ -451,8 +457,6 @@ searchInput.addEventListener('keydown', (e) => {
     }
 });
 
-// ▼▼▼ 変更箇所(1/2) ▼▼▼
-// リアルタイム検索を、画面がスクロールしないハイライトのみの機能に変更
 searchInput.addEventListener('input', () => {
     const term = searchInput.value;
     if (term.length > 0) {
@@ -470,7 +474,6 @@ searchInput.addEventListener('input', () => {
         console.error("Error calling iframe highlight function:", e.message);
     }
 });
-// ▲▲▲ 変更ここまで ▲▲▲
 
 searchClearBtn.addEventListener('click', () => {
     searchInput.value = '';
@@ -763,8 +766,6 @@ function setupIframeContent() {
     }
 }
 
-// ▼▼▼ 変更箇所(2/2) ▼▼▼
-// manual.html を非表示対象に追加
 function updateFooterUIVisibility() {
     try {
         const iframeSrc = iframe.contentWindow.location.href;
@@ -780,7 +781,6 @@ function updateFooterUIVisibility() {
         console.warn("iframeのURL取得に失敗したため、検索ボックスの表示状態を変更できませんでした:", e.message);
     }
 }
-// ▲▲▲ 変更ここまで ▲▲▲
 
 iframe.addEventListener('load', () => {
     handleQuizFinished(); 
