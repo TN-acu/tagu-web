@@ -178,11 +178,15 @@ async function setupQuiz(dataTxtFile) {
             shuffleArray(shuffledChoices);
             
             shuffledChoices.forEach(choice => {
-                const choiceBtn = document.createElement('button');
+                // ▼▼▼ 修正: 要素を<button>から<div>に変更 ▼▼▼
+                const choiceBtn = document.createElement('div');
                 choiceBtn.className = 'choice-btn';
+                // ▼▼▼ 追加: アクセシビリティ対応 ▼▼▼
+                choiceBtn.setAttribute('role', 'button');
+                choiceBtn.setAttribute('tabindex', '0');
                 
                 const choiceWithRuby = applyRuby(choice);
-                choiceBtn.innerHTML = choiceWithRuby.replace(/\\n/g, '<br>');
+                choiceBtn.innerHTML = `<span>${choiceWithRuby.replace(/\\n/g, '<br>')}</span>`;
                 
                 choiceBtn.dataset.choiceValue = choice;
                 choiceBtn.dataset.quizIndex = index;
@@ -285,7 +289,8 @@ function handlePdfRangeChange() {
 }
 
 function selectAnswer(quizIndex, btnElement) {
-    if (isReadyForPrint || isFinished) return; 
+    // ▼▼▼ 修正: .disabledクラスによる制御 ▼▼▼
+    if (isReadyForPrint || isFinished || btnElement.classList.contains('disabled')) return;
     const choice = btnElement.dataset.choiceValue;
     userAnswers[quizIndex] = choice;
     const quizItem = document.getElementById(`quiz-${quizIndex}`);
@@ -347,7 +352,8 @@ function finishQuiz(scrollToTop = true) {
             const btnChoice = btn.dataset.choiceValue;
             if (btnChoice === quiz.correctAnswer) { btn.classList.add('correct'); } 
             else if (btnChoice === userAnswer && !isCorrect) { btn.classList.add('incorrect'); }
-            btn.disabled = true;
+            // ▼▼▼ 修正: disabled属性からクラスの追加へ変更 ▼▼▼
+            btn.classList.add('disabled');
         });
         if (userAnswer === null || userAnswer === undefined) {
             feedbackText.innerHTML = `正解は「${applyRuby(quiz.correctAnswer)}」 ${applyRuby(quiz.explanation)}`;
@@ -372,8 +378,7 @@ function resetQuiz() {
         const choiceButtons = quizItem.querySelectorAll('.choice-btn');
         const feedbackText = quizItem.querySelector('.feedback-text');
         choiceButtons.forEach(btn => {
-            btn.classList.remove('selected', 'correct', 'incorrect');
-            btn.disabled = false;
+            btn.classList.remove('selected', 'correct', 'incorrect', 'disabled');
         });
         if (feedbackText) {
             feedbackText.textContent = '';
@@ -448,7 +453,7 @@ function prepareForPrint() {
     printStyle.id = styleId;
     printStyle.innerHTML = `
         @page { size: A4; margin: 2cm; @top-left { content: ""; } @top-center { content: ""; } @top-right { content: "${quizTitle.replace(/"/g, '\\"')}"; font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } @bottom-left { content: "last update ${timestamp}"; font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } @bottom-right { content: counter(page) " / " counter(pages); font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } }
-        @media print { .print-hidden { display: none !important; } body { font-family: 'Hirino KyoKaSho', serif !important; } .question-text { font-size: 11pt !important; line-height: 1.2 !important; margin-bottom: 5px !important; font-weight: bold !important; } .source-info { font-weight: normal !important; font-size: 9pt !important; } .choice-btn { font-size: 11pt !important; padding: 2px 4px !important; border: none !important; border-radius: 0 !important; background-color: transparent !important; font-weight: normal !important; } .choice-btn, .choice-btn:disabled { color: #000 !important; } .choices-container { display: flex !important; flex-direction: column !important; gap: 0 !important; } .answer-display { display: flex !important; align-items: center !important; justify-content: center !important; border-left: 1px solid #666 !important; font-size: 12pt !important; font-weight: bold !important; padding: 0 8px !important; text-align: left !important; color: #000 !important; } #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight { display: none !important; } .quiz-item { page-break-inside: avoid !important; } .quiz-item:nth-child(6n):not(:last-child) { page-break-after: auto !important; } rt { display: none !important; } }`;
+        @media print { .print-hidden { display: none !important; } body { font-family: 'Hirino KyoKaSho', serif !important; } .question-text { font-size: 11pt !important; line-height: 1.2 !important; margin-bottom: 5px !important; font-weight: bold !important; } .source-info { font-weight: normal !important; font-size: 9pt !important; } .choice-btn { font-size: 11pt !important; padding: 2px 4px !important; border: none !important; border-radius: 0 !important; background-color: transparent !important; font-weight: normal !important; } .choice-btn, .choice-btn.disabled { color: #000 !important; } .choices-container { display: flex !important; flex-direction: column !important; gap: 0 !important; } .answer-display { display: flex !important; align-items: center !important; justify-content: center !important; border-left: 1px solid #666 !important; font-size: 12pt !important; font-weight: bold !important; padding: 0 8px !important; text-align: left !important; color: #000 !important; } #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight { display: none !important; } .quiz-item { page-break-inside: avoid !important; } .quiz-item:nth-child(6n):not(:last-child) { page-break-after: auto !important; } rt { display: none !important; } }`;
     document.head.appendChild(printStyle);
     setTimeout(() => { window.print(); }, 500);
     setTimeout(() => { if (document.getElementById(styleId)) { document.getElementById(styleId).remove(); } location.reload(); }, 1000);
@@ -518,11 +523,24 @@ document.addEventListener('DOMContentLoaded', () => {
     pdfBtn.addEventListener('click', handlePdfButtonClick);
     if (pdfOptionsToggle) { pdfOptionsToggle.addEventListener('click', () => { pdfControlsWrapper.classList.toggle('collapsed'); }); }
     
+    // ▼▼▼ 修正: clickイベントリスナーからkeydownイベントリスナーを分離 ▼▼▼
     quizBody.addEventListener('click', (event) => {
         const clickedButton = event.target.closest('.choice-btn');
-        if (clickedButton && clickedButton.dataset.quizIndex) {
+        if (clickedButton) {
             const quizIndex = parseInt(clickedButton.dataset.quizIndex, 10);
             selectAnswer(quizIndex, clickedButton);
+        }
+    });
+
+    // ▼▼▼ 追加: キーボード操作（Enter, Space）で選択肢を決定できるようにする ▼▼▼
+    quizBody.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            const focusedButton = event.target.closest('.choice-btn');
+            if (focusedButton) {
+                event.preventDefault(); // Spaceキーでの画面スクロールを防止
+                const quizIndex = parseInt(focusedButton.dataset.quizIndex, 10);
+                selectAnswer(quizIndex, focusedButton);
+            }
         }
     });
 });
@@ -539,7 +557,6 @@ window.addEventListener('scroll', () => {
 });
 
 // --- 検索機能 ---
-// ▼▼▼ 全面改修: 新しいハイライトエンジン ▼▼▼
 const searchState = { term: '', elements: [], currentIndex: -1 };
 const originalContentMap = new Map();
 
@@ -608,28 +625,16 @@ function findRangeFromCleanIndices(container, targetStart, targetEnd) {
     return null;
 }
 
-/**
- * 新しいハイライト処理関数
- * @param {Range} range - ハイライトするDOMの範囲
- */
-// ▼▼▼ 修正: 複数のハイライトが生成される不具合を修正 ▼▼▼
 function highlightRange(range) {
     if (range.collapsed) return;
 
-    // 1. ハイライト全体を囲むための<mark>タグを一つだけ作成
     const mark = document.createElement('mark');
     mark.className = 'search-highlight';
 
-    // 2. 範囲内のコンテンツを DocumentFragment として抽出
     const fragment = range.extractContents();
-
-    // 3. 抽出したすべてのコンテンツを、作成した単一の<mark>タグの中に移動
     mark.appendChild(fragment);
-
-    // 4. コンテンツが入った<mark>タグを、元の位置に挿入
     range.insertNode(mark);
 }
-// ▲▲▲ 修正ここまで ▲▲▲
 
 
 function performHighlight(term, stopQuestionNumber) {
@@ -650,16 +655,18 @@ function performHighlight(term, stopQuestionNumber) {
         const quizItem = document.getElementById(`quiz-${i}`);
         if (!quizItem) continue;
 
-        const elementsToSearch = quizItem.querySelectorAll('.question-text, .choice-btn');
+        const elementsToSearch = quizItem.querySelectorAll('.question-text, .choice-btn, .feedback-text');
         elementsToSearch.forEach(element => {
-            const cleanText = getSearchableText(element);
+            // ▼▼▼ 修正: choice-btnの場合は内側のspanを、それ以外は要素自身を検索の起点とする ▼▼▼
+            const searchContainer = element.matches('.choice-btn') ? (element.querySelector('span') || element) : element;
+            const cleanText = getSearchableText(searchContainer);
             const lowerCaseCleanText = cleanText.toLowerCase();
             const lowerCaseTerm = term.toLowerCase();
             
             let startIndex = -1;
             while ((startIndex = lowerCaseCleanText.indexOf(lowerCaseTerm, startIndex + 1)) !== -1) {
                 const endIndex = startIndex + lowerCaseTerm.length;
-                const range = findRangeFromCleanIndices(element, startIndex, endIndex);
+                const range = findRangeFromCleanIndices(searchContainer, startIndex, endIndex);
                 if (range) {
                     allRanges.push(range);
                 }
@@ -673,7 +680,7 @@ function performHighlight(term, stopQuestionNumber) {
             const commonAncestor = r.commonAncestorContainer;
             const parentElement = commonAncestor.nodeType === 1 ? commonAncestor : commonAncestor.parentNode;
             if (parentElement) {
-                const closest = parentElement.closest('.question-text, .choice-btn');
+                const closest = parentElement.closest('.question-text, .choice-btn, .feedback-text');
                 if(closest) affectedNodes.add(closest);
             }
         });
@@ -730,7 +737,10 @@ function navigateToHighlight(direction, isNewSearch = false) {
     }
     postSearchResults();
 }
+
+// ▼▼▼ 修正: 検索語が変更された時だけ新しい検索を行うようにロジックを修正 ▼▼▼
 function handleSearch(term, direction, stopQuestionNumber) {
+    // 検索語が新しい場合は、常に新しい検索を開始
     if (term !== searchState.term) {
         performHighlight(term, stopQuestionNumber);
         if (searchState.elements.length > 0) {
@@ -742,11 +752,20 @@ function handleSearch(term, direction, stopQuestionNumber) {
             }
             searchState.currentIndex = startIndex - 1; 
             navigateToHighlight('next', true); 
-        } else { postSearchResults(); }
-    } else if (term) {
+        } else { 
+            postSearchResults(); 
+        }
+    } 
+    // 同じ検索語の場合は、次へ/前へ移動する
+    else if (term) {
         navigateToHighlight(direction, false);
-    } else { clearHighlights(); }
+    } 
+    // 検索語が空の場合
+    else { 
+        clearHighlights(); 
+    }
 }
+
 function toggleDarkMode(isDarkMode) {
     if (isDarkMode) { document.body.classList.add('dark-mode'); }
     else { document.body.classList.remove('dark-mode'); }

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マニュアル</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h3 {
+            border-bottom-style: dotted;
+            font-size: 1.1em;
+            margin-top: 25px;
+        }
+        .feature-section {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .diagram {
+            width: 100%;
+            /* 元の画像アスペクト比を維持しつつ最大幅で表示 */
+            height: auto; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        code {
+            background-color: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 操作マニュアル(android、iOS共通)</h1>
+
+        <div class="feature-section">
+            <h2>1. ホーム画面へのインストール方法</h2>
+            <p>アプリを利用される夜間部の一部の方々へ(田口)。このアプリはスマートフォンのホーム画面に追加することで、通常のアプリのように素早く起動できます。</p>
+            
+            <h3>【iOS (iPhone/iPad) の場合】</h3>
+            <ol>
+                <li>Safariでアプリのページを開きます。</li>
+                <li>画面下部にある共有アイコン（四角から矢印が飛び出したマーク）をタップします。</li>
+                <li>メニューをスクロールし、「ホーム画面に追加」を選択します。</li>
+                <li>「追加」をタップすると、ホーム画面にアプリアイコンが作成されます。</li>
+            </ol>
+            <img src="pic_manual/Safari.png" alt="iOSでのホーム画面追加手順" class="diagram">
+
+            <h3>【Androidの場合】</h3>
+            <ol>
+                <li>Chromeでアプリのページを開きます。</li>
+                <li>画面右上のメニューボタン（︙）をタップします。</li>
+                <li>メニューから「アプリをインストール」または「ホーム画面に追加」を選択します。</li>
+                <li>確認画面で「インストール」または「追加」をタップすると、ホーム画面にアプリアイコンが作成されます。</li>
+            </ol>
+            <img src="pic_manual/Android.png" alt="Androidでのホーム画面追加手順" class="diagram">
+        </div>
+
+        <div class="feature-section">
+            <h2>2. 基本画面構成</h2>
+            <p>画面は、上部の「アプリ選択メニュー」と、その下の「コンテンツ表示エリア」で構成されています。メニューをタップすると、利用できるアプリの一覧が開きます。</p>
+            <img src="pic_manual/kihongamen.png" alt="スマートフォン基本画面構成の図解" class="diagram">
+        </div>
+
+        <div class="feature-section">
+            <h2>3. アプリの選択</h2>
+            <p>メニューを開くと、学習に使用するアプリを選択できます。</p>
+            <ul>
+                <li><strong>タイマーアプリ (縦/横) ⏰</strong>: 実技試験などを想定したタイマーです。スマートフォンの向きに合わせて縦画面用・横画面用を使い分けられます。</li>
+                <li><strong>クイズアプリ</strong>: 各科目のクイズを解くことができます。リストから学習したいクイズを選択してください。</li>
+            </ul>
+            <img src="pic_manual/sentaku.png" alt="アプリ選択メニューの図解" class="diagram">
+        </div>
+
+        <div class="feature-section">
+            <h2>4. クイズページの操作</h2>
+            <p>クイズページには学習を補助する便利な機能があります。</p>
+            <ul>
+                <li><strong>① 問題ジャンプ</strong>: 問題番号の範囲を選択すると、その問題グループの先頭まですばやく移動できます。</li>
+                <li><strong>② 文字サイズ変更</strong>: 「＋」「－」ボタンで、問題文や選択肢の文字サイズを読みやすい大きさに調整できます。</li>
+                <li><strong>③ Google検索</strong>: 問題文や選択肢の横にある虫眼鏡アイコン（🔍）をタップすると、その内容をGoogleで検索できます。新しいタブまたはウィンドウで検索結果が表示されます。</li>
+            </ul>
+            <img src="pic_manual/sousa1.png" alt="クイズページの操作ボタン図解" class="diagram">
+        </div>
+
+        <div class="feature-section">
+            <h2>5. 画面内検索機能</h2>
+            <p>画面下部のフッターにある検索ボックスにキーワードを入力すると、表示されているコンテンツ内を検索できます。</p>
+            <ul>
+                <li><strong>文字入力</strong>: 入力中に自動で検索が開始されます（リアルタイム検索）。</li>
+                <li><strong>Enterキー / ▽ボタン</strong>: 次のヒット箇所へ移動します。</li>
+                <li><strong>△ボタン</strong>: 前のヒット箇所へ移動します。</li>
+                <li><strong>×ボタン</strong>: 検索キーワードをクリアし、ハイライトを解除します。</li>
+            </ul>
+            <img src="pic_manual/sousa2.png" alt="検索機能の図解" class="diagram">
+        </div>
+
+        <div class="feature-section">
+            <h2>6. ルビ（ふりがな）表示機能</h2>
+            <p>クイズページ表示中、画面左上に表示される丸い「ルビON/OFF」ボタンを押すことで、問題文や選択肢に含まれる専門用語のふりがな表示を切り替えられます。</p>
+            <img src="pic_manual/furigana.png" alt="ルビ表示機能の図解" class="diagram">
+        </div>
+
+        <div class="feature-section">
+            <h2>7. ダークモード</h2>
+            <p>フッター左下の月（🌙）/太陽（☀️）ボタンを押すことで、画面の配色をライトモードとダークモードで切り替えることができます。</p>
+            <img src="pic_manual/dark.png" alt="ダークモード機能の図解" class="diagram">
+        </div>
+
+    </div>
+</body>
+</html>

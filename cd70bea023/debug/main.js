@@ -60,7 +60,10 @@ const displayLastUpdated = () => {
 const loadQuizList = async () => {
     const appList = document.getElementById('app-list');
     const closeMenuLi = document.querySelector('.close-menu-li');
-    if (!appList || !closeMenuLi) return;
+    // ▼▼▼ 修正: menu-toggle-openボタンを取得 ▼▼▼
+    const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
+    if (!appList || !closeMenuLi || !menuToggleOpenBtn) return;
+
     try {
         const response = await fetch(`-quiz_list.txt?v=${new Date().getTime()}`);
         if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
@@ -85,6 +88,11 @@ const loadQuizList = async () => {
         li.textContent = "クイズリストの読み込みエラー";
         li.style.color = "red";
         appList.insertBefore(li, closeMenuLi);
+    } finally {
+        // ▼▼▼ 修正: 処理の成功・失敗に関わらず、ボタンを有効化する ▼▼▼
+        if (menuToggleOpenBtn) {
+            menuToggleOpenBtn.disabled = false;
+        }
     }
 };
 
@@ -132,14 +140,14 @@ const loadSearchHistory = () => {
                 try {
                     const iframeWin = iframe.contentWindow;
                     if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-                        iframeWin.handleSearch('', 'next'); 
+                        iframeWin.handleSearch('', 'next', null, true); 
                     } else if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
                         iframeWin.clearHighlights();
                     }
                 } catch(err) {}
                 searchInput.value = term;
                 searchInput.dispatchEvent(new Event('input'));
-                performSearch('next');
+                performSearch('next', true);
                 searchHistoryContainer.style.display = 'none';
             });
             item.appendChild(textSpan);
@@ -422,17 +430,20 @@ searchInput.addEventListener('keydown', (e) => {
 });
 
 searchInput.addEventListener('input', () => {
-    if (searchInput.value.length > 0) {
+    const term = searchInput.value;
+    if (term.length > 0) {
         searchClearBtn.style.display = 'block';
     } else {
         searchClearBtn.style.display = 'none';
-        try {
-            const iframeWin = iframe.contentWindow;
-            if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                iframeWin.clearHighlights();
-            }
-        } catch(e) {}
     }
+    // リアルタイム検索を実行
+    try {
+        const iframeWin = iframe.contentWindow;
+        if (iframeWin && typeof iframeWin.handleSearch === 'function') {
+            // 入力が変わるたびに新しい検索として扱う
+            iframeWin.handleSearch(term, 'next', null, true);
+        }
+    } catch(e) {}
 });
 searchClearBtn.addEventListener('click', () => {
     searchInput.value = '';
@@ -613,7 +624,6 @@ function updateRubyButtonVisibility() {
     }
 }
 
-// ▼▼▼ 変更: iOSのタイミング問題を解決するため、setTimeoutをrequestAnimationFrameに変更 ▼▼▼
 function syncRubyButtonState() {
     const isRubyEnabled = localStorage.getItem('rubyVisible') === 'true';
     if (isRubyEnabled) {
@@ -648,7 +658,6 @@ rubyToggleBtn.addEventListener('click', () => {
     localStorage.setItem('rubyVisible', isRubyEnabled);
     syncRubyButtonState();
 
-    // requestAnimationFrameを2回呼び出して、DOMの更新と再描画を確実に待つ
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             if (topVisibleQuizId) {
@@ -671,7 +680,6 @@ rubyToggleBtn.addEventListener('click', () => {
         });
     });
 });
-// ▲▲▲ 変更ここまで ▲▲▲
 
 function setupIframeContent() {
     try {
@@ -683,6 +691,9 @@ function setupIframeContent() {
             addSearchButtonsToIframe(); 
             setAppHeight();
             
+            // ▼▼▼ 修正: ルビボタンの表示判定をここにも追加 ▼▼▼
+            updateRubyButtonVisibility();
+
             if (!iframeDoc.body.classList.contains('choice-listeners-added')) {
                 const finishBtn = iframeDoc.getElementById('finish-btn');
                 if (finishBtn) { finishBtn.addEventListener('click', handleQuizFinished); }
