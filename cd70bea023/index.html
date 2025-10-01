@@ -19,13 +19,23 @@
     <script src="auth.js"></script>
     
     <link rel="stylesheet" href="style.css?v=4">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMT128FJCK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-LMT128FJCK'); // ここにあなたの測定IDを入れます
+    </script>
+
     </head>
 <body>
 
     <div class="container">
         <div class="nav-column" id="nav-column">
             <h2 id="pc-menu-title">アプリ選択<span id="last-updated" class="update-info"></span></h2>
-            <button class="menu-toggle open-btn" id="menu-toggle-open">
+            <button class="menu-toggle open-btn" id="menu-toggle-open" disabled>
                 他のアプリを選択する <span class="arrow"></span>
             </button>
             
@@ -36,6 +46,8 @@
                     <a href="timer-landscape.html" target="contentFrame">●実技用⏰(横)</a>
                 </li>
 
+                <li><a href="manual.html" target="contentFrame">📖 taguアプリ操作マニュアル</a></li>
+
                 <li class="close-menu-li"> 
                     <button class="menu-toggle close-btn" id="menu-toggle-close">
                         他のアプリ選択メニューを閉じる <span class="arrow"></span>
@@ -44,7 +56,7 @@
             </ul>
             </div>
         <div class="content-column">
-            <iframe src="timer-portrait.html" name="contentFrame" id="contentFrame" title="コンテンツ表示エリア">
+            <iframe src="manual.html" name="contentFrame" id="contentFrame" title="コンテンツ表示エリア">
                 お使いのブラウザはiframeに対応していません。
             </iframe>
         </div>

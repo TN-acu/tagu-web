@@ -61,6 +61,8 @@ async function setupQuiz(dataTxtFile) {
 
     currentDataFileKey = 'quizLastPosition_' + dataTxtFile;
     currentPdfRangeKey = 'pdfPrintRange_' + dataTxtFile;
+    
+    let quizTitle = "クイズ"; 
 
     try {
         const [quizResponse, rubyResponse] = await Promise.all([
@@ -89,7 +91,6 @@ async function setupQuiz(dataTxtFile) {
         }
 
         const lines = text.split('\n');
-        let quizTitle = "クイズ"; 
         let pdfInterval = 6;     
 
         if (lines.length > 0 && lines[0].startsWith('#!')) {
@@ -178,11 +179,13 @@ async function setupQuiz(dataTxtFile) {
             shuffleArray(shuffledChoices);
             
             shuffledChoices.forEach(choice => {
-                const choiceBtn = document.createElement('button');
+                const choiceBtn = document.createElement('div');
                 choiceBtn.className = 'choice-btn';
+                choiceBtn.setAttribute('role', 'button');
+                choiceBtn.setAttribute('tabindex', '0');
                 
                 const choiceWithRuby = applyRuby(choice);
-                choiceBtn.innerHTML = choiceWithRuby.replace(/\\n/g, '<br>');
+                choiceBtn.innerHTML = `<span>${choiceWithRuby.replace(/\\n/g, '<br>')}</span>`;
                 
                 choiceBtn.dataset.choiceValue = choice;
                 choiceBtn.dataset.quizIndex = index;
@@ -234,8 +237,24 @@ async function setupQuiz(dataTxtFile) {
             if (!isNaN(y) && y > 0) {
                 setTimeout(() => {
                     window.scrollTo({ top: y, behavior: 'auto' });
+                    
                     if (window.parent && window.parent.postMessage) {
-                        window.parent.postMessage('quizPositionRestored', '*');
+                        let questionNumber = 1;
+                        const quizItems = document.querySelectorAll('.quiz-item');
+                        
+                        const viewportCenter = y + (window.innerHeight / 2);
+
+                        quizItems.forEach((item, index) => {
+                            if (item.offsetTop <= viewportCenter) {
+                                questionNumber = index + 1;
+                            }
+                        });
+
+                        window.parent.postMessage({
+                            type: 'quizPositionRestored',
+                            title: quizTitle,
+                            question: questionNumber
+                        }, '*');
                     }
                 }, 100);
             }
@@ -285,7 +304,7 @@ function handlePdfRangeChange() {
 }
 
 function selectAnswer(quizIndex, btnElement) {
-    if (isReadyForPrint || isFinished) return; 
+    if (isReadyForPrint || isFinished || btnElement.classList.contains('disabled')) return;
     const choice = btnElement.dataset.choiceValue;
     userAnswers[quizIndex] = choice;
     const quizItem = document.getElementById(`quiz-${quizIndex}`);
@@ -347,7 +366,7 @@ function finishQuiz(scrollToTop = true) {
             const btnChoice = btn.dataset.choiceValue;
             if (btnChoice === quiz.correctAnswer) { btn.classList.add('correct'); } 
             else if (btnChoice === userAnswer && !isCorrect) { btn.classList.add('incorrect'); }
-            btn.disabled = true;
+            btn.classList.add('disabled');
         });
         if (userAnswer === null || userAnswer === undefined) {
             feedbackText.innerHTML = `正解は「${applyRuby(quiz.correctAnswer)}」 ${applyRuby(quiz.explanation)}`;
@@ -372,8 +391,7 @@ function resetQuiz() {
         const choiceButtons = quizItem.querySelectorAll('.choice-btn');
         const feedbackText = quizItem.querySelector('.feedback-text');
         choiceButtons.forEach(btn => {
-            btn.classList.remove('selected', 'correct', 'incorrect');
-            btn.disabled = false;
+            btn.classList.remove('selected', 'correct', 'incorrect', 'disabled');
         });
         if (feedbackText) {
             feedbackText.textContent = '';
@@ -448,7 +466,7 @@ function prepareForPrint() {
     printStyle.id = styleId;
     printStyle.innerHTML = `
         @page { size: A4; margin: 2cm; @top-left { content: ""; } @top-center { content: ""; } @top-right { content: "${quizTitle.replace(/"/g, '\\"')}"; font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } @bottom-left { content: "last update ${timestamp}"; font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } @bottom-right { content: counter(page) " / " counter(pages); font-family: 'Hirino KyoKaSho', serif; font-size: 12pt; color: #666; } }
-        @media print { .print-hidden { display: none !important; } body { font-family: 'Hirino KyoKaSho', serif !important; } .question-text { font-size: 11pt !important; line-height: 1.2 !important; margin-bottom: 5px !important; font-weight: bold !important; } .source-info { font-weight: normal !important; font-size: 9pt !important; } .choice-btn { font-size: 11pt !important; padding: 2px 4px !important; border: none !important; border-radius: 0 !important; background-color: transparent !important; font-weight: normal !important; } .choice-btn, .choice-btn:disabled { color: #000 !important; } .choices-container { display: flex !important; flex-direction: column !important; gap: 0 !important; } .answer-display { display: flex !important; align-items: center !important; justify-content: center !important; border-left: 1px solid #666 !important; font-size: 12pt !important; font-weight: bold !important; padding: 0 8px !important; text-align: left !important; color: #000 !important; } #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight { display: none !important; } .quiz-item { page-break-inside: avoid !important; } .quiz-item:nth-child(6n):not(:last-child) { page-break-after: auto !important; } rt { display: none !important; } }`;
+        @media print { .print-hidden { display: none !important; } body { font-family: 'Hirino KyoKaSho', serif !important; } .question-text { font-size: 11pt !important; line-height: 1.2 !important; margin-bottom: 5px !important; font-weight: bold !important; } .source-info { font-weight: normal !important; font-size: 9pt !important; } .choice-btn { font-size: 11pt !important; padding: 2px 4px !important; border: none !important; border-radius: 0 !important; background-color: transparent !important; font-weight: normal !important; } .choice-btn, .choice-btn.disabled { color: #000 !important; } .choices-container { display: flex !important; flex-direction: column !important; gap: 0 !important; } .answer-display { display: flex !important; align-items: center !important; justify-content: center !important; border-left: 1px solid #666 !important; font-size: 12pt !important; font-weight: bold !important; padding: 0 8px !important; text-align: left !important; color: #000 !important; } #quiz-header, #finish-btn, .update-info, h1, .feedback-text, mark.search-highlight { display: none !important; } .quiz-item { page-break-inside: avoid !important; } .quiz-item:nth-child(6n):not(:last-child) { page-break-after: auto !important; } rt { display: none !important; } }`;
     document.head.appendChild(printStyle);
     setTimeout(() => { window.print(); }, 500);
     setTimeout(() => { if (document.getElementById(styleId)) { document.getElementById(styleId).remove(); } location.reload(); }, 1000);
@@ -520,9 +538,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     quizBody.addEventListener('click', (event) => {
         const clickedButton = event.target.closest('.choice-btn');
-        if (clickedButton && clickedButton.dataset.quizIndex) {
+        if (clickedButton) {
             const quizIndex = parseInt(clickedButton.dataset.quizIndex, 10);
             selectAnswer(quizIndex, clickedButton);
+        }
+    });
+
+    quizBody.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            const focusedButton = event.target.closest('.choice-btn');
+            if (focusedButton) {
+                event.preventDefault();
+                const quizIndex = parseInt(focusedButton.dataset.quizIndex, 10);
+                selectAnswer(quizIndex, focusedButton);
+            }
         }
     });
 });
@@ -539,7 +568,6 @@ window.addEventListener('scroll', () => {
 });
 
 // --- 検索機能 ---
-// ▼▼▼ 全面改修: 新しいハイライトエンジン ▼▼▼
 const searchState = { term: '', elements: [], currentIndex: -1 };
 const originalContentMap = new Map();
 
@@ -608,28 +636,16 @@ function findRangeFromCleanIndices(container, targetStart, targetEnd) {
     return null;
 }
 
-/**
- * 新しいハイライト処理関数
- * @param {Range} range - ハイライトするDOMの範囲
- */
-// ▼▼▼ 修正: 複数のハイライトが生成される不具合を修正 ▼▼▼
 function highlightRange(range) {
     if (range.collapsed) return;
 
-    // 1. ハイライト全体を囲むための<mark>タグを一つだけ作成
     const mark = document.createElement('mark');
     mark.className = 'search-highlight';
 
-    // 2. 範囲内のコンテンツを DocumentFragment として抽出
     const fragment = range.extractContents();
-
-    // 3. 抽出したすべてのコンテンツを、作成した単一の<mark>タグの中に移動
     mark.appendChild(fragment);
-
-    // 4. コンテンツが入った<mark>タグを、元の位置に挿入
     range.insertNode(mark);
 }
-// ▲▲▲ 修正ここまで ▲▲▲
 
 
 function performHighlight(term, stopQuestionNumber) {
@@ -650,16 +666,17 @@ function performHighlight(term, stopQuestionNumber) {
         const quizItem = document.getElementById(`quiz-${i}`);
         if (!quizItem) continue;
 
-        const elementsToSearch = quizItem.querySelectorAll('.question-text, .choice-btn');
+        const elementsToSearch = quizItem.querySelectorAll('.question-text, .choice-btn, .feedback-text');
         elementsToSearch.forEach(element => {
-            const cleanText = getSearchableText(element);
+            const searchContainer = element.matches('.choice-btn') ? (element.querySelector('span') || element) : element;
+            const cleanText = getSearchableText(searchContainer);
             const lowerCaseCleanText = cleanText.toLowerCase();
             const lowerCaseTerm = term.toLowerCase();
             
             let startIndex = -1;
             while ((startIndex = lowerCaseCleanText.indexOf(lowerCaseTerm, startIndex + 1)) !== -1) {
                 const endIndex = startIndex + lowerCaseTerm.length;
-                const range = findRangeFromCleanIndices(element, startIndex, endIndex);
+                const range = findRangeFromCleanIndices(searchContainer, startIndex, endIndex);
                 if (range) {
                     allRanges.push(range);
                 }
@@ -673,7 +690,7 @@ function performHighlight(term, stopQuestionNumber) {
             const commonAncestor = r.commonAncestorContainer;
             const parentElement = commonAncestor.nodeType === 1 ? commonAncestor : commonAncestor.parentNode;
             if (parentElement) {
-                const closest = parentElement.closest('.question-text, .choice-btn');
+                const closest = parentElement.closest('.question-text, .choice-btn, .feedback-text');
                 if(closest) affectedNodes.add(closest);
             }
         });
@@ -698,8 +715,12 @@ function performHighlight(term, stopQuestionNumber) {
 
 function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-function navigateToHighlight(direction, isNewSearch = false) {
-    if (searchState.elements.length === 0) { postSearchResults(); return; }
+// ▼▼▼ 変更箇所(1/2) ▼▼▼
+function navigateToHighlight(direction) {
+    if (searchState.elements.length === 0) {
+        postSearchResults();
+        return;
+    }
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
         searchState.elements[searchState.currentIndex].classList.remove('active');
     }
@@ -719,10 +740,12 @@ function navigateToHighlight(direction, isNewSearch = false) {
         currentElement.classList.add('active');
         const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
         const elementRect = currentElement.getBoundingClientRect();
+        
+        // 要素が画面内に表示されているかチェック
         const isVisible = (elementRect.top >= headerOffset && elementRect.bottom <= window.innerHeight);
-        if (isNewSearch && isVisible) {
-            // no scroll
-        } else {
+        
+        // 画面外の場合のみスクロールする
+        if (!isVisible) {
             const elementTop = elementRect.top + window.pageYOffset;
             const offsetPosition = elementTop - headerOffset - ((window.innerHeight - headerOffset) / 2);
             window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
@@ -730,23 +753,49 @@ function navigateToHighlight(direction, isNewSearch = false) {
     }
     postSearchResults();
 }
+
 function handleSearch(term, direction, stopQuestionNumber) {
+    // 検索語が変わった場合はハイライトを更新
     if (term !== searchState.term) {
         performHighlight(term, stopQuestionNumber);
-        if (searchState.elements.length > 0) {
-            let startIndex = 0;
-            const headerOffset = document.getElementById('quiz-header').offsetHeight;
-            for (let i = 0; i < searchState.elements.length; i++) {
-                const rect = searchState.elements[i].getBoundingClientRect();
-                if (rect.top >= headerOffset) { startIndex = i; break; }
+        searchState.currentIndex = -1; // インデックスをリセット
+    }
+
+    // ヒット件数が0なら何もしない
+    if (searchState.elements.length === 0) {
+        postSearchResults();
+        return;
+    }
+
+    // 初回検索時（Enterまたはボタン押下）に、現在の画面位置から検索を開始する
+    if (searchState.currentIndex === -1) {
+        let startIndex = 0;
+        const headerOffset = document.getElementById('quiz-header').offsetHeight;
+        for (let i = 0; i < searchState.elements.length; i++) {
+            const rect = searchState.elements[i].getBoundingClientRect();
+            // 画面上部（ヘッダー下）より下にある最初の要素を見つける
+            if (rect.top >= headerOffset) {
+                startIndex = i;
+                break;
             }
-            searchState.currentIndex = startIndex - 1; 
-            navigateToHighlight('next', true); 
-        } else { postSearchResults(); }
-    } else if (term) {
-        navigateToHighlight(direction, false);
-    } else { clearHighlights(); }
+        }
+        searchState.currentIndex = startIndex - 1; // navigateToHighlightでインクリメントされることを見越して-1する
+    }
+
+    navigateToHighlight(direction);
 }
+// ▲▲▲ 変更ここまで ▲▲▲
+
+// ▼▼▼ 変更箇所(2/2) ▼▼▼
+function highlightOnly(term) {
+    if (term !== searchState.term) {
+        performHighlight(term);
+        // 次のEnter/ボタン押下時に現在地から検索を始めるため、インデックスをリセットしておく
+        searchState.currentIndex = -1;
+    }
+}
+// ▲▲▲ 変更ここまで ▲▲▲
+
 function toggleDarkMode(isDarkMode) {
     if (isDarkMode) { document.body.classList.add('dark-mode'); }
     else { document.body.classList.remove('dark-mode'); }

@@ -60,7 +60,9 @@ const displayLastUpdated = () => {
 const loadQuizList = async () => {
     const appList = document.getElementById('app-list');
     const closeMenuLi = document.querySelector('.close-menu-li');
-    if (!appList || !closeMenuLi) return;
+    const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
+    if (!appList || !closeMenuLi || !menuToggleOpenBtn) return;
+
     try {
         const response = await fetch(`-quiz_list.txt?v=${new Date().getTime()}`);
         if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
@@ -85,6 +87,10 @@ const loadQuizList = async () => {
         li.textContent = "クイズリストの読み込みエラー";
         li.style.color = "red";
         appList.insertBefore(li, closeMenuLi);
+    } finally {
+        if (menuToggleOpenBtn) {
+            menuToggleOpenBtn.disabled = false;
+        }
     }
 };
 
@@ -132,14 +138,14 @@ const loadSearchHistory = () => {
                 try {
                     const iframeWin = iframe.contentWindow;
                     if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-                        iframeWin.handleSearch('', 'next'); 
+                        iframeWin.handleSearch('', 'next', null, true); 
                     } else if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
                         iframeWin.clearHighlights();
                     }
                 } catch(err) {}
                 searchInput.value = term;
                 searchInput.dispatchEvent(new Event('input'));
-                performSearch('next');
+                performSearch('next', true);
                 searchHistoryContainer.style.display = 'none';
             });
             item.appendChild(textSpan);
@@ -170,8 +176,10 @@ const showToast = (message) => {
 };
 
 window.addEventListener('message', (event) => {
-    if (event.data === 'quizPositionRestored') {
-        showToast("★ 新機能：前回の問題文から再開しました ★");
+    if (event.data && event.data.type === 'quizPositionRestored') {
+        const { title, question } = event.data;
+        const message = `「${title}」の${question}問目から再開しました`;
+        showToast(message);
     }
     else if (event.data && event.data.type === 'iframeTitleUpdated') {
         const newTitle = event.data.title || '';
@@ -353,12 +361,34 @@ const applyDarkModeToIframe = (enable) => {
                 iframeDoc.head.appendChild(styleElement);
             }
             styleElement.textContent = `
-                body { background-color: #212529 !important; color: #f8f9fa !important; } .quiz-container h1 { color: #f8f9fa !important; } .main-container h1, .main-container h2 { color: #000000 !important; } #quiz-header { background-color: #474a4d !important; } #score-text { color: #b8bbbf !important; }
-                .feedback-text[style*="color: green"] { color: #69f0ae !important; } .feedback-text[style*="color: red"] { color: #ff6e6e !important; } .feedback-text[style*="color: blue"] { color: #f8f9fa !important; }
-                ::selection { background-color: #ffc107 !important; color: #000000 !important; } .quiz-container, .timer-container, div[style*="background"], section, main { background-color: transparent !important; color: inherit !important; }
-                button, input, select { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; } .search-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; } a { color: #66bfff !important; }
+                /* 基本設定 */
+                body { background-color: #212529 !important; color: #f8f9fa !important; }
+                ::selection { background-color: #ffc107 !important; color: #000000 !important; }
+                a { color: #66bfff !important; }
+
+                /* manual.html用のスタイルを追加 */
+                .feature-section { background-color: #343a40 !important; border-color: #495057 !important; }
+                h1, h2, h3 { border-bottom-color: #0056b3 !important; }
+
+                /* クイズページ用のスタイル */
+                .quiz-container h1, .main-container h1, .main-container h2 { color: #f8f9fa !important; }
+                #quiz-header { background-color: #343a40 !important; }
+                #score-text { color: #b8bbbf !important; }
+                .feedback-text[style*="color: green"] { color: #69f0ae !important; }
+                .feedback-text[style*="color: red"] { color: #ff6e6e !important; }
+                .feedback-text[style*="color: blue"] { color: #f8f9fa !important; }
+                .quiz-container, .timer-container, div[style*="background"], section, main { background-color: transparent !important; color: inherit !important; }
+                
+                /* フォーム要素とボタン全般 */
+                button, input, select { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
+                .search-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
+
+                /* クイズページの選択肢のスタイルを追加 */
+                .choice-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
                 .choice-btn.selected { background-color: #5a6268 !important; border-color: #adb5bd !important; color: #ffffff !important; }
-                .choice-btn.correct { background-color: #1f513f !important; border-color: #286953 !important; color: #ffffff !important; font-weight: bold !important; } .choice-btn.incorrect { background-color: #581e26 !important; border-color: #722730 !important; color: #ffffff !important; }`;
+                .choice-btn.correct { background-color: #1f513f !important; border-color: #286953 !important; color: #ffffff !important; font-weight: bold !important; }
+                .choice-btn.incorrect { background-color: #581e26 !important; border-color: #722730 !important; color: #ffffff !important; }
+            `;
         } else {
             if (styleElement) { styleElement.remove(); }
         }
@@ -421,19 +451,27 @@ searchInput.addEventListener('keydown', (e) => {
     }
 });
 
+// ▼▼▼ 変更箇所(1/2) ▼▼▼
+// リアルタイム検索を、画面がスクロールしないハイライトのみの機能に変更
 searchInput.addEventListener('input', () => {
-    if (searchInput.value.length > 0) {
+    const term = searchInput.value;
+    if (term.length > 0) {
         searchClearBtn.style.display = 'block';
     } else {
         searchClearBtn.style.display = 'none';
-        try {
-            const iframeWin = iframe.contentWindow;
-            if (iframeWin && typeof iframeWin.clearHighlights === 'function') {
-                iframeWin.clearHighlights();
-            }
-        } catch(e) {}
+    }
+    // リアルタイムでハイライトのみ実行
+    try {
+        const iframeWin = iframe.contentWindow;
+        if (iframeWin && typeof iframeWin.highlightOnly === 'function') {
+            iframeWin.highlightOnly(term);
+        }
+    } catch(e) {
+        console.error("Error calling iframe highlight function:", e.message);
     }
 });
+// ▲▲▲ 変更ここまで ▲▲▲
+
 searchClearBtn.addEventListener('click', () => {
     searchInput.value = '';
     searchClearBtn.style.display = 'none';
@@ -613,7 +651,6 @@ function updateRubyButtonVisibility() {
     }
 }
 
-// ▼▼▼ 変更: iOSのタイミング問題を解決するため、setTimeoutをrequestAnimationFrameに変更 ▼▼▼
 function syncRubyButtonState() {
     const isRubyEnabled = localStorage.getItem('rubyVisible') === 'true';
     if (isRubyEnabled) {
@@ -648,7 +685,6 @@ rubyToggleBtn.addEventListener('click', () => {
     localStorage.setItem('rubyVisible', isRubyEnabled);
     syncRubyButtonState();
 
-    // requestAnimationFrameを2回呼び出して、DOMの更新と再描画を確実に待つ
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             if (topVisibleQuizId) {
@@ -671,7 +707,6 @@ rubyToggleBtn.addEventListener('click', () => {
         });
     });
 });
-// ▲▲▲ 変更ここまで ▲▲▲
 
 function setupIframeContent() {
     try {
@@ -683,6 +718,8 @@ function setupIframeContent() {
             addSearchButtonsToIframe(); 
             setAppHeight();
             
+            updateRubyButtonVisibility();
+
             if (!iframeDoc.body.classList.contains('choice-listeners-added')) {
                 const finishBtn = iframeDoc.getElementById('finish-btn');
                 if (finishBtn) { finishBtn.addEventListener('click', handleQuizFinished); }
@@ -726,18 +763,24 @@ function setupIframeContent() {
     }
 }
 
+// ▼▼▼ 変更箇所(2/2) ▼▼▼
+// manual.html を非表示対象に追加
 function updateFooterUIVisibility() {
     try {
         const iframeSrc = iframe.contentWindow.location.href;
-        const pagesToHideSearch = ['timer-portrait.html', 'timer-landscape.html', 'quiz_english.html'];
+        const pagesToHideSearch = ['timer-portrait.html', 'timer-landscape.html', 'quiz_english.html', 'manual.html'];
         const shouldHide = pagesToHideSearch.some(page => iframeSrc.includes(page));
-        if (shouldHide) { searchContainer.style.display = 'none'; }
-        else { searchContainer.style.display = 'flex'; }
+        if (shouldHide) {
+            searchContainer.style.display = 'none';
+        } else {
+            searchContainer.style.display = 'flex';
+        }
     } catch (e) {
         searchContainer.style.display = 'flex';
         console.warn("iframeのURL取得に失敗したため、検索ボックスの表示状態を変更できませんでした:", e.message);
     }
 }
+// ▲▲▲ 変更ここまで ▲▲▲
 
 iframe.addEventListener('load', () => {
     handleQuizFinished(); 
