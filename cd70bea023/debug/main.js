@@ -177,12 +177,9 @@ const showToast = (message) => {
     }, 2000); 
 };
 
-// ▼▼▼ 変更箇所 ▼▼▼
 window.addEventListener('message', (event) => {
-    // オブジェクト形式のデータ `event.data` をチェックし、typeで処理を分岐する
     if (event.data && event.data.type === 'quizPositionRestored') {
         const { title, question } = event.data;
-        // 受け取ったタイトルと問題番号でメッセージを組み立てる
         const message = `「${title}」の${question}問目から再開しました`;
         showToast(message);
     }
@@ -212,7 +209,6 @@ window.addEventListener('message', (event) => {
         }
     }
 });
-// ▲▲▲ 変更ここまで ▲▲▲
 
 function handleQuizChoiceMade(quizIndexStr) {
     const quizIndex = parseInt(quizIndexStr, 10);
@@ -354,6 +350,7 @@ function injectBaseStyles(iframeDoc) {
     iframeDoc.head.appendChild(styleElement);
 }
 
+// ▼▼▼ 変更箇所 ▼▼▼
 const applyDarkModeToIframe = (enable) => {
     try {
         const iframeDoc = iframe.contentDocument;
@@ -366,13 +363,36 @@ const applyDarkModeToIframe = (enable) => {
                 styleElement.id = styleElementId;
                 iframeDoc.head.appendChild(styleElement);
             }
+            // スタイル定義を拡充
             styleElement.textContent = `
-                body { background-color: #212529 !important; color: #f8f9fa !important; } .quiz-container h1 { color: #f8f9fa !important; } .main-container h1, .main-container h2 { color: #000000 !important; } #quiz-header { background-color: #474a4d !important; } #score-text { color: #b8bbbf !important; }
-                .feedback-text[style*="color: green"] { color: #69f0ae !important; } .feedback-text[style*="color: red"] { color: #ff6e6e !important; } .feedback-text[style*="color: blue"] { color: #f8f9fa !important; }
-                ::selection { background-color: #ffc107 !important; color: #000000 !important; } .quiz-container, .timer-container, div[style*="background"], section, main { background-color: transparent !important; color: inherit !important; }
-                button, input, select { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; } .search-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; } a { color: #66bfff !important; }
+                /* 基本設定 */
+                body { background-color: #212529 !important; color: #f8f9fa !important; }
+                ::selection { background-color: #ffc107 !important; color: #000000 !important; }
+                a { color: #66bfff !important; }
+
+                /* manual.html用のスタイルを追加 */
+                .feature-section { background-color: #343a40 !important; border-color: #495057 !important; }
+                h1, h2, h3 { border-bottom-color: #0056b3 !important; }
+
+                /* クイズページ用のスタイル */
+                .quiz-container h1, .main-container h1, .main-container h2 { color: #f8f9fa !important; }
+                #quiz-header { background-color: #343a40 !important; }
+                #score-text { color: #b8bbbf !important; }
+                .feedback-text[style*="color: green"] { color: #69f0ae !important; }
+                .feedback-text[style*="color: red"] { color: #ff6e6e !important; }
+                .feedback-text[style*="color: blue"] { color: #f8f9fa !important; }
+                .quiz-container, .timer-container, div[style*="background"], section, main { background-color: transparent !important; color: inherit !important; }
+                
+                /* フォーム要素とボタン全般 */
+                button, input, select { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
+                .search-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
+
+                /* クイズページの選択肢のスタイルを追加 */
+                .choice-btn { background-color: #343a40 !important; color: #f8f9fa !important; border-color: #495057 !important; }
                 .choice-btn.selected { background-color: #5a6268 !important; border-color: #adb5bd !important; color: #ffffff !important; }
-                .choice-btn.correct { background-color: #1f513f !important; border-color: #286953 !important; color: #ffffff !important; font-weight: bold !important; } .choice-btn.incorrect { background-color: #581e26 !important; border-color: #722730 !important; color: #ffffff !important; }`;
+                .choice-btn.correct { background-color: #1f513f !important; border-color: #286953 !important; color: #ffffff !important; font-weight: bold !important; }
+                .choice-btn.incorrect { background-color: #581e26 !important; border-color: #722730 !important; color: #ffffff !important; }
+            `;
         } else {
             if (styleElement) { styleElement.remove(); }
         }
@@ -380,6 +400,7 @@ const applyDarkModeToIframe = (enable) => {
         console.warn("Could not access iframe content for dark mode: ", e.message);
     }
 };
+// ▲▲▲ 変更ここまで ▲▲▲
 
 darkModeButton.addEventListener('click', () => {
     bodyElement.classList.toggle('dark-mode');
