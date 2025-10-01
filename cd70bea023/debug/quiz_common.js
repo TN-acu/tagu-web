@@ -715,8 +715,12 @@ function performHighlight(term, stopQuestionNumber) {
 
 function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-function navigateToHighlight(direction, isNewSearch = false) {
-    if (searchState.elements.length === 0) { postSearchResults(); return; }
+// ▼▼▼ 変更箇所(1/2) ▼▼▼
+function navigateToHighlight(direction) {
+    if (searchState.elements.length === 0) {
+        postSearchResults();
+        return;
+    }
     if (searchState.currentIndex >= 0 && searchState.elements[searchState.currentIndex]) {
         searchState.elements[searchState.currentIndex].classList.remove('active');
     }
@@ -736,10 +740,12 @@ function navigateToHighlight(direction, isNewSearch = false) {
         currentElement.classList.add('active');
         const headerOffset = document.getElementById('quiz-header').offsetHeight + 10;
         const elementRect = currentElement.getBoundingClientRect();
+        
+        // 要素が画面内に表示されているかチェック
         const isVisible = (elementRect.top >= headerOffset && elementRect.bottom <= window.innerHeight);
-        if (isNewSearch && isVisible) {
-            // no scroll
-        } else {
+        
+        // 画面外の場合のみスクロールする
+        if (!isVisible) {
             const elementTop = elementRect.top + window.pageYOffset;
             const offsetPosition = elementTop - headerOffset - ((window.innerHeight - headerOffset) / 2);
             window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
@@ -749,35 +755,42 @@ function navigateToHighlight(direction, isNewSearch = false) {
 }
 
 function handleSearch(term, direction, stopQuestionNumber) {
+    // 検索語が変わった場合はハイライトを更新
     if (term !== searchState.term) {
         performHighlight(term, stopQuestionNumber);
-        if (searchState.elements.length > 0) {
-            let startIndex = 0;
-            const headerOffset = document.getElementById('quiz-header').offsetHeight;
-            for (let i = 0; i < searchState.elements.length; i++) {
-                const rect = searchState.elements[i].getBoundingClientRect();
-                if (rect.top >= headerOffset) { startIndex = i; break; }
-            }
-            searchState.currentIndex = startIndex - 1; 
-            navigateToHighlight('next', true); 
-        } else { 
-            postSearchResults(); 
-        }
-    } 
-    else if (term) {
-        navigateToHighlight(direction, false);
-    } 
-    else { 
-        clearHighlights(); 
+        searchState.currentIndex = -1; // インデックスをリセット
     }
-}
 
-// ▼▼▼ 変更箇所 ▼▼▼
-// リアルタイム検索用の、スクロールしないハイライト専用関数
+    // ヒット件数が0なら何もしない
+    if (searchState.elements.length === 0) {
+        postSearchResults();
+        return;
+    }
+
+    // 初回検索時（Enterまたはボタン押下）に、現在の画面位置から検索を開始する
+    if (searchState.currentIndex === -1) {
+        let startIndex = 0;
+        const headerOffset = document.getElementById('quiz-header').offsetHeight;
+        for (let i = 0; i < searchState.elements.length; i++) {
+            const rect = searchState.elements[i].getBoundingClientRect();
+            // 画面上部（ヘッダー下）より下にある最初の要素を見つける
+            if (rect.top >= headerOffset) {
+                startIndex = i;
+                break;
+            }
+        }
+        searchState.currentIndex = startIndex - 1; // navigateToHighlightでインクリメントされることを見越して-1する
+    }
+
+    navigateToHighlight(direction);
+}
+// ▲▲▲ 変更ここまで ▲▲▲
+
+// ▼▼▼ 変更箇所(2/2) ▼▼▼
 function highlightOnly(term) {
     if (term !== searchState.term) {
         performHighlight(term);
-        // 次のEnter/ボタン押下時に最初から検索できるようにインデックスをリセット
+        // 次のEnter/ボタン押下時に現在地から検索を始めるため、インデックスをリセットしておく
         searchState.currentIndex = -1;
     }
 }
