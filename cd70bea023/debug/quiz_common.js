@@ -238,15 +238,12 @@ async function setupQuiz(dataTxtFile) {
                 setTimeout(() => {
                     window.scrollTo({ top: y, behavior: 'auto' });
                     
-                    // ▼▼▼ 変更箇所 ▼▼▼
                     if (window.parent && window.parent.postMessage) {
                         let questionNumber = 1;
                         const quizItems = document.querySelectorAll('.quiz-item');
                         
-                        // 画面の最上部ではなく、表示領域の「中央」を基準点とする
                         const viewportCenter = y + (window.innerHeight / 2);
 
-                        // 基準点よりも手前にある最後の問題を取得する
                         quizItems.forEach((item, index) => {
                             if (item.offsetTop <= viewportCenter) {
                                 questionNumber = index + 1;
@@ -259,8 +256,6 @@ async function setupQuiz(dataTxtFile) {
                             question: questionNumber
                         }, '*');
                     }
-                    // ▲▲▲ 変更ここまで ▲▲▲
-
                 }, 100);
             }
         }
@@ -776,6 +771,17 @@ function handleSearch(term, direction, stopQuestionNumber) {
         clearHighlights(); 
     }
 }
+
+// ▼▼▼ 変更箇所 ▼▼▼
+// リアルタイム検索用の、スクロールしないハイライト専用関数
+function highlightOnly(term) {
+    if (term !== searchState.term) {
+        performHighlight(term);
+        // 次のEnter/ボタン押下時に最初から検索できるようにインデックスをリセット
+        searchState.currentIndex = -1;
+    }
+}
+// ▲▲▲ 変更ここまで ▲▲▲
 
 function toggleDarkMode(isDarkMode) {
     if (isDarkMode) { document.body.classList.add('dark-mode'); }

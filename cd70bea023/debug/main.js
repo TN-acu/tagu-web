@@ -60,7 +60,6 @@ const displayLastUpdated = () => {
 const loadQuizList = async () => {
     const appList = document.getElementById('app-list');
     const closeMenuLi = document.querySelector('.close-menu-li');
-    // ▼▼▼ 修正: menu-toggle-openボタンを取得 ▼▼▼
     const menuToggleOpenBtn = document.getElementById('menu-toggle-open');
     if (!appList || !closeMenuLi || !menuToggleOpenBtn) return;
 
@@ -89,7 +88,6 @@ const loadQuizList = async () => {
         li.style.color = "red";
         appList.insertBefore(li, closeMenuLi);
     } finally {
-        // ▼▼▼ 修正: 処理の成功・失敗に関わらず、ボタンを有効化する ▼▼▼
         if (menuToggleOpenBtn) {
             menuToggleOpenBtn.disabled = false;
         }
@@ -350,7 +348,6 @@ function injectBaseStyles(iframeDoc) {
     iframeDoc.head.appendChild(styleElement);
 }
 
-// ▼▼▼ 変更箇所 ▼▼▼
 const applyDarkModeToIframe = (enable) => {
     try {
         const iframeDoc = iframe.contentDocument;
@@ -363,7 +360,6 @@ const applyDarkModeToIframe = (enable) => {
                 styleElement.id = styleElementId;
                 iframeDoc.head.appendChild(styleElement);
             }
-            // スタイル定義を拡充
             styleElement.textContent = `
                 /* 基本設定 */
                 body { background-color: #212529 !important; color: #f8f9fa !important; }
@@ -400,7 +396,6 @@ const applyDarkModeToIframe = (enable) => {
         console.warn("Could not access iframe content for dark mode: ", e.message);
     }
 };
-// ▲▲▲ 変更ここまで ▲▲▲
 
 darkModeButton.addEventListener('click', () => {
     bodyElement.classList.toggle('dark-mode');
@@ -456,6 +451,8 @@ searchInput.addEventListener('keydown', (e) => {
     }
 });
 
+// ▼▼▼ 変更箇所(1/2) ▼▼▼
+// リアルタイム検索を、画面がスクロールしないハイライトのみの機能に変更
 searchInput.addEventListener('input', () => {
     const term = searchInput.value;
     if (term.length > 0) {
@@ -463,15 +460,18 @@ searchInput.addEventListener('input', () => {
     } else {
         searchClearBtn.style.display = 'none';
     }
-    // リアルタイム検索を実行
+    // リアルタイムでハイライトのみ実行
     try {
         const iframeWin = iframe.contentWindow;
-        if (iframeWin && typeof iframeWin.handleSearch === 'function') {
-            // 入力が変わるたびに新しい検索として扱う
-            iframeWin.handleSearch(term, 'next', null, true);
+        if (iframeWin && typeof iframeWin.highlightOnly === 'function') {
+            iframeWin.highlightOnly(term);
         }
-    } catch(e) {}
+    } catch(e) {
+        console.error("Error calling iframe highlight function:", e.message);
+    }
 });
+// ▲▲▲ 変更ここまで ▲▲▲
+
 searchClearBtn.addEventListener('click', () => {
     searchInput.value = '';
     searchClearBtn.style.display = 'none';
@@ -718,7 +718,6 @@ function setupIframeContent() {
             addSearchButtonsToIframe(); 
             setAppHeight();
             
-            // ▼▼▼ 修正: ルビボタンの表示判定をここにも追加 ▼▼▼
             updateRubyButtonVisibility();
 
             if (!iframeDoc.body.classList.contains('choice-listeners-added')) {
@@ -764,18 +763,24 @@ function setupIframeContent() {
     }
 }
 
+// ▼▼▼ 変更箇所(2/2) ▼▼▼
+// manual.html を非表示対象に追加
 function updateFooterUIVisibility() {
     try {
         const iframeSrc = iframe.contentWindow.location.href;
-        const pagesToHideSearch = ['timer-portrait.html', 'timer-landscape.html', 'quiz_english.html'];
+        const pagesToHideSearch = ['timer-portrait.html', 'timer-landscape.html', 'quiz_english.html', 'manual.html'];
         const shouldHide = pagesToHideSearch.some(page => iframeSrc.includes(page));
-        if (shouldHide) { searchContainer.style.display = 'none'; }
-        else { searchContainer.style.display = 'flex'; }
+        if (shouldHide) {
+            searchContainer.style.display = 'none';
+        } else {
+            searchContainer.style.display = 'flex';
+        }
     } catch (e) {
         searchContainer.style.display = 'flex';
         console.warn("iframeのURL取得に失敗したため、検索ボックスの表示状態を変更できませんでした:", e.message);
     }
 }
+// ▲▲▲ 変更ここまで ▲▲▲
 
 iframe.addEventListener('load', () => {
     handleQuizFinished(); 
