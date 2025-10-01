@@ -40,12 +40,30 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             margin-top: 10px;
+            /* ▼▼▼ 追加箇所(1/2) ▼▼▼ */
+            pointer-events: none; /* マウスイベント（クリック、ドラッグ）を無効化 */
+            -webkit-touch-callout: none; /* iOSでの長押しメニューを無効化 */
+            /* ▲▲▲ 追加ここまで ▲▲▲ */
         }
         code {
             background-color: #e9ecef;
             padding: 2px 4px;
             border-radius: 4px;
         }
+
+        /* ▼▼▼ 変更箇所(2/2) ▼▼▼ */
+        /* 画面幅が768px以下のデバイス（スマートフォンなど）でのみテキスト選択を無効化 */
+        @media (max-width: 768px) {
+            body {
+                -webkit-user-select: none; /* Safari, Chrome */
+                -moz-user-select: none;    /* Firefox */
+                -ms-user-select: none;     /* IE/Edge */
+                user-select: none;         /* Standard */
+            }
+        }
+        /* ▲▲▲ 変更ここまで ▲▲▲ */
+
+
     </style>
 </head>
 <body>
