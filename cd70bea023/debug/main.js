@@ -177,9 +177,14 @@ const showToast = (message) => {
     }, 2000); 
 };
 
+// ▼▼▼ 変更箇所 ▼▼▼
 window.addEventListener('message', (event) => {
-    if (event.data === 'quizPositionRestored') {
-        showToast("★ 新機能：前回の問題文から再開しました ★");
+    // オブジェクト形式のデータ `event.data` をチェックし、typeで処理を分岐する
+    if (event.data && event.data.type === 'quizPositionRestored') {
+        const { title, question } = event.data;
+        // 受け取ったタイトルと問題番号でメッセージを組み立てる
+        const message = `「${title}」の${question}問目から再開しました`;
+        showToast(message);
     }
     else if (event.data && event.data.type === 'iframeTitleUpdated') {
         const newTitle = event.data.title || '';
@@ -207,6 +212,7 @@ window.addEventListener('message', (event) => {
         }
     }
 });
+// ▲▲▲ 変更ここまで ▲▲▲
 
 function handleQuizChoiceMade(quizIndexStr) {
     const quizIndex = parseInt(quizIndexStr, 10);

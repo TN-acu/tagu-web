@@ -61,6 +61,8 @@ async function setupQuiz(dataTxtFile) {
 
     currentDataFileKey = 'quizLastPosition_' + dataTxtFile;
     currentPdfRangeKey = 'pdfPrintRange_' + dataTxtFile;
+    
+    let quizTitle = "クイズ"; 
 
     try {
         const [quizResponse, rubyResponse] = await Promise.all([
@@ -89,7 +91,6 @@ async function setupQuiz(dataTxtFile) {
         }
 
         const lines = text.split('\n');
-        let quizTitle = "クイズ"; 
         let pdfInterval = 6;     
 
         if (lines.length > 0 && lines[0].startsWith('#!')) {
@@ -178,10 +179,8 @@ async function setupQuiz(dataTxtFile) {
             shuffleArray(shuffledChoices);
             
             shuffledChoices.forEach(choice => {
-                // ▼▼▼ 修正: 要素を<button>から<div>に変更 ▼▼▼
                 const choiceBtn = document.createElement('div');
                 choiceBtn.className = 'choice-btn';
-                // ▼▼▼ 追加: アクセシビリティ対応 ▼▼▼
                 choiceBtn.setAttribute('role', 'button');
                 choiceBtn.setAttribute('tabindex', '0');
                 
@@ -238,9 +237,30 @@ async function setupQuiz(dataTxtFile) {
             if (!isNaN(y) && y > 0) {
                 setTimeout(() => {
                     window.scrollTo({ top: y, behavior: 'auto' });
+                    
+                    // ▼▼▼ 変更箇所 ▼▼▼
                     if (window.parent && window.parent.postMessage) {
-                        window.parent.postMessage('quizPositionRestored', '*');
+                        let questionNumber = 1;
+                        const quizItems = document.querySelectorAll('.quiz-item');
+                        
+                        // 画面の最上部ではなく、表示領域の「中央」を基準点とする
+                        const viewportCenter = y + (window.innerHeight / 2);
+
+                        // 基準点よりも手前にある最後の問題を取得する
+                        quizItems.forEach((item, index) => {
+                            if (item.offsetTop <= viewportCenter) {
+                                questionNumber = index + 1;
+                            }
+                        });
+
+                        window.parent.postMessage({
+                            type: 'quizPositionRestored',
+                            title: quizTitle,
+                            question: questionNumber
+                        }, '*');
                     }
+                    // ▲▲▲ 変更ここまで ▲▲▲
+
                 }, 100);
             }
         }
@@ -289,7 +309,6 @@ function handlePdfRangeChange() {
 }
 
 function selectAnswer(quizIndex, btnElement) {
-    // ▼▼▼ 修正: .disabledクラスによる制御 ▼▼▼
     if (isReadyForPrint || isFinished || btnElement.classList.contains('disabled')) return;
     const choice = btnElement.dataset.choiceValue;
     userAnswers[quizIndex] = choice;
@@ -352,7 +371,6 @@ function finishQuiz(scrollToTop = true) {
             const btnChoice = btn.dataset.choiceValue;
             if (btnChoice === quiz.correctAnswer) { btn.classList.add('correct'); } 
             else if (btnChoice === userAnswer && !isCorrect) { btn.classList.add('incorrect'); }
-            // ▼▼▼ 修正: disabled属性からクラスの追加へ変更 ▼▼▼
             btn.classList.add('disabled');
         });
         if (userAnswer === null || userAnswer === undefined) {
@@ -523,7 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
     pdfBtn.addEventListener('click', handlePdfButtonClick);
     if (pdfOptionsToggle) { pdfOptionsToggle.addEventListener('click', () => { pdfControlsWrapper.classList.toggle('collapsed'); }); }
     
-    // ▼▼▼ 修正: clickイベントリスナーからkeydownイベントリスナーを分離 ▼▼▼
     quizBody.addEventListener('click', (event) => {
         const clickedButton = event.target.closest('.choice-btn');
         if (clickedButton) {
@@ -532,12 +549,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ▼▼▼ 追加: キーボード操作（Enter, Space）で選択肢を決定できるようにする ▼▼▼
     quizBody.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             const focusedButton = event.target.closest('.choice-btn');
             if (focusedButton) {
-                event.preventDefault(); // Spaceキーでの画面スクロールを防止
+                event.preventDefault();
                 const quizIndex = parseInt(focusedButton.dataset.quizIndex, 10);
                 selectAnswer(quizIndex, focusedButton);
             }
@@ -657,7 +673,6 @@ function performHighlight(term, stopQuestionNumber) {
 
         const elementsToSearch = quizItem.querySelectorAll('.question-text, .choice-btn, .feedback-text');
         elementsToSearch.forEach(element => {
-            // ▼▼▼ 修正: choice-btnの場合は内側のspanを、それ以外は要素自身を検索の起点とする ▼▼▼
             const searchContainer = element.matches('.choice-btn') ? (element.querySelector('span') || element) : element;
             const cleanText = getSearchableText(searchContainer);
             const lowerCaseCleanText = cleanText.toLowerCase();
@@ -738,9 +753,7 @@ function navigateToHighlight(direction, isNewSearch = false) {
     postSearchResults();
 }
 
-// ▼▼▼ 修正: 検索語が変更された時だけ新しい検索を行うようにロジックを修正 ▼▼▼
 function handleSearch(term, direction, stopQuestionNumber) {
-    // 検索語が新しい場合は、常に新しい検索を開始
     if (term !== searchState.term) {
         performHighlight(term, stopQuestionNumber);
         if (searchState.elements.length > 0) {
@@ -756,11 +769,9 @@ function handleSearch(term, direction, stopQuestionNumber) {
             postSearchResults(); 
         }
     } 
-    // 同じ検索語の場合は、次へ/前へ移動する
     else if (term) {
         navigateToHighlight(direction, false);
     } 
-    // 検索語が空の場合
     else { 
         clearHighlights(); 
     }
