@@ -513,6 +513,46 @@ body.dark-mode #search-results-count.blink {
          width: 100%;
          box-sizing: border-box; 
     }
+    
+    /* ▼▼▼▼▼ ここからが修正箇所です ▼▼▼▼▼ */
+
+    /* 下向き矢印インジケーターのアニメーション定義 */
+    @keyframes fade-in-out-arrow {
+      0%, 100% {
+        opacity: 0;
+        transform: translate(-50%, 15px); /* 開始/終了位置 (少し下) */
+      }
+      20%, 80% {
+        opacity: 1;
+        transform: translate(-50%, 0); /* 表示位置 */
+      }
+    }
+
+    /* インジケーターを表示させるための親要素の設定 */
+    .nav-column.menu-open {
+      position: relative; /* 疑似要素の基準点とする */
+    }
+  
+    /* 下向き矢印インジケーター本体 */
+    .nav-column.menu-open::before {
+      content: '';
+      position: absolute;
+      bottom: 65px; /* 「閉じる」ボタンの少し上あたりに調整 */
+      left: 50%;
+      transform: translateX(-50%); /* 中央揃え */
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 20px solid red; /* 大きく赤い下向き矢印 */
+      z-index: 12;
+      pointer-events: none;
+      opacity: 0; /* 初期状態は非表示 */
+      animation: fade-in-out-arrow 1.2s ease-in-out 1; /* 約1秒で表示・非表示 */
+      animation-delay: 0.4s;
+    }
+    
+    /* ▲▲▲▲▲ ここまでが修正箇所です ▲▲▲▲▲ */
 }
 
 .menu-toggle {
@@ -557,11 +597,9 @@ body.dark-mode .menu-toggle.close-btn { border-top-color: var(--border-color-dar
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
-    /* ▼▼▼ 追加箇所 ▼▼▼ */
-    white-space: nowrap; /* テキストを折り返さない */
-    overflow: hidden; /* はみ出した部分を隠す */
-    text-overflow: ellipsis; /* はみ出した部分を「...」で表示 */
-    /* ▲▲▲ 追加ここまで ▲▲▲ */
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 #toast-notification.show {
     visibility: visible;
@@ -644,4 +682,92 @@ body.dark-mode .history-delete-btn {
 body.dark-mode .history-delete-btn:hover {
     background-color: rgba(255,255,255,0.1);
     color: #ccc;
+}
+
+/* ▼▼▼▼▼ ここから下が修正・復元箇所です ▼▼▼▼▼ */
+
+/* PC表示時のメニューリストの基本スタイル */
+#app-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative; /* グラデーションの基準位置として機能します */
+    max-height: calc(100vh - 200px); /* PC表示時のメニューの最大高さ */
+    overflow-y: auto; /* 内容がはみ出た場合にスクロールを許可 */
+}
+
+/* メニューリストの上下をぼかすグラデーション（スマートフォン表示でメニューを開いた時のみ表示） */
+.nav-column.menu-open #app-list::before,
+.nav-column.menu-open #app-list::after {
+    content: '';
+    position: sticky; /* スクロールに追従させる */
+    left: 0;
+    width: 100%;
+    height: 25px; /* グラデーションの高さ */
+    z-index: 1;   /* li要素より手前、閉じるボタン(z-index:10)より奥に配置 */
+    pointer-events: none; /* グラデーション部分のクリックを透過させる */
+}
+
+/* 上部のグラデーション */
+.nav-column.menu-open #app-list::before {
+    top: 0;
+    background: linear-gradient(to bottom, #ffffe0, transparent);
+}
+
+/* 下部のグラデーション */
+.nav-column.menu-open #app-list::after {
+    bottom: 0;
+    background: linear-gradient(to top, #ffffe0, transparent);
+}
+
+/* ダークモード時のグラデーション */
+body.dark-mode .nav-column.menu-open #app-list::before {
+    background: linear-gradient(to bottom, #4d4d33, transparent);
+}
+body.dark-mode .nav-column.menu-open #app-list::after {
+    background: linear-gradient(to top, #4d4d33, transparent);
+}
+
+
+/* スクロールバーの視認性向上（WebKit系ブラウザ向け） */
+#app-list::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+#app-list::-webkit-scrollbar-track {
+    background: #e9ecef;
+    border-radius: 5px;
+}
+
+#app-list::-webkit-scrollbar-thumb {
+    background-color: #adb5bd;
+    border-radius: 5px;
+    border: 2px solid #e9ecef;
+}
+
+#app-list::-webkit-scrollbar-thumb:hover {
+    background-color: #6c757d;
+}
+
+/* ダークモード時のスクロールバー */
+body.dark-mode #app-list::-webkit-scrollbar-track {
+    background: #212529;
+}
+
+body.dark-mode #app-list::-webkit-scrollbar-thumb {
+    background-color: #6c757d;
+    border-color: #212529;
+}
+
+body.dark-mode #app-list::-webkit-scrollbar-thumb:hover {
+    background-color: #adb5bd;
+}
+
+/* スマートフォン表示でメニューを開いた時の高さ調整 */
+.nav-column.menu-open #app-list {
+    max-height: calc(100vh - 120px);
+}
+
+/* ▲▲▲▲▲ ここまでが修正・復元箇所です ▲▲▲▲▲ */
 }
