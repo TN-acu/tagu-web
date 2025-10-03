@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>taguアプリ QRコード</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+    <link rel="manifest" href="manifest.json">
+        
+    <link rel="stylesheet" href="style.css?v=4">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMT128FJCK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-LMT128FJCK'); // ここにあなたの測定IDを入れます
+    </script>
+    
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* ビューポートの高さいっぱい */
+            margin: 0;
+            background-color: #f0f0f0; /* 背景色 */
+            overflow: hidden; /* スクロールバー非表示 */
+        }
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 90vw; /* 画面幅の90% */
+            max-height: 90vh; /* 画面高さの90% */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .qr-code {
+            max-width: 100%; /* 親要素の幅に合わせて最大化 */
+            max-height: 80vh; /* 親要素の高さに合わせて最大化 */
+            width: auto; /* アスペクト比を維持 */
+            height: auto; /* アスペクト比を維持 */
+            display: block; /* 余白をなくす */
+            object-fit: contain; /* コンテナ内に収まるように */
+        }
+        p {
+            margin-top: 15px;
+            font-size: 1.2em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        /* ダークモード対応 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+            }
+            .qr-container {
+                background-color: #444;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            }
+            p {
+                color: #eee;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="qr-container">
+        <img src="pic_qr/tagu-app-qr.PNG" alt="taguアプリのQRコード" class="qr-code">
+        <p>このQRコードをスキャンして [taguアプリ] にアクセス</p>
+    </div>
+</body>
+</html>
+
