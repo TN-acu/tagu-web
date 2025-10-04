@@ -731,7 +731,7 @@ body.dark-mode .nav-column.menu-open #app-list::after {
 
 /* スクロールバーの視認性向上（WebKit系ブラウザ向け） */
 #app-list::-webkit-scrollbar {
-    width: 10px;
+    width: 13px;
     height: 10px;
 }
 
