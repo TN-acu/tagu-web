@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学校駐車場シミュレーター</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <meta name="robots" content="noindex, nofollow, noarchive">
+
+    <script src="auth.js"></script>
+    
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+    <link rel="manifest" href="manifest.json">
+        
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LMT128FJCK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-LMT128FJCK');
+    </script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div id="splash-screen">
+        <img src="title.png" alt="駐車場シミュレーター タイトル画面">
+    </div>
+
+    <div id="main-content">
+        <div id="controls">
+            <div class="control-group">
+                <button id="reset-button">初期配置に戻す</button>
+                <button id="manual-button">マニュアル</button>
+            </div>
+            <div class="control-group">
+                <button id="save-button">セーブ</button>
+                <select id="slot-select">
+                    <option value="1">空データ</option>
+                    <option value="2">空データ</option>
+                    <option value="3">空データ</option>
+                </select>
+                <button id="load-button">ロード</button>
+            </div>
+        </div>
+        <div id="simulator-container">
+            <div id="parking-area">
+                <div id="car_3395_1" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_2" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_12" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_13" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_14" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_15" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_16" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_17" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_18" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                <div id="car_3395_19" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
+                
+                <div id="car_3930_1" class="draggable shape car" data-type="3930mm"><span>3,930<br>mm</span></div>
+
+                <div id="car_4350_1" class="draggable shape car" data-type="4350mm"><span>4,350<br>mm</span></div>
+                <div id="car_4350_2" class="draggable shape car" data-type="4350mm"><span>4,350<br>mm</span></div>
+
+                <div id="car_4360_1" class="draggable shape car" data-type="4360mm"><span>4,360<br>mm</span></div>
+                
+                <div id="car_4650_1" class="draggable shape car" data-type="4650mm"><span>4,650<br>mm</span></div>
+                <div id="car_4650_2" class="draggable shape car" data-type="4650mm"><span>4,650<br>mm</span></div>
+                <div id="car_4650_3" class="draggable shape car" data-type="4650mm"><span>4,650<br>mm</span></div>
+                <div id="car_4650_4" class="draggable shape car" data-type="4650mm"><span>4,650<br>mm</span></div>
+                <div id="car_4650_5" class="draggable shape car" data-type="4650mm"><span>4,650<br>mm</span></div>
+                
+                <div id="car_4740_2" class="draggable shape car" data-type="4740mm"><span>4,740<br>mm</span></div>
+
+                <div id="space_1000_1" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_2" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_3" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_4" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_5" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_6" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_7" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_8" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_15" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_16" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_17" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_18" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_19" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_20" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+                <div id="space_1000_21" class="draggable shape space" data-type="1000mm"><span>1,000<br>mm</span></div>
+
+                <div id="space_1500_1" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_2" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_3" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_4" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_5" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_6" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_7" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_8" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                <div id="space_1500_9" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
+                
+                <div id="north-mark"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+
+    <div id="custom-dialog-overlay" class="dialog-hidden">
+        <div id="custom-dialog-box">
+            <p id="custom-dialog-message"></p>
+            <div id="custom-dialog-buttons"></div>
+        </div>
+    </div>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(registration => {
+              console.log('サービスワーカーの登録に成功しました:', registration.scope);
+            })
+            .catch(error => {
+              console.log('サービスワーカーの登録に失敗しました:', error);
+            });
+        });
+      }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,372 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: sans-serif;
+    overscroll-behavior: none;
+    overflow: hidden;
+}
+
+body {
+    background-color: #f0f0f0;
+}
+
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease-out;
+}
+
+#splash-screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#main-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; 
+}
+
+.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    padding: 10px;
+    background-color: rgba(240, 240, 240, 0.9);
+    height: 60px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#controls button {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+
+#controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+}
+
+#reset-button { background: linear-gradient(145deg, #ff8c00, #ff6347); }
+#manual-button { background: linear-gradient(145deg, #1e90ff, #00bfff); }
+#save-button { background: linear-gradient(145deg, #32cd32, #228b22); }
+#load-button { background: linear-gradient(145deg, #4682b4, #5f9ea0); }
+
+#slot-select {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: white;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#simulator-container {
+    position: absolute;
+    top: 60px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1; 
+
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('title.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#parking-area {
+    aspect-ratio: 421 / 738;
+    height: 100%;
+    max-width: 100%;
+    background-image: url('parking.png'); 
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    border: 2px solid #333;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+#north-mark {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    z-index: 5;
+    user-select: none;
+    background-color: transparent; 
+    border: none;
+}
+
+.draggable {
+    position: absolute;
+    cursor: grab;
+    user-select: none;
+    box-sizing: border-box;
+    overflow: visible; 
+}
+
+.draggable:active {
+    cursor: grabbing;
+    z-index: 1000;
+}
+
+.shape {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #333;
+    font-weight: bold;
+    text-align: center;
+}
+
+.car {
+    background-color: #bcc0f8;
+    color: #000;
+    font-size: calc(5px + 0.5vmin);
+    border-radius: 3px;
+}
+
+.car::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('car.png'); 
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    z-index: 0;
+}
+.space {
+    background-color: #99f7a8;
+    color: #000;
+    font-size: calc(5px + 0.5vmin);
+    line-height: 0.9;
+}
+
+.shape span {
+    position: relative;
+    z-index: 1;
+    line-height: 0.9;
+}
+
+.draggable.is-active {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    z-index: 1001;
+}
+
+.order-label {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #000;
+    font-size: 1.5vmin;
+    font-weight: bold;
+    z-index: 2;
+    margin-top: 0.2vmin;
+    padding: 0.1vmin 0.6vmin;
+    border-radius: 4px;
+}
+
+.shape[data-type="3395mm"] { width: 6.5%;height: 5.6%; }
+.shape[data-type="3930mm"] { width: 6.5%;height: 6.2%; }
+.shape[data-type="4350mm"] { width: 6.7%;height: 7.2%; }
+.shape[data-type="4360mm"] { width: 6.7%;height: 7.3%; }
+.shape[data-type="4650mm"] { width: 6.7%;height: 7.6%; }
+.shape[data-type="4740mm"] { width: 6.7%;height: 7.7%; }
+.shape[data-type="1000mm"] { width: 8.6%;height: 1.6%; }
+.shape[data-type="1500mm"] { width: 8.1%;height: 2.4%; }
+
+.rotate-handle {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-color: orange;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 1002;
+    user-select: none;
+    animation: blink 1.5s infinite;
+}
+
+.rotate-handle.left-handle {
+    top: 50%;
+    left: -40px; 
+    transform: translateY(-50%);
+}
+
+.rotate-handle.right-handle {
+    top: 50%;
+    right: -40px; 
+    transform: translateY(-50%);
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.shape[data-type="1000mm"] span { white-space: nowrap; }
+.shape[data-type="1000mm"] { font-size: calc(4px + 0.4vmin); }
+
+@media (max-width: 768px) {
+    #controls {
+        flex-direction: column;
+        height: auto;
+        padding: 8px;
+        gap: 8px;
+    }
+    #simulator-container {
+        top: 110px; 
+    }
+    #controls button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    #slot-select {
+        padding: 8px;
+        font-size: 14px;
+    }
+    .control-group {
+        gap: 8px;
+    }
+}
+
+/* --- ▼【追加】カスタムダイアログのスタイル --- */
+.dialog-hidden {
+    display: none;
+}
+
+#custom-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 20000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+}
+
+#custom-dialog-overlay:not(.dialog-hidden) {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#custom-dialog-box {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 85%;
+    width: 320px;
+    transform: scale(0.95);
+    transition: transform 0.2s ease-in-out;
+}
+
+#custom-dialog-overlay:not(.dialog-hidden) #custom-dialog-box {
+    transform: scale(1);
+}
+
+#custom-dialog-message {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    white-space: pre-wrap; /* 改行(\n)を反映させるため */
+}
+
+#custom-dialog-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+#custom-dialog-buttons button {
+    padding: 10px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    -webkit-tap-highlight-color: transparent; /* スマホでのタップ時のハイライトを無効化 */
+}
+#custom-dialog-buttons button:active {
+    transform: translateY(2px);
+}
+
+/* OK, はい など肯定的なボタン */
+.dialog-btn-confirm {
+    background: linear-gradient(145deg, #1e90ff, #00bfff);
+    color: white;
+}
+
+/* キャンセル, いいえ など否定的なボタン */
+.dialog-btn-cancel {
+    background-color: #f0f0f0;
+    color: #555;
+    border: 1px solid #ccc;
+}
