@@ -1,14 +1,17 @@
 body, html {
     margin: 0;
     padding: 0;
-    height: 100%;
+    /* ▼【修正】height指定を削除 */
     font-family: sans-serif;
     overscroll-behavior: none;
-    overflow: hidden;
 }
 
 body {
     background-color: #f0f0f0;
+    /* ▼【追加】iOSでのスクロールを完全に防止するための設定 */
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
 }
 
 #splash-screen {
@@ -36,7 +39,8 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    /* ▼【修正】高さをiOSの表示域に追従するdvh単位に変更 */
+    height: 100dvh; 
     z-index: 1; 
 }
 
@@ -216,12 +220,12 @@ body {
     border-radius: 4px;
 }
 
-.shape[data-type="3395mm"] { width: 6.5%;height: 5.6%; }
-.shape[data-type="3930mm"] { width: 6.5%;height: 6.2%; }
-.shape[data-type="4350mm"] { width: 6.7%;height: 7.2%; }
-.shape[data-type="4360mm"] { width: 6.7%;height: 7.3%; }
-.shape[data-type="4650mm"] { width: 6.7%;height: 7.6%; }
-.shape[data-type="4740mm"] { width: 6.7%;height: 7.7%; }
+.shape[data-type="3395mm"] { width: 8.1%;height: 5.6%; }
+.shape[data-type="3930mm"] { width: 8.1%;height: 6.2%; }
+.shape[data-type="4350mm"] { width: 8.1%;height: 7.2%; }
+.shape[data-type="4360mm"] { width: 8.1%;height: 7.3%; }
+.shape[data-type="4650mm"] { width: 8.1%;height: 7.6%; }
+.shape[data-type="4740mm"] { width: 8.1%;height: 7.7%; }
 .shape[data-type="1000mm"] { width: 8.6%;height: 1.6%; }
 .shape[data-type="1500mm"] { width: 8.1%;height: 2.4%; }
 
@@ -272,9 +276,38 @@ body {
         padding: 8px;
         gap: 8px;
     }
-    #simulator-container {
-        top: 110px; 
+    .control-group {
+        width: 100%;
+        justify-content: center;
+        display: flex;
+        gap: 8px;
     }
+
+    .control-group:first-of-type {
+        justify-content: space-between;
+    }
+
+    .control-group:first-of-type > button {
+        white-space: nowrap;
+        flex-grow: 0;
+        flex-shrink: 1;
+    }
+
+    #manual-button {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .control-group:last-of-type > #save-button {
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+
+    .control-group:last-of-type > #slot-select {
+        flex-grow: 1;
+        min-width: 0; 
+    }
+    
     #controls button {
         padding: 8px 12px;
         font-size: 14px;
@@ -283,12 +316,12 @@ body {
         padding: 8px;
         font-size: 14px;
     }
-    .control-group {
-        gap: 8px;
+    #simulator-container {
+        top: 110px; 
     }
 }
 
-/* --- ▼【追加】カスタムダイアログのスタイル --- */
+/* --- カスタムダイアログのスタイル --- */
 .dialog-hidden {
     display: none;
 }
@@ -335,7 +368,7 @@ body {
     font-size: 16px;
     line-height: 1.6;
     color: #333;
-    white-space: pre-wrap; /* 改行(\n)を反映させるため */
+    white-space: pre-wrap;
 }
 
 #custom-dialog-buttons {
@@ -352,19 +385,17 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: transform 0.2s;
-    -webkit-tap-highlight-color: transparent; /* スマホでのタップ時のハイライトを無効化 */
+    -webkit-tap-highlight-color: transparent;
 }
 #custom-dialog-buttons button:active {
     transform: translateY(2px);
 }
 
-/* OK, はい など肯定的なボタン */
 .dialog-btn-confirm {
     background: linear-gradient(145deg, #1e90ff, #00bfff);
     color: white;
 }
 
-/* キャンセル, いいえ など否定的なボタン */
 .dialog-btn-cancel {
     background-color: #f0f0f0;
     color: #555;
