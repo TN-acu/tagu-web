@@ -1,66 +1,37 @@
-// キャッシュするファイルの名前とバージョン
-const CACHE_NAME = 'parking-simulator-cache-v1';
-
-// キャッシュするファイルのリスト
-const urlsToCache = [
-  './',
-  './index.html',
-  './style.css',
-  './script.js',
-  './auth.js',
-  './manifest.json',
-  './title.png',
-  './parking.png',
-  './car.png',
-  './android-chrome-192x192.png',
-  './android-chrome-512x512.png',
-  // ▼【追加】各種アイコンをキャッシュ対象に追加
-  './apple-touch-icon.png',
-  './favicon.ico'
-];
-
-// サービスワーカーのインストール時に実行される
+// サービスワーカー有効化時に即座にコントロールを開始する
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        // 指定されたファイルをすべてキャッシュに追加する
-        return cache.addAll(urlsToCache);
-      })
-  );
   self.skipWaiting();
 });
 
-// サービスワーカーが有効化されたときに実行される
 self.addEventListener('activate', (event) => {
-  // 古いキャッシュがあれば削除する
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.filter((cacheName) => {
-          return cacheName !== CACHE_NAME;
-        }).map((cacheName) => {
-          return caches.delete(cacheName);
-        })
-      );
-    })
-  );
-  return self.clients.claim();
+  event.waitUntil(self.clients.claim());
 });
 
-// ファイルのリクエストがあった場合に実行される
+// ページへのアクセス（ナビゲーションリクエスト）や特定ファイルへのアクセスを監視
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    // まずキャッシュからファイルを探す
-    caches.match(event.request)
-      .then((response) => {
-        // キャッシュにファイルがあればそれを返す
-        if (response) {
-          return response;
-        }
-        // キャッシュになければネットワークから取得しにいく
-        return fetch(event.request);
-      }
-    )
-  );
+  const url = new URL(event.request.url);
+
+  // ▼▼▼ 変更: キャッシュを常にバイパスしたいファイルのリスト ▼▼▼
+  const filesToForceFetch = [
+    '/', // ルート (index.html)
+    '/index.html',
+    '/-quiz_list.txt', // メニューのテキストファイル
+    '/main.js',
+    '/style.css'
+    // quiz.html や quiz_common.js はクエリパラメータ(?data=...)で
+    // 内容が変わるため、ここには含めずブラウザキャッシュに任せる
+  ];
+  // ▲▲▲ 変更ここまで ▲▲▲
+
+  // ▼▼▼ 変更: ナビゲーションリクエスト、または上記リストに含まれるファイルのフェッチの場合 ▼▼▼
+  if (event.request.mode === 'navigate' || filesToForceFetch.includes(url.pathname)) {
+    // キャッシュを無視して、必ずネットワークから最新のファイルを取得する
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' }).catch(() => {
+        // オフラインの場合のフォールバック処理（今回は何もしない）
+      })
+    );
+  }
+  // ▲▲▲ 変更ここまで ▲▲▲
+  // それ以外のリクエスト（画像など）は、デフォルトのキャッシュ戦略に任せる
 });
