@@ -59,52 +59,53 @@ document.addEventListener('DOMContentLoaded', () => {
     let northClickCount = 0;
     let northClickTimer = null;
 
+    // ▼【修正】ご指定のCSSを反映して、各要素の初期配置情報を更新
     const presetLayout = [
-        { id: 'car_3395_1',   x: 39.70, y: 30.25, rotation: 0.00, w: 8.4, h: 4.7, column: 'right' },
-        { id: 'car_3395_2',   x: 39.85, y: 37.63, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },
-        { id: 'car_3395_12',  x: 39.70, y: 44.66, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },
-        { id: 'car_3395_13',  x: 39.70, y: 52.12, rotation: 0.00, w: 8.4, h: 4.7, column: 'right' },
-        { id: 'car_3395_14',  x: 40.44, y: 59.24, rotation: 0.00, w: 8.4, h: 4.7, column: 'right' },
-        { id: 'car_3395_15',  x: 40.59, y: 66.53, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },
-        { id: 'car_3395_16',  x: 40.59, y: 73.56, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },
-        { id: 'car_3395_17',  x: 40.89, y: 80.93, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },
-        { id: 'car_3395_18',  x: 31.70, y: 13.22, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },
-        { id: 'car_3395_19',  x: 31.85, y: 20.51, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },
-        { id: 'car_3930_1',   x: 32.15, y: 27.63, rotation: 0.00, w: 8.4, h: 5.3, column: 'left' },
-        { id: 'car_4350_1',   x: 80.59, y: 68.90, rotation: 0.00, w: 8.4, h: 5.9, column: 'right' },
-        { id: 'car_4350_2',   x: 32.74, y: 61.44, rotation: 0.00, w: 8.4, h: 5.9, column: 'left' },
-        { id: 'car_4360_1',   x: 22.22, y: 36.10, rotation: 0.00, w: 8.4, h: 5.9, column: 'left' },
-        { id: 'car_4650_1',   x: 22.67, y: 45.85, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },
-        { id: 'car_4650_2',   x: 22.67, y: 56.02, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },
-        { id: 'car_4650_3',   x: 32.00, y: 52.12, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },
-        { id: 'car_4650_4',   x: 80.89, y: 59.75, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },
-        { id: 'car_4650_5',   x: 32.30, y: 43.05, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },
-        { id: 'car_4740_2',   x: 23.11, y: 66.36, rotation: 0.00, w: 8.4, h: 6.4, column: 'left' },
-        { id: 'space_1000_1',  x: 40.59, y: 79.07, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_2',  x: 81.04, y: 36.78, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_3',  x: 31.41, y: 11.44, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_4',  x: 40.15, y: 64.83, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_5',  x: 39.70, y: 57.63, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_6',  x: 80.44, y: 39.15, rotation: 0.00, w: 8.4, h: 1.3, column: 'right' },
-        { id: 'space_1000_7',  x: 40.15, y: 71.95, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_8',  x: 31.56, y: 18.90, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_15', x: 39.56, y: 35.85, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_16', x: 39.41, y: 50.34, rotation: 0.00, w: 8.4, h: 1.3, column: 'right' },
-        { id: 'space_1000_17', x: 31.56, y: 50.59, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_18', x: 31.85, y: 26.10, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_19', x: 39.56, y: 28.47, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_20', x: 32.15, y: 59.83, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1000_21', x: 39.41, y: 42.88, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },
-        { id: 'space_1500_1',  x: 80.15, y: 54.49, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_2',  x: 80.00, y: 44.58, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_3',  x: 22.96, y: 63.56, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_4',  x: 80.00, y: 41.44, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_5',  x: 80.15, y: 51.44, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_6',  x: 79.70, y: 48.05, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_7',  x: 23.26, y: 74.15, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_8',  x: 22.37, y: 43.56, rotation: 1.00, w: 8.4, h: 2.0, column: 'left' },
-        { id: 'space_1500_9',  x: 22.67, y: 53.56, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },
-    ];
+    { id: 'car_3395_1',   x: 39.32, y: 30.09, rotation: 0.00, w: 8.4, h: 4.7, column: 'right' }, // x: 39.70->39.32, y: 30.25->30.09
+    { id: 'car_3395_2',   x: 39.47, y: 37.35, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },  // x: 39.85->39.47, y: 37.63->37.35
+    { id: 'car_3395_12',  x: 39.32, y: 44.34, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },  // x: 39.70->39.32, y: 44.66->44.34
+    { id: 'car_3395_13',  x: 39.32, y: 51.77, rotation: 0.00, w: 8.4, h: 4.7, column: 'right' }, // x: 39.70->39.32, y: 52.12->51.77
+    { id: 'car_3395_14',  x: 40.09, y: 58.85, rotation: 0.00, w: 8.4, h: 4.7, column: 'right' }, // x: 40.44->40.09, y: 59.24->58.85
+    { id: 'car_3395_15',  x: 40.25, y: 66.02, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },  // x: 40.59->40.25, y: 66.53->66.02
+    { id: 'car_3395_16',  x: 40.25, y: 73.01, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },  // x: 40.59->40.25, y: 73.56->73.01
+    { id: 'car_3395_17',  x: 40.40, y: 80.35, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },  // x: 40.89->40.40, y: 80.93->80.35
+    { id: 'car_3395_18',  x: 31.42, y: 13.19, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },  // x: 31.70->31.42, y: 13.22->13.19
+    { id: 'car_3395_19',  x: 31.58, y: 20.35, rotation: 0.00, w: 8.4, h: 4.7, column: 'left' },  // x: 31.85->31.58, y: 20.51->20.35
+    { id: 'car_3930_1',   x: 31.89, y: 27.43, rotation: 0.00, w: 8.4, h: 5.3, column: 'left' },  // x: 32.15->31.89, y: 27.63->27.43
+    { id: 'car_4350_1',   x: 79.72, y: 68.41, rotation: 0.00, w: 8.4, h: 5.9, column: 'right' }, // x: 80.59->79.72, y: 68.90->68.41
+    { id: 'car_4350_2',   x: 22.14, y: 29.56, rotation: 0.00, w: 8.4, h: 5.9, column: 'left' },  // x: 32.74->22.14, y: 61.44->29.56
+    { id: 'car_4360_1',   x: 22.45, y: 38.85, rotation: 0.00, w: 8.4, h: 5.9, column: 'left' },  // x: 22.22->22.45, y: 36.10->38.85
+    { id: 'car_4650_1',   x: 22.29, y: 48.67, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },  // x: 22.67->22.29, y: 45.85->48.67
+    { id: 'car_4650_2',   x: 22.29, y: 58.94, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },  // x: 22.67->22.29, y: 56.02->58.94
+    { id: 'car_4650_3',   x: 31.73, y: 46.02, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },  // x: 32.00->31.73, y: 52.12->46.02
+    { id: 'car_4650_4',   x: 80.03, y: 59.38, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },  // x: 80.89->80.03, y: 59.75->59.38
+    { id: 'car_4650_5',   x: 31.73, y: 36.46, rotation: 0.00, w: 8.4, h: 6.2, column: 'left' },  // x: 32.30->31.73, y: 43.05->36.46
+    { id: 'car_4740_2',   x: 22.76, y: 68.94, rotation: 0.00, w: 8.4, h: 6.4, column: 'left' },  // x: 23.11->22.76, y: 66.36->68.94
+    { id: 'space_1000_1',  x: 40.25, y: 78.50, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 40.59->40.25, y: 79.07->78.50
+    { id: 'space_1000_2',  x: 80.19, y: 36.55, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 81.04->80.19, y: 36.78->36.55
+    { id: 'space_1000_3',  x: 31.11, y: 11.42, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 31.41->31.11, y: 11.44->11.42
+    { id: 'space_1000_4',  x: 39.78, y: 64.34, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 40.15->39.78, y: 64.83->64.34
+    { id: 'space_1000_5',  x: 39.32, y: 57.26, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 39.70->39.32, y: 57.63->57.26
+    { id: 'space_1000_6',  x: 79.57, y: 38.85, rotation: 0.00, w: 8.4, h: 1.3, column: 'right' }, // x: 80.44->79.57, y: 39.15->38.85
+    { id: 'space_1000_7',  x: 39.78, y: 71.42, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 40.15->39.78, y: 71.95->71.42
+    { id: 'space_1000_8',  x: 31.27, y: 18.76, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 31.56->31.27, y: 18.90->18.76
+    { id: 'space_1000_15', x: 39.16, y: 35.66, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 39.56->39.16, y: 35.85->35.66
+    { id: 'space_1000_16', x: 39.01, y: 50.00, rotation: 0.00, w: 8.4, h: 1.3, column: 'right' }, // x: 39.41->39.01, y: 50.34->50.00
+    { id: 'space_1000_17', x: 31.27, y: 44.34, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 31.56->31.27, y: 50.59->44.34
+    { id: 'space_1000_18', x: 31.58, y: 25.93, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 31.85->31.58, y: 26.10->25.93
+    { id: 'space_1000_19', x: 39.16, y: 28.32, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 39.56->39.16, y: 28.47->28.32
+    { id: 'space_1000_20', x: 32.20, y: 53.89, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 32.15->32.20, y: 59.83->53.89
+    { id: 'space_1000_21', x: 39.01, y: 42.57, rotation: 0.00, w: 8.4, h: 1.3, column: 'left' },  // x: 39.41->39.01, y: 42.88->42.57
+    { id: 'space_1500_1',  x: 79.26, y: 54.16, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 80.15->79.26, y: 54.49->54.16
+    { id: 'space_1500_2',  x: 79.10, y: 44.25, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 80.00->79.10, y: 44.58->44.25
+    { id: 'space_1500_3',  x: 22.29, y: 66.46, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 22.96->22.29, y: 63.56->66.46
+    { id: 'space_1500_4',  x: 22.14, y: 36.64, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 80.00->22.14, y: 41.44->36.64
+    { id: 'space_1500_5',  x: 79.26, y: 51.06, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 80.15->79.26, y: 51.44->51.06
+    { id: 'space_1500_6',  x: 78.79, y: 47.70, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 79.70->78.79, y: 48.05->47.70
+    { id: 'space_1500_7',  x: 80.19, y: 56.55, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 23.26->80.19, y: 74.15->56.55
+    { id: 'space_1500_8',  x: 22.45, y: 46.28, rotation: 1.00, w: 8.4, h: 2.0, column: 'left' },  // x: 22.37->22.45, y: 43.56->46.28
+    { id: 'space_1500_9',  x: 22.45, y: 56.46, rotation: 0.00, w: 8.4, h: 2.0, column: 'left' },  // x: 22.67->22.45, y: 53.56->56.46
+];
 
     let activeElement = null;
     let dragTarget = null;
@@ -422,7 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
     parkingArea.addEventListener('click', (e) => { if(e.target === parkingArea) { deactivateAll(); } });
     
     manualButton.addEventListener('click', () => {
-        // ▼【修正】マニュアルのレイアウトとテキストを更新
         const manualHTML = `
             <!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>操作マニュアル</title>
                 <style>
@@ -444,7 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>・パワーポイントやパソコンなどを使わずに、各自のスマホだけで学校駐車場のシミュレーションができます。
             <br>・ 降雪時、さらには２・３年進級時に駐車レーン変更があった時にもそのまま活用できると思います。</p>
             <h4>■ 基本操作</h4>
-            <p>・各車両図形とスペース計測図形（[1,000mm]と[1,500mm]）は長押ししてからドラッグすることで自由に移動できます。それ以外の画像や図形は移動できません。
+            <p>・画面が小さいときは拡大してご利用ください。
+            <br>・各車両図形とスペース計測図形（[1,000mm]と[1,500mm]）は長押ししてからドラッグすることで自由に移動できます。それ以外の画像や図形は移動できません。
             <br>・上記図形を一度タップすると左右に回転ハンドル（↺ ↻）が表示され、これをタップすると図形が5度ずつ回転します。
             <br>・図形以外の何もない場所をタップすると回転ハンドルは消えます。</p>
             <h4>■ 配置の自動保存について</h4>
