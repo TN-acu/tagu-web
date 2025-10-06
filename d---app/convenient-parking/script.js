@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </style>
             </head><body>
             <h3>
-                <span>📖操作マニュアル📖</span>
+                <span>📖操作マニュアル</span>
                 <button class="manual-back-button" onclick="window.close()">戻る</button>
             </h3>
             <h4>■ 駐車場シミュレーターとは？</h4>
