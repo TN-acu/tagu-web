@@ -554,26 +554,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="manual-back-button" onclick="window.close()">戻る</button>
             </h3>
             <h4>■ 駐車場シミュレーターとは？</h4>
-             <p>・パワーポイントやパソコンなどを使わずに、各自のスマホだけで学校駐車場のシミュレーションができます。
-             <br>・ 降雪時、さらには２・３年進級時に駐車レーン変更があった時にもそのまま活用できると思います。
-             <br>・ 煮詰まったときは、駐車場をお花畑に緑地化できるゲーム<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>をやりましょう。
+             <p>・各自のスマホだけで簡単に学校駐車場の駐車シミュレーションができるアプリです。taguアプリと同じ方法でスマホへインストールもできますが、ブラウザ上でもそのまま使えます。
              </p>
-             <h4>■ 基本操作</h4>
-             <p>・画面が小さいときは拡大してご利用ください。
+            <h4>■ なんで作ったの？</h4>
+             <p>・学校側から与えられた駐車スペースに対して、生徒側で工夫する手段としてアプリを作りました。
+             <br>・今後の降雪時、または２・３年進級時に駐車レーン変更があった時、学校側は駐車場の効率的な使い方まではシミュレーションしてくれません。（学校側は「利用する生徒間で話し合って」というスタンスです）
+             <br>・学校側へはシミュレーション用のパワーポイントデータと４ＷＤのアンケート結果を渡す予定でしたが、それらを根拠に逆にこちらに不利益なルール変更がされないように一旦保留にしています。（例えば6月中間テスト前にあったような不利益変更）
+             <br>・駐車場をお花畑に緑地化できるゲーム<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>もついでに作りました。
+             </p>
+             <h4>■ 駐車場シミュレーションの基本操作</h4>
+             <p>・画面が小さいときは指で拡大してご利用ください。
              <br>・各車両図形<span style="display: inline-block; width: 20px; height: 12px; background-color: #bcc0f8; border: 1px solid #333; border-radius: 2px; vertical-align: middle; margin: 0 2px;"></span>とスペース計測図形（<span style="display: inline-block; width: 25px; height: 8px; background-color: #99f7a8; border: 1px solid #333; vertical-align: middle; margin: 0 2px;"></span>[1,000mm]と[1,500mm]）は長押ししてからドラッグすることで自由に移動できます。それ以外の画像や図形は移動できません。
              <br>・上記図形を一度タップすると左右に回転ハンドル（<span style="display: inline-block; width: 14px; height: 14px; background-color: orange; border-radius: 50%; vertical-align: middle; margin-right: 2px;"></span>↺ ↻）が表示され、これをタップすると図形が5度ずつ回転します。
              <br>・図形以外の何もない場所をタップすると回転ハンドルは消えます。</p>
              <h4>■ 配置の自動保存について</h4>
-             <p>・図形の配置は操作するたびに自動であなたのスマホ端末内に保存されます。アプリを閉じても次回開いた時には前回の配置が復元されます。</p>
+             <p>・アプリを閉じても次回開いた時には前回の配置が復元されます。(スマホ端末内ローカルに保存されます)</p>
              <h4>■ 特定の配置を記録する（セーブ・ロード）</h4>
              <p>・自動保存とは別に特定の配置を３つまで記録しておくことができます。
-             <br>・<b>セーブ：</b>「空データ」または上書きしたいスロットをプルダウンから選択し「セーブ」ボタンを押すと、現在の配置がそのスロット(あなたのスマホ端末内)に記録されます。
+             <br>・<b>セーブ：</b>「空データ」または上書きしたいスロットをプルダウンから選択し「セーブ」ボタンを押すと、現在の配置がそのスロット(スマホ端末内ローカル)に記録されます。
              <br>・<b>ロード：</b>記録したスロットをプルダウンから選択し「ロード」ボタンを押すと、その配置が復元されます。
              <span class="warning">（現在画面の配置は上書きされます）</span></p><h4>■ 配置をリセットする</h4>
              <p>・画面上部のオレンジ色の「初期配置に戻す」ボタンを押すとすべての図形が最初の位置に戻ります。
              <br><span class="warning">※一度「初期配置に戻す」と戻せませんのでご注意ください。なお、この操作でセーブデータは消えません。</span></p>
              <h4>■ 配置の共有</h4>
-             <p>・気に入った駐車場配置ができたら各自のスマートフォンのスクリーンショット機能などを使って画像を保存して、駐車場ライングループなどで共有してください😄</p>
+             <p>・気に入った駐車場配置やルールができたら各自のスマートフォンのスクリーンショット機能などを使って画像を保存して、駐車場ライングループなどで共有してください😄</p>
                      <h4>■ お花畑ゲーム 🌸</h4>
         <p>・画面上部の<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>ボタンを押すとお花畑ゲームが始まります。
         <br>・駐車場エリアをタップするとカウントダウンが始まり、３秒後に🌸が咲き乱れて車などが消失します。
