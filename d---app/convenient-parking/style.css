@@ -1,17 +1,66 @@
 body, html {
     margin: 0;
     padding: 0;
-    /* ▼【修正】height指定を削除 */
     font-family: sans-serif;
     overscroll-behavior: none;
 }
 
 body {
     background-color: #f0f0f0;
-    /* ▼【追加】iOSでのスクロールを完全に防止するための設定 */
     position: fixed;
     width: 100%;
     overflow: hidden;
+}
+
+@keyframes screen-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+body.screen-shake {
+    animation: screen-shake 0.5s ease-in-out;
+}
+
+@keyframes explosion-animation {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+.explosion-effect {
+    position: absolute;
+    background: radial-gradient(circle, white, #FFC0CB, #FF69B4, transparent);
+    border-radius: 50%;
+    z-index: 10000;
+    animation: explosion-animation 0.4s ease-out forwards;
+}
+
+.debris {
+    position: absolute;
+    transition: transform 1s ease-out;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+    user-select: none;
+}
+
+.scorch-mark {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: fade-in 0.5s forwards;
+    background-color: rgba(46, 139, 87, 0.4);
+    border: 2px dashed rgba(46, 139, 87, 0.8);
+}
+.scorch-mark span {
+    position: absolute;
+    user-select: none;
+}
+
+@keyframes fade-in {
+    to { opacity: 1; }
 }
 
 #splash-screen {
@@ -39,7 +88,6 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    /* ▼【修正】高さをiOSの表示域に追従するdvh単位に変更 */
     height: 100dvh; 
     z-index: 1; 
 }
@@ -72,6 +120,16 @@ body {
     gap: 10px;
 }
 
+#game-controls {
+    display: none;
+}
+body.game-mode #main-controls {
+    display: none;
+}
+body.game-mode #game-controls {
+    display: flex;
+}
+
 #controls button {
     padding: 10px 20px;
     font-size: 16px;
@@ -81,7 +139,7 @@ body {
     border-radius: 8px;
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
     flex-shrink: 0;
 }
 
@@ -90,10 +148,19 @@ body {
     box-shadow: 0 6px 8px rgba(0,0,0,0.15);
 }
 
+#controls button:disabled {
+    background: #b0b0b0 !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
 #reset-button { background: linear-gradient(145deg, #ff8c00, #ff6347); }
 #manual-button { background: linear-gradient(145deg, #1e90ff, #00bfff); }
 #save-button { background: linear-gradient(145deg, #32cd32, #228b22); }
 #load-button { background: linear-gradient(145deg, #4682b4, #5f9ea0); }
+#game-button { background: linear-gradient(145deg, #f3c889, #f3c889); }
+#exit-game-button { background: linear-gradient(145deg, #96897f, #96897f); }
 
 #slot-select {
     padding: 10px;
@@ -102,6 +169,19 @@ body {
     border: 1px solid #ccc;
     background-color: white;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#score-layer {
+    color: red;
+    font-weight: bold;
+    font-style: italic;
+    font-size: 18px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 150px;
+    padding: 0 10px;
 }
 
 #simulator-container {
@@ -119,6 +199,8 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    
+    transition: transform 0.3s ease-in-out;
 }
 
 #parking-area {
@@ -131,6 +213,11 @@ body {
     border: 2px solid #333;
     position: relative;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    cursor: default;
+}
+
+body.game-mode #parking-area {
+    cursor: crosshair;
 }
 
 #north-mark {
@@ -142,8 +229,16 @@ body {
     cursor: pointer;
     z-index: 5;
     user-select: none;
-    background-color: transparent; 
-    border: none;
+    
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid white;
 }
 
 .draggable {
@@ -152,6 +247,8 @@ body {
     user-select: none;
     box-sizing: border-box;
     overflow: visible; 
+    transition: transform 0.4s ease-out, opacity 0.4s ease-out, visibility 0.4s;
+    z-index: 10; /* ▼【追加】図形が花びらの手前に来るように調整 */
 }
 
 .draggable:active {
@@ -220,13 +317,13 @@ body {
     border-radius: 4px;
 }
 
-.shape[data-type="3395mm"] { width: 6.4%;height: 5.6%; }
-.shape[data-type="3930mm"] { width: 6.4%;height: 6.2%; }
-.shape[data-type="4350mm"] { width: 7.4%;height: 7.2%; }
-.shape[data-type="4360mm"] { width: 7.4%;height: 7.3%; }
-.shape[data-type="4650mm"] { width: 7.4%;height: 7.6%; }
-.shape[data-type="4740mm"] { width: 7.4%;height: 7.7%; }
-.shape[data-type="1000mm"] { width: 8.6%;height: 1.6%; }
+.shape[data-type="3395mm"] { width: 6.4%;height: 5.6%; } 
+.shape[data-type="3930mm"] { width: 6.4%;height: 6.2%; } 
+.shape[data-type="4350mm"] { width: 7.4%;height: 7.2%; } 
+.shape[data-type="4360mm"] { width: 7.4%;height: 7.3%; } 
+.shape[data-type="4650mm"] { width: 7.4%;height: 7.6%; } 
+.shape[data-type="4740mm"] { width: 7.4%;height: 7.7%; } 
+.shape[data-type="1000mm"] { width: 8.6%;height: 1.6%; } 
 .shape[data-type="1500mm"] { width: 8.1%;height: 2.4%; }
 
 .rotate-handle {
@@ -283,29 +380,8 @@ body {
         gap: 8px;
     }
 
-    .control-group:first-of-type {
-        justify-content: space-between;
-    }
-
-    .control-group:first-of-type > button {
-        white-space: nowrap;
-        flex-grow: 0;
-        flex-shrink: 1;
-    }
-
-    #manual-button {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-    
-    .control-group:last-of-type > #save-button {
-        flex-grow: 0;
-        flex-shrink: 0;
-    }
-
-    .control-group:last-of-type > #slot-select {
-        flex-grow: 1;
-        min-width: 0; 
+    #main-controls {
+        flex-wrap: wrap;
     }
     
     #controls button {
@@ -318,6 +394,10 @@ body {
     }
     #simulator-container {
         top: 110px; 
+    }
+
+    #north-mark {
+        display: none;
     }
 }
 
@@ -400,4 +480,38 @@ body {
     background-color: #f0f0f0;
     color: #555;
     border: 1px solid #ccc;
+}
+
+/* --- COMBO表示のスタイル --- */
+@keyframes slide-in-out {
+    0% { transform: translate(100vw, -50%) scale(0.8); }
+    20%, 80% { transform: translate(-50%, -50%) scale(1); }
+    100% { transform: translate(-150vw, -50%) scale(0.8); }
+}
+
+#combo-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    padding: 15px 40px;
+    background: linear-gradient(45deg, #ff00ff, #ffdd00, #00ffff);
+    color: white;
+    font-size: clamp(24px, 5vw, 60px);
+    font-weight: 900;
+    font-family: 'Arial Black', sans-serif;
+    text-shadow:
+        -3px -3px 0 #000, 3px -3px 0 #000,
+        -3px 3px 0 #000, 3px 3px 0 #000,
+        -4px 4px 5px rgba(0,0,0,0.5);
+    border: 4px solid black;
+    border-radius: 20px;
+    z-index: 15000;
+    white-space: nowrap;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+#combo-display.show {
+    visibility: visible;
+    animation: slide-in-out 1.5s forwards cubic-bezier(0.25, 1, 0.5, 1);
 }

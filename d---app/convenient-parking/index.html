@@ -38,18 +38,21 @@
 
     <div id="main-content">
         <div id="controls">
-            <div class="control-group">
+            <div class="control-group" id="main-controls">
                 <button id="manual-button">マニュアル</button>
+                <button id="game-button">🌸</button>
                 <button id="reset-button">初期配置に戻す</button>
                 <button id="load-button">ロード</button>
-            </div>
-            <div class="control-group">
                 <button id="save-button">セーブ</button>
                 <select id="slot-select">
                     <option value="1">① 空データ</option>
                     <option value="2">② 空データ</option>
                     <option value="3">③ 空データ</option>
                 </select>
+            </div>
+            <div class="control-group" id="game-controls">
+                <button id="exit-game-button">🌸 ゲーム終了</button>
+                <div id="score-layer">お花スコア　0点</div>
             </div>
         </div>
         <div id="simulator-container">
@@ -106,11 +109,16 @@
                 <div id="space_1500_8" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
                 <div id="space_1500_9" class="draggable shape space" data-type="1500mm"><span>1,500<br>mm</span></div>
                 
-                <div id="north-mark"></div>
+                <div id="north-mark">CSS</div>
             </div>
         </div>
     </div>
-
+    
+    <div id="combo-display">
+        <span id="combo-count"></span> COMBO!!!
+    </div>
+    
+    <script src="game.js"></script>
     <script src="script.js"></script>
 
     <div id="custom-dialog-overlay" class="dialog-hidden">
