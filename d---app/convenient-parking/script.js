@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             splashScreen.style.display = 'none';
         }, 500);
-    }, 1300);
+    }, 2500);
 
     const showDialog = () => {
         dialogOverlay.classList.remove('dialog-hidden');
