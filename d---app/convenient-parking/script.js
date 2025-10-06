@@ -555,16 +555,17 @@ document.addEventListener('DOMContentLoaded', () => {
             </h3>
             <h4>■ 駐車場シミュレーターとは？</h4>
              <p>・各自のスマホだけで簡単に学校駐車場の駐車シミュレーションができるアプリです。taguアプリと同じ方法でスマホへインストールもできますが、ブラウザ上でもそのまま使えます。
+             <br>・ 閲覧・編集・保存は各自のスマホ内で完結しているので、図形を好きに動かしても他の人のデータに影響することは一切ありません。
              </p>
             <h4>■ なんで作ったの？</h4>
              <p>・学校側から与えられた駐車スペースに対して、生徒側で工夫する手段としてアプリを作りました。
              <br>・今後の降雪時、または２・３年進級時に駐車レーン変更があった時、学校側は駐車場の効率的な使い方まではシミュレーションしてくれません。（学校側は「利用する生徒間で話し合って」というスタンスです）
-             <br>・学校側へはシミュレーション用のパワーポイントデータと４ＷＤのアンケート結果を渡す予定でしたが、それらを根拠に逆にこちらに不利益なルール変更がされないように一旦保留にしています。（例えば6月中間テスト前にあったような不利益変更）
+             <br>・学校側へはシミュレーション用のパワーポイントデータと４ＷＤのアンケート結果を渡す予定でしたが、それらを根拠に逆にこちらに不利益なルール変更がされないように一旦保留にしています。（例えば２０２５年６月中間テスト直前にあったような不利益変更）
              <br>・駐車場をお花畑に緑地化できるゲーム<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>もついでに作りました。
              </p>
              <h4>■ 駐車場シミュレーションの基本操作</h4>
-             <p>・画面が小さいときは指で拡大してご利用ください。
-             <br>・各車両図形<span style="display: inline-block; width: 20px; height: 12px; background-color: #bcc0f8; border: 1px solid #333; border-radius: 2px; vertical-align: middle; margin: 0 2px;"></span>とスペース計測図形（<span style="display: inline-block; width: 25px; height: 8px; background-color: #99f7a8; border: 1px solid #333; vertical-align: middle; margin: 0 2px;"></span>[1,000mm]と[1,500mm]）は長押ししてからドラッグすることで自由に移動できます。それ以外の画像や図形は移動できません。
+             <p>・操作画面が小さいときは指で拡大してご利用ください。
+             <br>・各車両図形<span style="display: inline-block; width: 17px; height: 35px; background-color: #bcc0f8; border: 1px solid #333; border-radius: 2px; vertical-align: middle; margin: 0 2px;"></span>とスペース計測図形（<span style="display: inline-block; width: 25px; height: 10px; background-color: #99f7a8; border: 1px solid #333; vertical-align: middle; margin: 0 2px;"></span>[1,000mm]と[1,500mm]）は長押ししてからドラッグすることで自由に移動できます。それ以外の画像や図形は移動できません。
              <br>・上記図形を一度タップすると左右に回転ハンドル（<span style="display: inline-block; width: 14px; height: 14px; background-color: orange; border-radius: 50%; vertical-align: middle; margin-right: 2px;"></span>↺ ↻）が表示され、これをタップすると図形が5度ずつ回転します。
              <br>・図形以外の何もない場所をタップすると回転ハンドルは消えます。</p>
              <h4>■ 配置の自動保存について</h4>
