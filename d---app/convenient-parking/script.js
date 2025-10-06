@@ -179,7 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
             handle.className = `rotate-handle ${h.pos}`;
             handle.textContent = h.symbol;
             handle.addEventListener('click', (e) => {
+               // ▼▼▼ ここから変更（追加）▼▼▼
+                // イベントが親要素(背景)へ伝わるのを防ぎ、ダブルタップによる拡大を抑制します。
                 e.stopPropagation();
+                // ▲▲▲ ここまで変更（追加）▲▲▲
                 rotateElement(h.dir);
             });
             activeElement.appendChild(handle);
@@ -511,6 +514,13 @@ document.addEventListener('DOMContentLoaded', () => {
     parkingArea.addEventListener('click', (e) => { if(e.target === parkingArea) { deactivateAll(); } });
     
     simulatorContainer.addEventListener('dblclick', (e) => {
+        // ▼▼▼ ここから変更（追加）▼▼▼
+        // ダブルタップの発生源が回転ハンドルの場合は、拡大縮小を実行しない
+        if (e.target.classList.contains('rotate-handle')) {
+            return;
+        }
+        // ▲▲▲ ここまで変更（追加）▲▲▲
+
         // ▼【修正】ゲームモード中は拡大機能を無効化
         if (Game.isActive) {
             return;
@@ -569,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
              <h4>■ 駐車場シミュレーションの基本操作</h4>
              <p>・操作画面が小さいときは指で拡大してご利用ください。
              <br>・各車両図形<span style="display: inline-block; width: 17px; height: 35px; background-color: #bcc0f8; border: 1px solid #333; border-radius: 2px; vertical-align: middle; margin: 0 2px;"></span>とスペース計測図形（<span style="display: inline-block; width: 25px; height: 10px; background-color: #99f7a8; border: 1px solid #333; vertical-align: middle; margin: 0 2px;"></span>[1,000mm]と[1,500mm]）は長押ししてからドラッグすることで自由に移動できます。それ以外の画像や図形は移動できません。
-             <br>・上記図形を一度タップすると左右に回転ハンドル（<span style="display: inline-block; width: 14px; height: 14px; background-color: orange; border-radius: 50%; vertical-align: middle; margin-right: 2px;"></span>↺ ↻）が表示され、これをタップすると図形が5度ずつ回転します。
+             <br>・上記図形を一度タップすると左右に回転ハンドル（<span style="display: inline-block; width: 20px; height: 32px; background-color: orange; border-radius: 80%; vertical-align: middle; margin-right: 2px;"></span>↺ ↻）が表示され、これをタップすると図形が5度ずつ回転します。
              <br>・図形以外の何もない場所をタップすると回転ハンドルは消えます。</p>
              <h4>■ 配置の自動保存について</h4>
              <p>・アプリを閉じても次回開いた時には前回の配置が復元されます。(スマホ端末内ローカルに保存されます)</p>

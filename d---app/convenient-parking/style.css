@@ -214,6 +214,16 @@ body.game-mode #game-controls {
     position: relative;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
     cursor: default;
+
+        /* ▼▼▼ ここから追加 ▼▼▼ */
+    /* テキスト選択を無効化 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* iOSで長押しした際のメニュー表示を無効化 */
+    -webkit-touch-callout: none;
+    /* ▲▲▲ ここまで追加 ▲▲▲ */
 }
 
 body.game-mode #parking-area {
@@ -328,11 +338,11 @@ body.game-mode #parking-area {
 
 .rotate-handle {
     position: absolute;
-    width: 32px;
-    height: 32px;
+    width: 28px; /* ▼【修正】少し細くしました */
+    height: 55px; /* ▼【修正】縦に長くしました */
     background-color: orange;
     color: white;
-    border-radius: 50%;
+    border-radius: 14px; /* ▼【修正】縦長の丸い形に変更しました */
     display: flex;
     justify-content: center;
     align-items: center;
