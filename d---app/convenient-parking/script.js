@@ -211,8 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const preset = presetLayout.find(item => item.id === elem.id);
             if (!preset) return;
 
-            const posXPercent = parseFloat(elem.style.left);
-            const posYPercent = parseFloat(elem.style.top);
+            // ▼▼▼ ここから変更 ▼▼▼
+            // ピクセル単位で移動された場合も、コンテナに対する正しいパーセンテージを再計算して保存します。
+            const posXPercent = (elem.offsetLeft / parkingArea.offsetWidth) * 100;
+            const posYPercent = (elem.offsetTop / parkingArea.offsetHeight) * 100;
+            // ▲▲▲ ここまで変更 ▲▲▲
 
             layout.push({ ...preset, x: posXPercent, y: posYPercent, rotation: parseFloat(rotation) });
         });
