@@ -19,6 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const dialogMessage = document.getElementById('custom-dialog-message');
     const dialogButtons = document.getElementById('custom-dialog-buttons');
 
+    // ▼▼▼ ここから追加 ▼▼▼
+    // ページ読み込み時に、ブラウザが拡大表示を復元してしまった場合の状態を同期させる
+    if (window.visualViewport && window.visualViewport.scale > 1) {
+        isZoomed = true;
+        scale = window.visualViewport.scale;
+    }
+    // ▲▲▲ ここまで追加 ▲▲▲
+
     setTimeout(() => {
         splashScreen.classList.add('fade-out');
         setTimeout(() => {
