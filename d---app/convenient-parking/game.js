@@ -5,16 +5,17 @@ class Bomb {
         this.pos = { x, y };
         this.onExplode = onExplode;
         this.body = document.body;
-        this.count = 3;
+        this.count = 2; // ▼【修正】カウントを2秒に変更
         this.drop();
     }
 
+   // ▼▼▼ この drop 関数をすべて置き換え ▼▼▼
     drop() {
         this.bomb = document.createElement("div");
         this.bomb.innerHTML = this.count;
         this.body.appendChild(this.bomb);
         
-        // ▼【修正】画面サイズに合わせて大きさを変更
+        // 画面サイズに合わせて大きさを変更
         const sizeInVmin = 10;
         const size = `calc(${sizeInVmin}vmin)`;
         const sizePx = (Math.min(window.innerWidth, window.innerHeight) * sizeInVmin) / 100;
@@ -38,11 +39,12 @@ class Bomb {
             textAlign: "center",
             userSelect: 'none',
             fontWeight: 700,
-            pointerEvents: 'none', // ▼【修正】クリックイベントが貫通するようにして置きやすくする
+            pointerEvents: 'none', // クリックイベントが貫通するようにして置きやすくする
         });
 
         setTimeout(() => this.countDown(), 1000);
     }
+    // ▲▲▲ ここまで置き換え ▲▲▲
 
     countDown() {
         this.count--;
@@ -246,11 +248,12 @@ const Game = {
         }, 1100);
     },
 
+        // ▼▼▼ この createDebris 関数をすべて置き換え ▼▼▼
     createDebris: (sourceElement, level) => {
         const rect = sourceElement.getBoundingClientRect();
-        // ▼【修正】部品の数をさらに半分に変更
+        // 部品の数をさらに半分に変更
         const count = level === 1 ? 3 : 1;
-        // ▼【修正】画面サイズに合わせて大きさを変更
+        // 画面サイズに合わせて大きさを変更
         const baseSizeVmin = 4;
         const size = `calc(${level === 1 ? baseSizeVmin : baseSizeVmin / 1.5}vmin)`;
 
@@ -259,7 +262,7 @@ const Game = {
             debris.className = 'debris';
             debris.dataset.level = level;
             
-            // ▼【修正】部品を「🌸」と「🍃」のランダムに変更
+            // 部品を「🌸」と「🍃」のランダムに変更
             const petals = ['🍃', '🌸'];
             debris.textContent = petals[Math.floor(Math.random() * petals.length)];
             
@@ -269,7 +272,7 @@ const Game = {
             Object.assign(debris.style, {
                 left: `${startX}px`,
                 top: `${startY}px`,
-                zIndex: '5', // ▼【修正】図形より後ろに表示
+                zIndex: '5', // 図形より後ろに表示
                 fontSize: size
             });
             
@@ -286,6 +289,7 @@ const Game = {
             }, 10);
         }
     }
+    // ▲▲▲ ここまで置き換え ▲▲▲
 };
 
 Game.init = Game.init.bind(Game);

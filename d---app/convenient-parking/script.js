@@ -215,9 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!preset) return;
 
             // ▼▼▼ ここから変更 ▼▼▼
-            // ピクセル単位で移動された場合も、コンテナに対する正しいパーセンテージを再計算して保存します。
-            const posXPercent = (elem.offsetLeft / parkingArea.offsetWidth) * 100;
-            const posYPercent = (elem.offsetTop / parkingArea.offsetHeight) * 100;
+            // 枠線の幅を含まない内側のサイズを基準に計算することで、座標のずれを防ぎます。
+            const posXPercent = (elem.offsetLeft / parkingArea.clientWidth) * 100;
+            const posYPercent = (elem.offsetTop / parkingArea.clientHeight) * 100;
             // ▲▲▲ ここまで変更 ▲▲▲
 
             layout.push({ ...preset, x: posXPercent, y: posYPercent, rotation: parseFloat(rotation) });
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const saveToSlot = async () => {
-        const userChoice = await customConfirm('現在の配置を選択中のスロットにセーブしますか？');
+        const userChoice = await customConfirm('現在の配置を選択中のスロットに\nセーブしますか？');
         if (!userChoice) {
             return;
         }
@@ -270,11 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedData = localStorage.getItem(slotStorageKeyPrefix + slotIndex);
 
         if (!savedData) {
-            customAlert('このスロットにはデータがありません');
+            customAlert('このスロットには\nデータがありません');
             return;
         }
 
-        const userChoice = await customConfirm('選択中のスロットのデータをロードしますか？\n（現在の配置は上書きされます）');
+        const userChoice = await customConfirm('選択中のスロットのデータを\nロードしますか？\n（現在の配置は上書きされます）');
         if (!userChoice) {
             return;
         }
@@ -572,8 +572,11 @@ document.addEventListener('DOMContentLoaded', () => {
              </p>
             <h4>■ なんで作ったの？</h4>
              <p>・学校側から与えられた駐車スペースに対して、生徒側で工夫する手段としてアプリを作りました。
-             <br>・今後の降雪時、または２・３年進級時に駐車レーン変更があった時、学校側は駐車場の効率的な使い方まではシミュレーションしてくれません。（学校側は「利用する生徒間で話し合って」というスタンスです）
-             <br>・学校側へはシミュレーション用のパワーポイントデータと４ＷＤのアンケート結果を渡す予定でしたが、それらを根拠に逆にこちらに不利益なルール変更がされないように一旦保留にしています。（例えば２０２５年６月中間テスト直前にあったような不利益変更）
+             <br>・今後の降雪時、または２・３年進級時に駐車レーン変更があった時、学校側は駐車場の効率的な使い方まではシミュレーションしてくれません。
+            （学校側は「利用する生徒間で話し合って」というスタンスです。なので、ハチワレルールなどは作ってくれません）
+             <br>・学校側へはシミュレーション用のパワーポイントデータと４ＷＤ(降雪時の駐車車間距離)のアンケート結果を渡す予定でしたが、
+             それらを根拠に逆にこちらに不利益なルール変更がされないように譲渡は一旦保留にしています。
+            （例えば２０２５年６月中間テスト直前にあったような不利益変更です。また、この駐車場シミュレーターの存在も伝えません）
              <br>・駐車場をお花畑に緑地化できるゲーム<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>もついでに作りました。
              </p>
              <h4>■ 駐車場シミュレーションの基本操作</h4>
@@ -612,7 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     resetButton.addEventListener('click', async () => {
-        const userChoice = await customConfirm('すべての図形を初期配置に戻します。\nこの操作は元に戻せません。よろしいですか？');
+        const userChoice = await customConfirm('すべての図形を初期配置に戻します。\nこの操作は元に戻せません。\nよろしいですか？');
         if (userChoice) {
             if (Game.isActive) {
                 Game.stop();
@@ -628,16 +631,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ▼【修正】ゲーム開始時に拡大をリセットする処理を追加
+    // ▼▼▼ ここから変更 ▼▼▼
     gameButton.addEventListener('click', () => {
-        if (isZoomed) {
-            scale = 1;
-            pan = { x: 0, y: 0 };
-            isZoomed = false;
-            applyTransform({ withTransition: true });
-        }
-        Game.start();
+        const countdownOverlay = document.getElementById('game-start-countdown');
+        const countdownNumber = document.getElementById('countdown-number');
+        if (!countdownOverlay || !countdownNumber) return;
+
+        let count = 3;
+
+        const startCountdown = () => {
+            if (count > 0) {
+                countdownNumber.textContent = count;
+                count--;
+                setTimeout(startCountdown, 1000);
+            } else {
+                countdownOverlay.classList.add('hidden');
+                
+                // 元のゲーム開始処理を実行
+                if (isZoomed) {
+                    scale = 1;
+                    pan = { x: 0, y: 0 };
+                    isZoomed = false;
+                    applyTransform({ withTransition: true });
+                }
+                Game.start();
+            }
+        };
+
+        countdownOverlay.classList.remove('hidden');
+        startCountdown();
     });
+    // ▲▲▲ ここまで変更 ▲▲▲
 
     exitGameButton.addEventListener('click', () => Game.stop());
 

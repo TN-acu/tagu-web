@@ -525,3 +525,73 @@ body.game-mode #parking-area {
     visibility: visible;
     animation: slide-in-out 1.5s forwards cubic-bezier(0.25, 1, 0.5, 1);
 }
+
+/* ▼▼▼ ここから追加 ▼▼▼ */
+#game-start-countdown {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 19000;
+    pointer-events: none;
+}
+
+#game-start-countdown.hidden {
+    display: none;
+}
+
+#countdown-number {
+    font-size: 30vmin;
+    font-weight: 900;
+    font-family: 'Arial Black', sans-serif;
+    color: white;
+    text-shadow: 0 0 15px deeppink, 0 0 30px deeppink, 0 0 50px #ffc0cb;
+    animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+@keyframes countdown-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+/* ▲▲▲ ここまで追加 ▲▲▲ */
+
+/* ▼▼▼ ここから追加 ▼▼▼ */
+/* カウントダウンの親要素を縦並びにする */
+#game-start-countdown {
+    flex-direction: column;
+}
+
+/* カウントダウン上部のテキストスタイル */
+.countdown-text {
+    font-size: 5vmin;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px #ffc0cb, 0 0 20px #ffc0cb; /* ピンクの影 */
+    margin: 0;
+    padding-bottom: 20px; /* 数字との間隔 */
+    animation: text-fade-in 1s ease-out; /* フェードインアニメーション */
+}
+
+/* テキストのフェードインアニメーション */
+@keyframes text-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* ▲▲▲ ここまで追加 ▲▲▲ */
