@@ -145,7 +145,7 @@ const Game = {
         new Bomb(e.clientX, e.clientY, Game.handleExplosion);
     },
 
-    handleExplosion: (bomb) => {
+        handleExplosion: (bomb) => {
         clearTimeout(Game.comboResetTimer);
         Game.comboCount++;
 
@@ -165,8 +165,10 @@ const Game = {
             Game.resetCombo();
         }, 2000);
 
-        document.body.classList.add('screen-shake');
-        setTimeout(() => document.body.classList.remove('screen-shake'), 500);
+        // ▼▼▼ ここから2行を変更 ▼▼▼
+        document.getElementById('main-content').classList.add('screen-shake');
+        setTimeout(() => document.getElementById('main-content').classList.remove('screen-shake'), 500);
+        // ▲▲▲ ここまで2行を変更 ▲▲▲
 
         const explosionEffect = document.createElement('div');
         explosionEffect.className = 'explosion-effect';

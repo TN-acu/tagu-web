@@ -43,6 +43,8 @@
                 <button id="game-button">🌸</button>
                 <button id="reset-button">初期配置に戻す</button>
                 <button id="load-button">ロード</button>
+            </div>
+            <div class="control-group" id="save-controls">
                 <button id="save-button">セーブ</button>
                 <select id="slot-select">
                     <option value="1">① 空データ</option>
@@ -51,9 +53,12 @@
                 </select>
             </div>
             <div class="control-group" id="game-controls">
-                <button id="exit-game-button">🌸 ゲーム終了</button>
-                <div id="score-layer">お花スコア　0点</div>
-            </div>
+                <div class="game-controls-row">
+                    <button id="exit-game-button">🌸 ゲーム終了</button>
+                    <div id="score-layer">お花スコア　0点</div>
+                </div>
+                <div id="game-timer"></div>
+                </div>
         </div>
         <div id="simulator-container">
             <div id="parking-area">

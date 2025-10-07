@@ -17,7 +17,7 @@ body {
     10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
     20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
-body.screen-shake {
+#main-content.screen-shake {
     animation: screen-shake 0.5s ease-in-out;
 }
 
@@ -105,27 +105,51 @@ body.screen-shake {
     z-index: 10;
     padding: 10px;
     background-color: rgba(240, 240, 240, 0.9);
-    height: 60px;
     box-sizing: border-box;
     border-bottom: 1px solid #ccc;
+    
+    /* ▼▼▼ ここから変更 ▼▼▼ */
     display: flex;
+    flex-direction: column; /* グループを縦に並べる */
     justify-content: center;
     align-items: center;
-    gap: 15px;
+    gap: 8px; /* グループ間の隙間 */
+    height: auto; /* 高さを自動調整 */
+    /* ▲▲▲ ここまで変更 ▲▲▲ */
 }
-
 .control-group {
     display: flex;
     align-items: center;
     gap: 10px;
+    /* ▼▼▼ ここから追加 ▼▼▼ */
+    /* 横幅が狭い画面でもボタンが折り返されるように設定 */
+    flex-wrap: wrap;
+    justify-content: center;
+    /* ▲▲▲ ここまで追加 ▲▲▲ */
 }
 
 #game-controls {
     display: none;
+    flex-direction: column; /* 全体を縦に並べる */
+    align-items: center;
+    gap: 5px;
 }
+
+.game-controls-row {
+    display: flex; /* ボタンとスコアの行を横に並べる */
+    align-items: center;
+    gap: 10px;
+}
+
 body.game-mode #main-controls {
     display: none;
 }
+
+/* ▼▼▼ ここから追加 ▼▼▼ */
+body.game-mode #save-controls {
+    display: none;
+}
+/* ▲▲▲ ここまで追加 ▲▲▲ */
 body.game-mode #game-controls {
     display: flex;
 }
