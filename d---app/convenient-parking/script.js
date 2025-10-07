@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ▼▼▼ このイベントリスナー全体を置き換えてください ▼▼▼
     manualButton.addEventListener('click', () => {
-        window.open('manual.html', '_blank');
+        location.href = 'manual.html';
     });
     // ▲▲▲ ここまで置き換え ▲▲▲
     
