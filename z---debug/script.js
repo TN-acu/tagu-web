@@ -609,10 +609,29 @@ manualButton.addEventListener('click', () => {
         manualOverlay.classList.remove('dialog-hidden');
         
         // 閉じるボタンのイベントリスナー
+// ▼▼▼ この closeManual 関数を置き換えてください ▼▼▼
         const closeManual = () => {
+            // 1. まずマニュアル画面を非表示にする
             manualOverlay.classList.add('dialog-hidden');
             manualOverlay.removeEventListener('click', closeManualOnClickOutside);
+
+            // 2. タイトル画面（splash-screen）を取得して表示する
+            const splashScreen = document.getElementById('splash-screen');
+            if (splashScreen) {
+                splashScreen.style.display = 'flex';
+                splashScreen.classList.remove('fade-out');
+
+                // 3. 1秒後（1000ミリ秒後）にフェードアウト処理を開始
+                setTimeout(() => {
+                    splashScreen.classList.add('fade-out');
+                    // フェードアウトアニメーション(0.5秒)が終わった後に非表示にする
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                    }, 500);
+                }, 1000);
+            }
         };
+        // ▲▲▲ ここまで置き換え ▲▲▲
         
         const closeManualOnClickOutside = (e) => {
             if (e.target === manualOverlay) {
