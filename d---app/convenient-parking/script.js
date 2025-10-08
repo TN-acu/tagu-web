@@ -310,7 +310,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
+    // ▼▼▼ この initializeSlots 関数をすべて置き換えてください ▼▼▼
     const initializeSlots = () => {
+        // 保存されている前回のスロット番号を読み込む
+        const lastSelectedSlot = localStorage.getItem('lastSelectedSlot');
+
         for (let i = 1; i <= 3; i++) {
             const savedData = localStorage.getItem(slotStorageKeyPrefix + i);
             if (savedData) {
@@ -318,20 +322,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     const parsedData = JSON.parse(savedData);
                     if (parsedData && parsedData.dateText) {
                         slotSelect.options[i - 1].text = parsedData.dateText;
-                    } else {
-                        const prefixes = ['①', '②', '③'];
-                        slotSelect.options[i-1].text = `${prefixes[i-1]} 空データ`;
                     }
-                } catch(e) {
-                    const prefixes = ['①', '②', '③'];
-                    slotSelect.options[i - 1].text = `${prefixes[i-1]} 空データ`;
-                }
-            } else {
-                const prefixes = ['①', '②', '③'];
-                slotSelect.options[i - 1].text = `${prefixes[i-1]} 空データ`;
+                } catch(e) { /* データが不正な場合は何もしない */ }
             }
         }
+        
+        // もし保存されていた番号があれば、スロットに適用する
+        if (lastSelectedSlot) {
+            slotSelect.value = lastSelectedSlot;
+        }
     };
+    // ▲▲▲ ここまで置き換え ▲▲▲
 
     const panMove = (e) => {
         if (!isPanning) return;
@@ -704,6 +705,13 @@ manualButton.addEventListener('click', () => {
     loadButton.addEventListener('click', async () => {
         await loadFromSlot();
     });
+
+    // ▼▼▼ ここから追加 ▼▼▼
+    // スロットが変更されたら、その番号をlocalStorageに保存
+    slotSelect.addEventListener('change', () => {
+        localStorage.setItem('lastSelectedSlot', slotSelect.value);
+    });
+    // ▲▲▲ ここまで追加 ▲▲▲
 
     // === 初期化処理 ===
     loadLayout();
