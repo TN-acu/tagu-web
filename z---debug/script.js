@@ -1,18 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
  
-    // ▼▼▼ このブロック全体を置き換えてください ▼▼▼
+// ▼▼▼ このブロック全体を置き換えてください ▼▼▼
     // localStorageに縮小リクエストがあるかチェック
     if (localStorage.getItem('request_zoom_reset') === 'true') {
-        // リクエストがあれば、すぐに削除して再実行を防ぐ
         localStorage.removeItem('request_zoom_reset');
 
-        // 0.1秒待ってから縮小処理を実行し、ブラウザの表示復元と競合しないようにする
-        setTimeout(() => {
-            scale = 1;
-            pan = { x: 0, y: 0 };
-            isZoomed = false;
-            applyTransform({ withTransition: false });
-        }, 100);
+        // ブラウザのビューポート（表示領域）の変更を監視するリスナーを定義
+        const handleViewportResize = () => {
+            // もしブラウザによって拡大されたら（scaleが1より大きい）
+            if (window.visualViewport && window.visualViewport.scale > 1) {
+                // その瞬間に縮小処理を実行
+                scale = 1;
+                pan = { x: 0, y: 0 };
+                isZoomed = false;
+                applyTransform({ withTransition: false });
+
+                // 役目が終わったので、監視を解除
+                window.visualViewport.removeEventListener('resize', handleViewportResize);
+            }
+        };
+
+        // ブラウザの表示領域が変更されたときに handleViewportResize 関数を実行するよう設定
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleViewportResize);
+
+            // 安全のため、2秒経っても何も起きなければ監視を終了
+            setTimeout(() => {
+                window.visualViewport.removeEventListener('resize', handleViewportResize);
+            }, 2000);
+        }
     }
     // ▲▲▲ ここまで置き換え ▲▲▲
  
