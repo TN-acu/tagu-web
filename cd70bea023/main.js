@@ -29,10 +29,10 @@ if (isMobile()) {
             e.preventDefault();
         }
     });
-    (function() {
-        function blockDevTools() { debugger; }
-        setInterval(blockDevTools, 500);
-    })();
+    /* (function() {
+        function blockDevTools() { debugger; }
+        setInterval(blockDevTools, 500);
+    })(); */
 }
 
 const setAppHeight = () => {
