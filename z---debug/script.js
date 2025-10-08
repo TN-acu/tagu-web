@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
  
-     // ▼▼▼ このブロックをscript.jsの先頭に追加 ▼▼▼
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('reset_zoom')) {
+    // ▼▼▼ このブロック全体を置き換えてください ▼▼▼
+    // localStorageに縮小リクエストがあるかチェック
+    if (localStorage.getItem('request_zoom_reset') === 'true') {
+        // リクエストがあれば、すぐに削除して再実行を防ぐ
+        localStorage.removeItem('request_zoom_reset');
+
         // 0.1秒待ってから縮小処理を実行し、ブラウザの表示復元と競合しないようにする
         setTimeout(() => {
             scale = 1;
@@ -10,11 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isZoomed = false;
             applyTransform({ withTransition: false });
         }, 100);
-
-        // URLから目印を消去して、リロード時に再度実行されるのを防ぐ
-        history.replaceState(null, '', window.location.pathname);
     }
-    // ▲▲▲ ここまで追加 ▲▲▲
+    // ▲▲▲ ここまで置き換え ▲▲▲
  
     const splashScreen = document.getElementById('splash-screen');
     const mainContent = document.getElementById('main-content');
