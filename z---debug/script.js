@@ -4,6 +4,9 @@ let pan = { x: 0, y: 0 };
 let applyTransform;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // isMobileの判定を最初に一度だけ行い、定数として保持する
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
     const splashScreen = document.getElementById('splash-screen');
     const mainContent = document.getElementById('main-content');
     const parkingArea = document.getElementById('parking-area');
@@ -310,9 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // ▼▼▼ この initializeSlots 関数をすべて置き換えてください ▼▼▼
     const initializeSlots = () => {
-        // 保存されている前回のスロット番号を読み込む
         const lastSelectedSlot = localStorage.getItem('lastSelectedSlot');
 
         for (let i = 1; i <= 3; i++) {
@@ -327,12 +328,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // もし保存されていた番号があれば、スロットに適用する
         if (lastSelectedSlot) {
             slotSelect.value = lastSelectedSlot;
         }
     };
-    // ▲▲▲ ここまで置き換え ▲▲▲
 
     const panMove = (e) => {
         if (!isPanning) return;
@@ -522,8 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // === イベントリスナー設定 ===
-    const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
     simulatorContainer.addEventListener('mousedown', dragStart);
     simulatorContainer.addEventListener('touchstart', dragStart, { passive: false });
 
@@ -561,12 +558,11 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTransform({ withTransition: true });
     });
 
-manualButton.addEventListener('click', () => {
+    manualButton.addEventListener('click', () => {
         const manualOverlay = document.getElementById('manual-overlay');
         const manualBody = document.getElementById('manual-body');
         const manualCloseButton = document.getElementById('manual-close-button');
 
-        // 表示するHTMLコンテンツ
         const manualHTMLContent = `
             <h3>📖操作マニュアル</h3>
             <h4>■ 駐車場シミュレーターとは？</h4>
@@ -605,34 +601,26 @@ manualButton.addEventListener('click', () => {
             <br>・ゲームをやめるには「🌸 ゲーム終了」ボタンを押してください。</p>
         `;
 
-        // モーダルにHTMLを挿入して表示
         manualBody.innerHTML = manualHTMLContent;
         manualOverlay.classList.remove('dialog-hidden');
         
-        // 閉じるボタンのイベントリスナー
-// ▼▼▼ この closeManual 関数を置き換えてください ▼▼▼
         const closeManual = () => {
-            // 1. まずマニュアル画面を非表示にする
             manualOverlay.classList.add('dialog-hidden');
             manualOverlay.removeEventListener('click', closeManualOnClickOutside);
 
-            // 2. タイトル画面（splash-screen）を取得して表示する
             const splashScreen = document.getElementById('splash-screen');
             if (splashScreen) {
                 splashScreen.style.display = 'flex';
                 splashScreen.classList.remove('fade-out');
 
-                // 3. 1秒後（1000ミリ秒後）にフェードアウト処理を開始
                 setTimeout(() => {
                     splashScreen.classList.add('fade-out');
-                    // フェードアウトアニメーション(0.5秒)が終わった後に非表示にする
                     setTimeout(() => {
                         splashScreen.style.display = 'none';
                     }, 500);
                 }, 1000);
             }
         };
-        // ▲▲▲ ここまで置き換え ▲▲▲
         
         const closeManualOnClickOutside = (e) => {
             if (e.target === manualOverlay) {
@@ -706,16 +694,31 @@ manualButton.addEventListener('click', () => {
         await loadFromSlot();
     });
 
-    // ▼▼▼ ここから追加 ▼▼▼
-    // スロットが変更されたら、その番号をlocalStorageに保存
     slotSelect.addEventListener('change', () => {
         localStorage.setItem('lastSelectedSlot', slotSelect.value);
     });
-    // ▲▲▲ ここまで追加 ▲▲▲
 
     // === 初期化処理 ===
     loadLayout();
     addOrderLabels();
     modify1000mmLabels();
     initializeSlots();
+
+    // モバイルデバイス向けの処理
+    if (isMobile) {
+        document.body.classList.add('mobile-no-select');
+        window.addEventListener('contextmenu', function (e) {
+            if (e.target.closest('#search-input') === null) { 
+                 e.preventDefault();
+            }
+        }, false);
+        // ▼▼▼ ここから追加 ▼▼▼
+        window.addEventListener('keydown', function (e) {
+            if ( e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U') || (e.metaKey && e.altKey && e.key === 'I') ) {
+                e.preventDefault();
+            }
+        });
+        // ▲▲▲ ここまで追加 ▲▲▲
+    }
+    
 });
