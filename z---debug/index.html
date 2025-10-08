@@ -58,7 +58,7 @@
                     <div id="score-layer">お花スコア　0点</div>
                 </div>
                 <div id="game-timer"></div>
-                </div>
+            </div>
         </div>
         <div id="simulator-container">
             <div id="parking-area">
@@ -123,6 +123,14 @@
         <span id="combo-count"></span> COMBO!!!
     </div>
     
+    <div id="game-over-screen" class="hidden">
+        <div id="final-score-container">
+            <p>TIME UP!</p>
+            <div id="final-score"></div>
+        </div>
+        <button id="retry-button">もう一度トライする</button>
+    </div>
+
     <div id="game-start-countdown" class="hidden">
         <p class="countdown-text">駐車場をタップしてお花畑に変えよう!!</p>
         <span id="countdown-number"></span>
@@ -135,6 +143,13 @@
         <div id="custom-dialog-box">
             <p id="custom-dialog-message"></p>
             <div id="custom-dialog-buttons"></div>
+        </div>
+    </div>
+
+    <div id="manual-overlay" class="dialog-hidden">
+        <div id="manual-content">
+            <button id="manual-close-button">閉じる</button>
+            <div id="manual-body"></div>
         </div>
     </div>
 

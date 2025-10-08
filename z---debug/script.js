@@ -1,37 +1,9 @@
+let isZoomed = false;
+let scale = 1;
+let pan = { x: 0, y: 0 };
+let applyTransform;
+
 document.addEventListener('DOMContentLoaded', () => {
- 
-// ▼▼▼ このブロック全体を置き換えてください ▼▼▼
-    // localStorageに縮小リクエストがあるかチェック
-    if (localStorage.getItem('request_zoom_reset') === 'true') {
-        localStorage.removeItem('request_zoom_reset');
-
-        // ブラウザのビューポート（表示領域）の変更を監視するリスナーを定義
-        const handleViewportResize = () => {
-            // もしブラウザによって拡大されたら（scaleが1より大きい）
-            if (window.visualViewport && window.visualViewport.scale > 1) {
-                // その瞬間に縮小処理を実行
-                scale = 1;
-                pan = { x: 0, y: 0 };
-                isZoomed = false;
-                applyTransform({ withTransition: false });
-
-                // 役目が終わったので、監視を解除
-                window.visualViewport.removeEventListener('resize', handleViewportResize);
-            }
-        };
-
-        // ブラウザの表示領域が変更されたときに handleViewportResize 関数を実行するよう設定
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', handleViewportResize);
-
-            // 安全のため、2秒経っても何も起きなければ監視を終了
-            setTimeout(() => {
-                window.visualViewport.removeEventListener('resize', handleViewportResize);
-            }, 2000);
-        }
-    }
-    // ▲▲▲ ここまで置き換え ▲▲▲
- 
     const splashScreen = document.getElementById('splash-screen');
     const mainContent = document.getElementById('main-content');
     const parkingArea = document.getElementById('parking-area');
@@ -45,23 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const slotSelect = document.getElementById('slot-select');
     const gameButton = document.getElementById('game-button');
     const exitGameButton = document.getElementById('exit-game-button');
+    const retryButton = document.getElementById('retry-button');
     const autoSaveStorageKey = 'parkingSimulatorLayout';
     const slotStorageKeyPrefix = 'parkingSimulatorSlot_';
 
     const dialogOverlay = document.getElementById('custom-dialog-overlay');
     const dialogMessage = document.getElementById('custom-dialog-message');
     const dialogButtons = document.getElementById('custom-dialog-buttons');
-
-// ▼▼▼ このブロック全体を置き換えてください ▼▼▼
-    // ページ読み込み時にブラウザが拡大表示を復元した場合、強制的に縮小表示に戻す
-    if (window.visualViewport && window.visualViewport.scale > 1) {
-        // 即座に縮小処理を実行
-        scale = 1;
-        pan = { x: 0, y: 0 };
-        isZoomed = false;
-        applyTransform({ withTransition: false }); // アニメーションなしで適用
-    }
-    // ▲▲▲ ここまで置き換え ▲▲▲
 
     setTimeout(() => {
         splashScreen.classList.add('fade-out');
@@ -105,14 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let northClickCount = 0;
     let northClickTimer = null;
-
-    let isZoomed = false;
-    let scale = 1;
-    let pan = { x: 0, y: 0 };
     let startPan = { x: 0, y: 0 };
     let isPanning = false;
 
-    const applyTransform = ({ withTransition = false } = {}) => {
+    applyTransform = ({ withTransition = false } = {}) => {
         const containerWidth = simulatorContainer.offsetWidth;
         const containerHeight = simulatorContainer.offsetHeight;
 
@@ -130,7 +88,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         simulatorContainer.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
     };
+    
+    if (localStorage.getItem('request_zoom_reset') === 'true') {
+        localStorage.removeItem('request_zoom_reset');
 
+        const handleViewportResize = () => {
+            if (window.visualViewport && window.visualViewport.scale > 1) {
+                scale = 1;
+                pan = { x: 0, y: 0 };
+                isZoomed = false;
+                applyTransform({ withTransition: false });
+                window.visualViewport.removeEventListener('resize', handleViewportResize);
+            }
+        };
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleViewportResize);
+            setTimeout(() => {
+                window.visualViewport.removeEventListener('resize', handleViewportResize);
+            }, 2000);
+        }
+    }
 
     const presetLayout = [
         { id: 'car_3395_1',   x: 39.68, y: 29.98, rotation: 0.00, w: 8.4, h: 4.7, column: 'right' },
@@ -223,10 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             handle.className = `rotate-handle ${h.pos}`;
             handle.textContent = h.symbol;
             handle.addEventListener('click', (e) => {
-               // ▼▼▼ ここから変更（追加）▼▼▼
-                // イベントが親要素(背景)へ伝わるのを防ぎ、ダブルタップによる拡大を抑制します。
                 e.stopPropagation();
-                // ▲▲▲ ここまで変更（追加）▲▲▲
                 rotateElement(h.dir);
             });
             activeElement.appendChild(handle);
@@ -258,11 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const preset = presetLayout.find(item => item.id === elem.id);
             if (!preset) return;
 
-            // ▼▼▼ ここから変更 ▼▼▼
-            // 枠線の幅を含まない内側のサイズを基準に計算することで、座標のずれを防ぎます。
             const posXPercent = (elem.offsetLeft / parkingArea.clientWidth) * 100;
             const posYPercent = (elem.offsetTop / parkingArea.clientHeight) * 100;
-            // ▲▲▲ ここまで変更 ▲▲▲
 
             layout.push({ ...preset, x: posXPercent, y: posYPercent, rotation: parseFloat(rotation) });
         });
@@ -558,14 +530,10 @@ document.addEventListener('DOMContentLoaded', () => {
     parkingArea.addEventListener('click', (e) => { if(e.target === parkingArea) { deactivateAll(); } });
     
     simulatorContainer.addEventListener('dblclick', (e) => {
-        // ▼▼▼ ここから変更（追加）▼▼▼
-        // ダブルタップの発生源が回転ハンドルの場合は、拡大縮小を実行しない
         if (e.target.classList.contains('rotate-handle')) {
             return;
         }
-        // ▲▲▲ ここまで変更（追加）▲▲▲
 
-        // ▼【修正】ゲームモード中は拡大機能を無効化
         if (Game.isActive) {
             return;
         }
@@ -592,13 +560,69 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTransform({ withTransition: true });
     });
 
- // script.js
+manualButton.addEventListener('click', () => {
+        const manualOverlay = document.getElementById('manual-overlay');
+        const manualBody = document.getElementById('manual-body');
+        const manualCloseButton = document.getElementById('manual-close-button');
 
-    // ▼▼▼ このイベントリスナー全体を置き換えてください ▼▼▼
-    manualButton.addEventListener('click', () => {
-        location.href = 'manual.html';
+        // 表示するHTMLコンテンツ
+        const manualHTMLContent = `
+            <h3>📖操作マニュアル</h3>
+            <h4>■ 駐車場シミュレーターとは？</h4>
+            <p>・各自のスマホだけで簡単に学校駐車場の駐車シミュレーションができるアプリです。taguアプリと同じ方法でスマホへインストールもできますが、ブラウザ上でもそのまま使えます。
+            <br>・ 閲覧・編集・保存は各自のスマホ内で完結しているので、図形を好きに動かしても他の人のデータに影響することは一切ありません。
+            </p>
+            <h4>■ なんで作ったの？</h4>
+            <p>・学校側から与えられた駐車スペースに対して、生徒側で工夫する手段としてアプリを作りました。
+            <br>・今後の降雪時、または２・３年進級時に駐車レーン変更があった時、学校側は駐車場の効率的な使い方まではシミュレーションしてくれません。
+            （学校側は「利用する生徒間で話し合って」というスタンスです。なので、ハチワレルールなどは作ってくれません）
+            <br>・学校側へはシミュレーション用のパワーポイントデータと４ＷＤ(降雪時の駐車車間距離)のアンケート結果を渡す予定でしたが、
+            それらを根拠に逆にこちらに不利益なルール変更がされないように譲渡は一旦保留にしています。
+            （例えば２０２５年６月中間テスト直前にあったような不利益変更です。また、この駐車場シミュレーターの存在も伝えません）
+            <br>・駐車場をお花畑に緑地化できるゲーム<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>もついでに作りました。
+            </p>
+            <h4>■ 駐車場シミュレーションの基本操作</h4>
+            <p>・操作画面が小さいときは指で拡大してご利用ください。
+            <br>・各車両図形<span style="display: inline-block; width: 17px; height: 35px; background-color: #bcc0f8; border: 1px solid #333; border-radius: 2px; vertical-align: middle; margin: 0 2px;"></span>とスペース計測図形（<span style="display: inline-block; width: 25px; height: 10px; background-color: #99f7a8; border: 1px solid #333; vertical-align: middle; margin: 0 2px;"></span>[1,000mm]と[1,500mm]）は長押ししてからドラッグすることで自由に移動できます。それ以外の画像や図形は移動できません。
+            <br>・上記図形を一度タップすると左右に回転ハンドル（<span style="display: inline-block; width: 20px; height: 32px; background-color: orange; border-radius: 80%; vertical-align: middle; margin-right: 2px;"></span>↺ ↻）が表示され、これをタップすると図形が5度ずつ回転します。
+            <br>・図形以外の何もない場所をタップすると回転ハンドルは消えます。</p>
+            <h4>■ 配置の自動保存について</h4>
+            <p>・アプリを閉じても次回開いた時には前回の配置が復元されます。(スマホ端末内ローカルに保存されます)</p>
+            <h4>■ 特定の配置を記録する（セーブ・ロード）</h4>
+            <p>・自動保存とは別に特定の配置を３つまで記録しておくことができます。
+            <br>・<b>セーブ：</b>「空データ」または上書きしたいスロットをプルダウンから選択し「セーブ」ボタンを押すと、現在の配置がそのスロット(スマホ端末内ローカル)に記録されます。
+            <br>・<b>ロード：</b>記録したスロットをプルダウンから選択し「ロード」ボタンを押すと、その配置が復元されます。
+            <span class="warning">（現在画面の配置は上書きされます）</span></p><h4>■ 配置をリセットする</h4>
+            <p>・画面上部のオレンジ色の「初期配置に戻す」ボタンを押すとすべての図形が最初の位置に戻ります。
+            <br><span class="warning">※一度「初期配置に戻す」と戻せませんのでご注意ください。なお、この操作でセーブデータは消えません。</span></p>
+            <h4>■ 配置の共有</h4>
+            <p>・気に入った駐車場配置やハチワレルールよりも良いルールができたら各自のスマートフォンのスクリーンショット機能などを使って画像を保存して、駐車場ライングループなどで共有・提案してください😄</p>
+            <h4>■ お花畑ゲーム 🌸</h4>
+            <p>・画面上部の<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>ボタンを押すとお花畑ゲームが始まります。
+            <br>・駐車場エリアをタップするとカウントダウンが始まり、３秒後に🌸が咲き乱れて車などが消失します。
+            <br>・図形や背景を🌸化するとスコアが獲得できます。連続で🌸化するとコンボボーナスが入ります。しかしハイスコアを取っても何も起こりません。
+            <br>・ゲームをやめるには「🌸 ゲーム終了」ボタンを押してください。</p>
+        `;
+
+        // モーダルにHTMLを挿入して表示
+        manualBody.innerHTML = manualHTMLContent;
+        manualOverlay.classList.remove('dialog-hidden');
+        
+        // 閉じるボタンのイベントリスナー
+        const closeManual = () => {
+            manualOverlay.classList.add('dialog-hidden');
+            manualOverlay.removeEventListener('click', closeManualOnClickOutside);
+        };
+        
+        const closeManualOnClickOutside = (e) => {
+            if (e.target === manualOverlay) {
+                closeManual();
+            }
+        };
+
+        manualCloseButton.addEventListener('click', closeManual, { once: true });
+        manualOverlay.addEventListener('click', closeManualOnClickOutside);
     });
-    // ▲▲▲ ここまで置き換え ▲▲▲
     
     resetButton.addEventListener('click', async () => {
         const userChoice = await customConfirm('すべての図形を初期配置に戻します。\nこの操作は元に戻せません。\nよろしいですか？');
@@ -611,14 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    if (!isMobile) {
-        northMark.addEventListener('click', () => {
-            showCssOutput();
-        });
-    }
-
-    // ▼▼▼ ここから変更 ▼▼▼
-    gameButton.addEventListener('click', () => {
+    const startGameSequence = () => {
         const countdownOverlay = document.getElementById('game-start-countdown');
         const countdownNumber = document.getElementById('countdown-number');
         if (!countdownOverlay || !countdownNumber) return;
@@ -633,7 +650,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 countdownOverlay.classList.add('hidden');
                 
-                // 元のゲーム開始処理を実行
                 if (isZoomed) {
                     scale = 1;
                     pan = { x: 0, y: 0 };
@@ -646,10 +662,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         countdownOverlay.classList.remove('hidden');
         startCountdown();
-    });
-    // ▲▲▲ ここまで変更 ▲▲▲
+    };
+
+    if (!isMobile) {
+        northMark.addEventListener('click', () => {
+            showCssOutput();
+        });
+    }
+
+    gameButton.addEventListener('click', startGameSequence);
 
     exitGameButton.addEventListener('click', () => Game.stop());
+
+    retryButton.addEventListener('click', () => {
+        document.getElementById('game-over-screen').classList.add('hidden');
+        startGameSequence();
+    });
 
     saveButton.addEventListener('click', async () => {
         await saveToSlot();

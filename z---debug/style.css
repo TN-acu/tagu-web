@@ -107,49 +107,40 @@ body {
     background-color: rgba(240, 240, 240, 0.9);
     box-sizing: border-box;
     border-bottom: 1px solid #ccc;
-    
-    /* ▼▼▼ ここから変更 ▼▼▼ */
     display: flex;
-    flex-direction: column; /* グループを縦に並べる */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 8px; /* グループ間の隙間 */
-    height: auto; /* 高さを自動調整 */
-    /* ▲▲▲ ここまで変更 ▲▲▲ */
+    gap: 8px;
+    height: auto;
 }
+
 .control-group {
     display: flex;
     align-items: center;
     gap: 10px;
-    /* ▼▼▼ ここから追加 ▼▼▼ */
-    /* 横幅が狭い画面でもボタンが折り返されるように設定 */
     flex-wrap: wrap;
     justify-content: center;
-    /* ▲▲▲ ここまで追加 ▲▲▲ */
 }
 
 #game-controls {
     display: none;
-    flex-direction: column; /* 全体を縦に並べる */
+    flex-direction: column;
     align-items: center;
     gap: 5px;
 }
 
 .game-controls-row {
-    display: flex; /* ボタンとスコアの行を横に並べる */
+    display: flex;
     align-items: center;
     gap: 10px;
 }
 
-body.game-mode #main-controls {
-    display: none;
-}
-
-/* ▼▼▼ ここから追加 ▼▼▼ */
+body.game-mode #main-controls,
 body.game-mode #save-controls {
     display: none;
 }
-/* ▲▲▲ ここまで追加 ▲▲▲ */
+
 body.game-mode #game-controls {
     display: flex;
 }
@@ -238,16 +229,11 @@ body.game-mode #game-controls {
     position: relative;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
     cursor: default;
-
-        /* ▼▼▼ ここから追加 ▼▼▼ */
-    /* テキスト選択を無効化 */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    /* iOSで長押しした際のメニュー表示を無効化 */
     -webkit-touch-callout: none;
-    /* ▲▲▲ ここまで追加 ▲▲▲ */
 }
 
 body.game-mode #parking-area {
@@ -282,7 +268,7 @@ body.game-mode #parking-area {
     box-sizing: border-box;
     overflow: visible; 
     transition: transform 0.4s ease-out, opacity 0.4s ease-out, visibility 0.4s;
-    z-index: 10; /* ▼【追加】図形が花びらの手前に来るように調整 */
+    z-index: 10;
 }
 
 .draggable:active {
@@ -362,11 +348,11 @@ body.game-mode #parking-area {
 
 .rotate-handle {
     position: absolute;
-    width: 28px; /* ▼【修正】少し細くしました */
-    height: 55px; /* ▼【修正】縦に長くしました */
+    width: 34px;
+    height: 70px;
     background-color: orange;
     color: white;
-    border-radius: 14px; /* ▼【修正】縦長の丸い形に変更しました */
+    border-radius: 14px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -550,7 +536,7 @@ body.game-mode #parking-area {
     animation: slide-in-out 1.5s forwards cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* ▼▼▼ ここから追加 ▼▼▼ */
+/* --- ゲーム開始カウントダウン用のスタイル --- */
 #game-start-countdown {
     position: fixed;
     top: 0;
@@ -558,6 +544,7 @@ body.game-mode #parking-area {
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.7);
@@ -588,26 +575,17 @@ body.game-mode #parking-area {
         opacity: 1;
     }
 }
-/* ▲▲▲ ここまで追加 ▲▲▲ */
 
-/* ▼▼▼ ここから追加 ▼▼▼ */
-/* カウントダウンの親要素を縦並びにする */
-#game-start-countdown {
-    flex-direction: column;
-}
-
-/* カウントダウン上部のテキストスタイル */
 .countdown-text {
     font-size: 5vmin;
     font-weight: bold;
     color: #fff;
-    text-shadow: 0 0 10px #ffc0cb, 0 0 20px #ffc0cb; /* ピンクの影 */
+    text-shadow: 0 0 10px #ffc0cb, 0 0 20px #ffc0cb;
     margin: 0;
-    padding-bottom: 20px; /* 数字との間隔 */
-    animation: text-fade-in 1s ease-out; /* フェードインアニメーション */
+    padding-bottom: 20px;
+    animation: text-fade-in 1s ease-out;
 }
 
-/* テキストのフェードインアニメーション */
 @keyframes text-fade-in {
     from {
         opacity: 0;
@@ -618,4 +596,158 @@ body.game-mode #parking-area {
         transform: translateY(0);
     }
 }
-/* ▲▲▲ ここまで追加 ▲▲▲ */
+
+/* --- ゲームオーバー画面のスタイル --- */
+#game-timer {
+    color: blue;
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 150px;
+    text-align: center;
+}
+
+#game-over-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 18000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    color: white;
+    font-family: 'Arial Black', sans-serif;
+}
+
+#game-over-screen.hidden {
+    display: none;
+}
+
+#final-score-container {
+    text-align: center;
+}
+
+#final-score-container p {
+    font-size: 8vmin;
+    margin: 0;
+    color: #FF69B4;
+    text-shadow: 0 0 10px #FFC0CB;
+}
+
+#final-score {
+    font-size: 15vmin;
+    font-weight: 900;
+}
+
+#retry-button {
+    background: linear-gradient(145deg, #1e90ff, #00bfff);
+    color: white;
+    padding: 15px 30px;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+/* --- マニュアル表示用モーダル --- */
+#manual-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 25000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+}
+#manual-overlay:not(.dialog-hidden) {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#manual-content {
+    width: 90%;
+    max-width: 800px;
+    height: 85%;
+    background-color: #f0fff0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+#manual-close-button {
+    align-self: flex-end;
+    font-size: 14px;
+    padding: 6px 14px;
+    color: #333;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 15px;
+    -webkit-tap-highlight-color: transparent;
+}
+#manual-close-button:active {
+    background-color: #ddd;
+}
+
+#manual-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    line-height: 1.6;
+    /* ▼▼▼ ここから追加 ▼▼▼ */
+    /* 常に表示されるスクロールバーの軌道（見た目のみ） */
+    border-right: 16px solid #e0f0e0; 
+    /* ▲▲▲ ここまで追加 ▲▲▲ */
+}
+
+#manual-body h4 {
+    border-left: 4px solid #1e90ff;
+    padding-left: 8px;
+    margin-top: 2em;
+}
+
+#manual-body p {
+    padding-left: 12px;
+}
+#manual-body .warning {
+    color:red;
+    font-weight:bold;
+}
+
+/* --- マニュアルスクロールバーのスタイル --- */
+/* Firefox用の設定 */
+#manual-body {
+  scrollbar-width: thin;
+  scrollbar-color: #98d898 #e0f0e0;
+}
+
+/* Chrome, Safari, Edge用の設定 (iOSでもスクロール中に表示される) */
+#manual-body::-webkit-scrollbar {
+  width: 10px; /* ▼【修正】スクロールバーの幅をさらに太く */
+}
+
+#manual-body::-webkit-scrollbar-track {
+  background: #e0f0e0; /* トラックの色を軌道の色と合わせる */
+}
+
+#manual-body::-webkit-scrollbar-thumb {
+  background-color: #98d898;
+  border-radius: 10px;
+  border: 4px solid #e0f0e0;
+}
