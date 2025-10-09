@@ -1,17 +1,29 @@
-// サービスワーカー有効化時に即座にコントロールを開始する
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// ▼▼▼ この activate イベントリスナーをすべて置き換え ▼▼▼
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  const updateTime = new Date().toISOString();
+  event.waitUntil(
+    self.clients.claim().then(() => {
+      // Service Workerが有効化され、ページを制御下に置いた後でメッセージを送信する
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
+        return Promise.all(
+          clients.map(client => {
+            return client.postMessage({ type: 'APP_UPDATED', time: updateTime });
+          })
+        );
+      });
+    })
+  );
 });
+// ▲▲▲ ここまで置き換え ▲▲▲
 
 // ページへのアクセス（ナビゲーションリクエスト）や特定ファイルへのアクセスを監視
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // ▼▼▼ 変更: キャッシュを常にバイパスしたいファイルのリスト ▼▼▼
   const filesToForceFetch = [
   '/', // ルート (index.html)
   './index.html',
@@ -23,9 +35,7 @@ self.addEventListener('fetch', (event) => {
   './parking.png',
   './car.png',
   ];
-  // ▲▲▲ 変更ここまで ▲▲▲
 
-  // ▼▼▼ 変更: ナビゲーションリクエスト、または上記リストに含まれるファイルのフェッチの場合 ▼▼▼
   if (event.request.mode === 'navigate' || filesToForceFetch.includes(url.pathname)) {
     // キャッシュを無視して、必ずネットワークから最新のファイルを取得する
     event.respondWith(
@@ -34,6 +44,5 @@ self.addEventListener('fetch', (event) => {
       })
     );
   }
-  // ▲▲▲ 変更ここまで ▲▲▲
   // それ以外のリクエスト（画像など）は、デフォルトのキャッシュ戦略に任せる
 });

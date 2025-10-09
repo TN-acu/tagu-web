@@ -697,12 +697,51 @@ document.addEventListener('DOMContentLoaded', () => {
     slotSelect.addEventListener('change', () => {
         localStorage.setItem('lastSelectedSlot', slotSelect.value);
     });
+    
+    // ▼▼▼ この displayUpdateTime 関数をすべて置き換え ▼▼▼
+    const displayUpdateTime = () => {
+        const timestampEl = document.getElementById('update-timestamp');
+        if (!timestampEl) return;
+
+        try {
+            const updateTimeISO = localStorage.getItem('appUpdateTime');
+            if (updateTimeISO) {
+                const d = new Date(updateTimeISO);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                const seconds = String(d.getSeconds()).padStart(2, '0');
+                timestampEl.textContent = `Update: ${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            }
+        } catch(e) {
+            console.error("更新日時の表示に失敗:", e);
+        }
+    };
+    // ▲▲▲ ここまで置き換え ▲▲▲
+    
+    // ▼▼▼ ここから追加 ▼▼▼
+    // Service Workerからのメッセージを受信して、更新日時を保存・表示する
+    navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'APP_UPDATED') {
+            const updateTime = event.data.time;
+            try {
+                localStorage.setItem('appUpdateTime', updateTime);
+                displayUpdateTime(); // すぐに画面に反映させる
+            } catch(e) {
+                console.error("ローカルストレージへの保存に失敗:", e);
+            }
+        }
+    });
+    // ▲▲▲ ここまで追加 ▲▲▲
 
     // === 初期化処理 ===
     loadLayout();
     addOrderLabels();
     modify1000mmLabels();
     initializeSlots();
+    displayUpdateTime(); // ページ読み込み時に更新日時を表示
 
     // モバイルデバイス向けの処理
     if (isMobile) {
@@ -712,13 +751,11 @@ document.addEventListener('DOMContentLoaded', () => {
                  e.preventDefault();
             }
         }, false);
-        // ▼▼▼ ここから追加 ▼▼▼
         window.addEventListener('keydown', function (e) {
             if ( e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U') || (e.metaKey && e.altKey && e.key === 'I') ) {
                 e.preventDefault();
             }
         });
-        // ▲▲▲ ここまで追加 ▲▲▲
     }
     
 });
