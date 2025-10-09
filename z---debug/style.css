@@ -764,7 +764,7 @@ body.game-mode #parking-area {
 #version-info {
     position: fixed;
     bottom: 2px;
-    right: 40px;
+    right: 35px;
     font-size: 6px;
     color: green;
     z-index: 99999;
