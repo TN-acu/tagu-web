@@ -751,3 +751,23 @@ body.game-mode #parking-area {
   border-radius: 10px;
   border: 4px solid #e0f0e0;
 }
+
+/* ▼▼▼ ここから追加 ▼▼▼ */
+.mobile-no-select {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+/* ▲▲▲ ここまで追加 ▲▲▲ */
+
+#version-info {
+    position: fixed;
+    bottom: 2px;
+    right: 35px;
+    font-size: 6px;
+    color: green;
+    z-index: 99999;
+    user-select: none;
+    pointer-events: none;
+}

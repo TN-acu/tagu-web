@@ -25,6 +25,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const dialogMessage = document.getElementById('custom-dialog-message');
     const dialogButtons = document.getElementById('custom-dialog-buttons');
 
+    // ▼▼▼ ここから変更 ▼▼▼
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        document.body.classList.add('mobile-no-select');
+        window.addEventListener('contextmenu', function (e) {
+            if (e.target.closest('#search-input') === null) { 
+                e.preventDefault();
+            }
+        }, false);
+        window.addEventListener('keydown', function (e) {
+            if ( e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U') || (e.metaKey && e.altKey && e.key === 'I') ) {
+                e.preventDefault();
+            }
+        });
+    }
+    // ▲▲▲ ここまで変更 ▲▲▲
+
     setTimeout(() => {
         splashScreen.classList.add('fade-out');
         setTimeout(() => {
@@ -522,8 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // === イベントリスナー設定 ===
-    const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
     simulatorContainer.addEventListener('mousedown', dragStart);
     simulatorContainer.addEventListener('touchstart', dragStart, { passive: false });
 
@@ -713,9 +729,55 @@ manualButton.addEventListener('click', () => {
     });
     // ▲▲▲ ここまで追加 ▲▲▲
 
+    const displayVersionInfo = async () => {
+        const filesToTrack = [
+            'index.html',
+            'style.css',
+            'script.js',
+            'game.js',
+            'auth.js'
+        ];
+    
+        try {
+            const fetchPromises = filesToTrack.map(file => 
+                fetch(file, { method: 'HEAD', cache: 'no-store' })
+                    .then(response => {
+                        if (!response.ok) return null;
+                        const lastModified = response.headers.get('Last-Modified');
+                        return lastModified ? new Date(lastModified) : null;
+                    })
+                    .catch(() => null)
+            );
+    
+            const dates = await Promise.all(fetchPromises);
+            const validDates = dates.filter(date => date instanceof Date);
+    
+            if (validDates.length > 0) {
+                const latestDate = new Date(Math.max.apply(null, validDates));
+                
+                const year = latestDate.getFullYear();
+                const month = String(latestDate.getMonth() + 1).padStart(2, '0');
+                const day = String(latestDate.getDate()).padStart(2, '0');
+                const hours = String(latestDate.getHours()).padStart(2, '0');
+                const minutes = String(latestDate.getMinutes()).padStart(2, '0');
+                const seconds = String(latestDate.getSeconds()).padStart(2, '0');
+    
+                const formattedDate = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+                
+                const versionInfoElement = document.getElementById('version-info');
+                if (versionInfoElement) {
+                    versionInfoElement.textContent = `${formattedDate}`;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch file modification dates:', error);
+        }
+    };
+
     // === 初期化処理 ===
     loadLayout();
     addOrderLabels();
     modify1000mmLabels();
     initializeSlots();
+    displayVersionInfo();
 });
