@@ -710,7 +710,10 @@ body.game-mode #parking-area {
     flex-grow: 1;
     overflow-y: auto;
     line-height: 1.6;
+    /* ▼▼▼ ここから追加 ▼▼▼ */
+    /* 常に表示されるスクロールバーの軌道（見た目のみ） */
     border-right: 16px solid #e0f0e0; 
+    /* ▲▲▲ ここまで追加 ▲▲▲ */
 }
 
 #manual-body h4 {
@@ -728,17 +731,19 @@ body.game-mode #parking-area {
 }
 
 /* --- マニュアルスクロールバーのスタイル --- */
+/* Firefox用の設定 */
 #manual-body {
   scrollbar-width: thin;
   scrollbar-color: #98d898 #e0f0e0;
 }
 
+/* Chrome, Safari, Edge用の設定 (iOSでもスクロール中に表示される) */
 #manual-body::-webkit-scrollbar {
-  width: 10px;
+  width: 10px; /* ▼【修正】スクロールバーの幅をさらに太く */
 }
 
 #manual-body::-webkit-scrollbar-track {
-  background: #e0f0e0;
+  background: #e0f0e0; /* トラックの色を軌道の色と合わせる */
 }
 
 #manual-body::-webkit-scrollbar-thumb {
@@ -748,15 +753,21 @@ body.game-mode #parking-area {
 }
 
 /* ▼▼▼ ここから追加 ▼▼▼ */
-#update-timestamp {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    font-size: 8px;
-    color: #90ee90; /* lightgreen */
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 2px 5px;
-    z-index: 9999;
-    pointer-events: none; /* 下の要素をクリックできるようにする */
+.mobile-no-select {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 /* ▲▲▲ ここまで追加 ▲▲▲ */
+
+#version-info {
+    position: fixed;
+    bottom: 2px;
+    right: 40px;
+    font-size: 6px;
+    color: green;
+    z-index: 99999;
+    user-select: none;
+    pointer-events: none;
+}

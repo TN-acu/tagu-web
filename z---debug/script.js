@@ -4,9 +4,6 @@ let pan = { x: 0, y: 0 };
 let applyTransform;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // isMobileの判定を最初に一度だけ行い、定数として保持する
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
     const splashScreen = document.getElementById('splash-screen');
     const mainContent = document.getElementById('main-content');
     const parkingArea = document.getElementById('parking-area');
@@ -27,6 +24,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const dialogOverlay = document.getElementById('custom-dialog-overlay');
     const dialogMessage = document.getElementById('custom-dialog-message');
     const dialogButtons = document.getElementById('custom-dialog-buttons');
+
+    // ▼▼▼ ここから変更 ▼▼▼
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        document.body.classList.add('mobile-no-select');
+        window.addEventListener('contextmenu', function (e) {
+            if (e.target.closest('#search-input') === null) { 
+                e.preventDefault();
+            }
+        }, false);
+        window.addEventListener('keydown', function (e) {
+            if ( e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U') || (e.metaKey && e.altKey && e.key === 'I') ) {
+                e.preventDefault();
+            }
+        });
+    }
+    // ▲▲▲ ここまで変更 ▲▲▲
 
     setTimeout(() => {
         splashScreen.classList.add('fade-out');
@@ -313,7 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
+    // ▼▼▼ この initializeSlots 関数をすべて置き換えてください ▼▼▼
     const initializeSlots = () => {
+        // 保存されている前回のスロット番号を読み込む
         const lastSelectedSlot = localStorage.getItem('lastSelectedSlot');
 
         for (let i = 1; i <= 3; i++) {
@@ -328,10 +345,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        // もし保存されていた番号があれば、スロットに適用する
         if (lastSelectedSlot) {
             slotSelect.value = lastSelectedSlot;
         }
     };
+    // ▲▲▲ ここまで置き換え ▲▲▲
 
     const panMove = (e) => {
         if (!isPanning) return;
@@ -558,11 +577,12 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTransform({ withTransition: true });
     });
 
-    manualButton.addEventListener('click', () => {
+manualButton.addEventListener('click', () => {
         const manualOverlay = document.getElementById('manual-overlay');
         const manualBody = document.getElementById('manual-body');
         const manualCloseButton = document.getElementById('manual-close-button');
 
+        // 表示するHTMLコンテンツ
         const manualHTMLContent = `
             <h3>📖操作マニュアル</h3>
             <h4>■ 駐車場シミュレーターとは？</h4>
@@ -601,26 +621,34 @@ document.addEventListener('DOMContentLoaded', () => {
             <br>・ゲームをやめるには「🌸 ゲーム終了」ボタンを押してください。</p>
         `;
 
+        // モーダルにHTMLを挿入して表示
         manualBody.innerHTML = manualHTMLContent;
         manualOverlay.classList.remove('dialog-hidden');
         
+        // 閉じるボタンのイベントリスナー
+// ▼▼▼ この closeManual 関数を置き換えてください ▼▼▼
         const closeManual = () => {
+            // 1. まずマニュアル画面を非表示にする
             manualOverlay.classList.add('dialog-hidden');
             manualOverlay.removeEventListener('click', closeManualOnClickOutside);
 
+            // 2. タイトル画面（splash-screen）を取得して表示する
             const splashScreen = document.getElementById('splash-screen');
             if (splashScreen) {
                 splashScreen.style.display = 'flex';
                 splashScreen.classList.remove('fade-out');
 
+                // 3. 1秒後（1000ミリ秒後）にフェードアウト処理を開始
                 setTimeout(() => {
                     splashScreen.classList.add('fade-out');
+                    // フェードアウトアニメーション(0.5秒)が終わった後に非表示にする
                     setTimeout(() => {
                         splashScreen.style.display = 'none';
                     }, 500);
                 }, 1000);
             }
         };
+        // ▲▲▲ ここまで置き換え ▲▲▲
         
         const closeManualOnClickOutside = (e) => {
             if (e.target === manualOverlay) {
@@ -694,68 +722,62 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadFromSlot();
     });
 
+    // ▼▼▼ ここから追加 ▼▼▼
+    // スロットが変更されたら、その番号をlocalStorageに保存
     slotSelect.addEventListener('change', () => {
         localStorage.setItem('lastSelectedSlot', slotSelect.value);
     });
-    
-    // ▼▼▼ この displayUpdateTime 関数をすべて置き換え ▼▼▼
-    const displayUpdateTime = () => {
-        const timestampEl = document.getElementById('update-timestamp');
-        if (!timestampEl) return;
+    // ▲▲▲ ここまで追加 ▲▲▲
 
+    const displayVersionInfo = async () => {
+        const filesToTrack = [
+            'index.html',
+            'style.css',
+            'script.js',
+            'game.js',
+            'auth.js'
+        ];
+    
         try {
-            const updateTimeISO = localStorage.getItem('appUpdateTime');
-            if (updateTimeISO) {
-                const d = new Date(updateTimeISO);
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                const hours = String(d.getHours()).padStart(2, '0');
-                const minutes = String(d.getMinutes()).padStart(2, '0');
-                const seconds = String(d.getSeconds()).padStart(2, '0');
-                timestampEl.textContent = `Update: ${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            const fetchPromises = filesToTrack.map(file => 
+                fetch(file, { method: 'HEAD', cache: 'no-store' })
+                    .then(response => {
+                        if (!response.ok) return null;
+                        const lastModified = response.headers.get('Last-Modified');
+                        return lastModified ? new Date(lastModified) : null;
+                    })
+                    .catch(() => null)
+            );
+    
+            const dates = await Promise.all(fetchPromises);
+            const validDates = dates.filter(date => date instanceof Date);
+    
+            if (validDates.length > 0) {
+                const latestDate = new Date(Math.max.apply(null, validDates));
+                
+                const year = latestDate.getFullYear();
+                const month = String(latestDate.getMonth() + 1).padStart(2, '0');
+                const day = String(latestDate.getDate()).padStart(2, '0');
+                const hours = String(latestDate.getHours()).padStart(2, '0');
+                const minutes = String(latestDate.getMinutes()).padStart(2, '0');
+                const seconds = String(latestDate.getSeconds()).padStart(2, '0');
+    
+                const formattedDate = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+                
+                const versionInfoElement = document.getElementById('version-info');
+                if (versionInfoElement) {
+                    versionInfoElement.textContent = `${formattedDate}`;
+                }
             }
-        } catch(e) {
-            console.error("更新日時の表示に失敗:", e);
+        } catch (error) {
+            console.error('Failed to fetch file modification dates:', error);
         }
     };
-    // ▲▲▲ ここまで置き換え ▲▲▲
-    
-    // ▼▼▼ ここから追加 ▼▼▼
-    // Service Workerからのメッセージを受信して、更新日時を保存・表示する
-    navigator.serviceWorker.addEventListener('message', event => {
-        if (event.data && event.data.type === 'APP_UPDATED') {
-            const updateTime = event.data.time;
-            try {
-                localStorage.setItem('appUpdateTime', updateTime);
-                displayUpdateTime(); // すぐに画面に反映させる
-            } catch(e) {
-                console.error("ローカルストレージへの保存に失敗:", e);
-            }
-        }
-    });
-    // ▲▲▲ ここまで追加 ▲▲▲
 
     // === 初期化処理 ===
     loadLayout();
     addOrderLabels();
     modify1000mmLabels();
     initializeSlots();
-    displayUpdateTime(); // ページ読み込み時に更新日時を表示
-
-    // モバイルデバイス向けの処理
-    if (isMobile) {
-        document.body.classList.add('mobile-no-select');
-        window.addEventListener('contextmenu', function (e) {
-            if (e.target.closest('#search-input') === null) { 
-                 e.preventDefault();
-            }
-        }, false);
-        window.addEventListener('keydown', function (e) {
-            if ( e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U') || (e.metaKey && e.altKey && e.key === 'I') ) {
-                e.preventDefault();
-            }
-        });
-    }
-    
+    displayVersionInfo();
 });
