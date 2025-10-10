@@ -17,6 +17,7 @@ self.addEventListener('fetch', (event) => {
   './index.html',
   './style.css',
   './script.js',
+  './game.js',
   './auth.js',
   './manifest.json',
   './title.png',
