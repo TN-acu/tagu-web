@@ -53,13 +53,14 @@
                 </select>
             </div>
             <div class="control-group" id="game-controls">
-                <div class="game-controls-row">
-                    <button id="exit-game-button">🌸 ゲーム終了</button>
-                    <div id="score-layer">お花スコア　0点</div>
+                <button id="exit-game-button">🌸 ゲーム終了</button>
+                <div id="game-info-container">
+                    <div id="high-score-layer">ハイスコア 0点</div>
+                    <div id="score-layer">お花スコア 0点</div>
                 </div>
                 <div id="game-timer"></div>
             </div>
-        </div>
+            </div>
         <div id="simulator-container">
             <div id="parking-area">
                 <div id="car_3395_1" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
@@ -125,14 +126,16 @@
     
     <div id="game-over-screen" class="hidden">
         <div id="final-score-container">
-            <p>TIME UP!</p>
+            <p>タイムアップ！</p>
             <div id="final-score"></div>
+            <div id="max-combo-display"></div>
         </div>
         <button id="retry-button">もう一度トライする</button>
+        <button id="exit-after-game-button">ゲームを終了する</button>
     </div>
 
     <div id="game-start-countdown" class="hidden">
-        <p class="countdown-text">駐車場をタップしてお花畑に変えよう!!</p>
+        <p class="countdown-text">制限時間内に駐車場をタップして<br>お花畑に変えよう!!</p>
         <span id="countdown-number"></span>
     </div>
 
