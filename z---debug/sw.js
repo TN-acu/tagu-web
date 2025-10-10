@@ -13,13 +13,18 @@ self.addEventListener('fetch', (event) => {
 
   // ▼▼▼ 変更: キャッシュを常にバイパスしたいファイルのリスト ▼▼▼
   const filesToForceFetch = [
-    '/', // ルート (index.html)
-    '/index.html',
-    '/-quiz_list.txt', // メニューのテキストファイル
-    '/main.js',
-    '/style.css'
-    // quiz.html や quiz_common.js はクエリパラメータ(?data=...)で
-    // 内容が変わるため、ここには含めずブラウザキャッシュに任せる
+  '/', // ルート (index.html)
+  './index.html',
+  './style.css',
+  './script.js',
+  './auth.js',
+  './manifest.json',
+  './title.png',
+  './parking.png',
+  './car.png',
+  './android-chrome-192x192.png',
+  './android-chrome-512x512.png',
+  './apple-touch-icon.png',
   ];
   // ▲▲▲ 変更ここまで ▲▲▲
 
