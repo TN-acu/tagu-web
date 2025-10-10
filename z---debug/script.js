@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameButton = document.getElementById('game-button');
     const exitGameButton = document.getElementById('exit-game-button');
     const retryButton = document.getElementById('retry-button');
+        // ▼▼▼ この1行を追加 ▼▼▼
+    const exitAfterGameButton = document.getElementById('exit-after-game-button');
+    // ▲▲▲ ここまで追加 ▲▲▲
     const autoSaveStorageKey = 'parkingSimulatorLayout';
     const slotStorageKeyPrefix = 'parkingSimulatorSlot_';
 
@@ -25,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const dialogMessage = document.getElementById('custom-dialog-message');
     const dialogButtons = document.getElementById('custom-dialog-buttons');
 
-    // ▼▼▼ ここから変更 ▼▼▼
+    let countdownTimerId = null; 
+
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (isMobile) {
@@ -41,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // ▲▲▲ ここまで変更 ▲▲▲
 
     setTimeout(() => {
         splashScreen.classList.add('fade-out');
@@ -51,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2500);
 
     const showDialog = () => {
+        history.pushState({ dialogOpen: true }, '', '#dialog');
         dialogOverlay.classList.remove('dialog-hidden');
     };
     const hideDialog = () => {
@@ -60,7 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlert = (message) => {
         dialogMessage.textContent = message;
         dialogButtons.innerHTML = '<button class="dialog-btn-confirm">OK</button>';
-        dialogButtons.querySelector('button').onclick = hideDialog;
+        dialogButtons.querySelector('button').onclick = () => {
+            if(history.state && history.state.dialogOpen) history.back();
+            hideDialog();
+        };
         showDialog();
     };
 
@@ -72,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="dialog-btn-confirm">OK</button>
             `;
             dialogButtons.querySelector('.dialog-btn-confirm').onclick = () => {
+                // ボタンの責務はダイアログを閉じて結果を返すことだけにする
                 hideDialog();
                 resolve(true);
             };
@@ -79,7 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideDialog();
                 resolve(false);
             };
-            showDialog();
+            // ダイアログ表示時は履歴を追加しないように変更
+            dialogOverlay.classList.remove('dialog-hidden');
         });
     };
 
@@ -276,10 +285,17 @@ const presetLayout = [
     };
 
     const saveToSlot = async () => {
+        // ▼▼▼ ここから変更 ▼▼▼
+        // 通常のダイアログは履歴を追加する
+        history.pushState({ dialogOpen: true }, '', '#dialog');
         const userChoice = await customConfirm('現在の配置を選択中のスロットに\nセーブしますか？');
         if (!userChoice) {
+            if(history.state && history.state.dialogOpen) history.back();
             return;
         }
+        if(history.state && history.state.dialogOpen) history.back();
+        // ▲▲▲ ここまで変更 ▲▲▲
+        
         const slotIndex = slotSelect.value;
         const currentLayout = getCurrentLayout();
         
@@ -308,10 +324,15 @@ const presetLayout = [
             return;
         }
 
+        // ▼▼▼ ここから変更 ▼▼▼
+        history.pushState({ dialogOpen: true }, '', '#dialog');
         const userChoice = await customConfirm('選択中のスロットのデータを\nロードしますか？\n（現在の配置は上書きされます）');
         if (!userChoice) {
+            if(history.state && history.state.dialogOpen) history.back();
             return;
         }
+        if(history.state && history.state.dialogOpen) history.back();
+        // ▲▲▲ ここまで変更 ▲▲▲
 
         try {
             const parsedData = JSON.parse(savedData);
@@ -328,9 +349,7 @@ const presetLayout = [
         }
     };
     
-    // ▼▼▼ この initializeSlots 関数をすべて置き換えてください ▼▼▼
     const initializeSlots = () => {
-        // 保存されている前回のスロット番号を読み込む
         const lastSelectedSlot = localStorage.getItem('lastSelectedSlot');
 
         for (let i = 1; i <= 3; i++) {
@@ -345,12 +364,10 @@ const presetLayout = [
             }
         }
         
-        // もし保存されていた番号があれば、スロットに適用する
         if (lastSelectedSlot) {
             slotSelect.value = lastSelectedSlot;
         }
     };
-    // ▲▲▲ ここまで置き換え ▲▲▲
 
     const panMove = (e) => {
         if (!isPanning) return;
@@ -379,6 +396,7 @@ const presetLayout = [
             pan = { x: 0, y: 0 };
             isZoomed = false;
             applyTransform({ withTransition: false });
+            if(history.state && history.state.zoomed) history.back();
             return;
         }
         
@@ -474,7 +492,6 @@ const presetLayout = [
         dragTarget = null;
         document.removeEventListener('mousemove', dragMove);
         document.removeEventListener('touchmove', dragMove);
-        document.removeEventListener('mouseup', dragEnd);
         document.addEventListener('touchend', dragEnd);
     };
     
@@ -565,6 +582,7 @@ const presetLayout = [
             scale = 1;
             pan = { x: 0, y: 0 };
             isZoomed = false;
+            if(history.state && history.state.zoomed) history.back();
         } else {
             scale = 2;
             const x = clientX - rect.left;
@@ -573,6 +591,7 @@ const presetLayout = [
             pan.x = (rect.width / 2 - x);
             pan.y = (rect.height / 2 - y);
             isZoomed = true;
+            history.pushState({ zoomed: true }, '', '#zoom');
         }
         applyTransform({ withTransition: true });
     });
@@ -582,7 +601,6 @@ manualButton.addEventListener('click', () => {
         const manualBody = document.getElementById('manual-body');
         const manualCloseButton = document.getElementById('manual-close-button');
 
-        // 表示するHTMLコンテンツ
         const manualHTMLContent = `
             <h3>📖操作マニュアル</h3>
             <h4>■ 駐車場シミュレーターとは？</h4>
@@ -614,56 +632,41 @@ manualButton.addEventListener('click', () => {
             <br><span class="warning">※一度「初期配置に戻す」と戻せませんのでご注意ください。なお、この操作でセーブデータは消えません。</span></p>
             <h4>■ 配置の共有</h4>
             <p>・気に入った駐車場配置やハチワレルールよりも良いルールができたら各自のスマートフォンのスクリーンショット機能などを使って画像を保存して、駐車場ライングループなどで共有・提案してください😄</p>
-            <h4>■ お花畑ゲーム 🌸</h4>
-            <p>・画面上部の<span style="display: inline-block; padding: 2px 6px; background: linear-gradient(145deg, #ffc107, #ff9800); color: white; border-radius: 4px; font-weight: bold; vertical-align: middle;">🌸</span>ボタンを押すとお花畑ゲームが始まります。
-            <br>・駐車場エリアをタップするとカウントダウンが始まり、３秒後に🌸が咲き乱れて車などが消失します。
-            <br>・図形や背景を🌸化するとスコアが獲得できます。連続で🌸化するとコンボボーナスが入ります。しかしハイスコアを取っても何も起こりません。
-            <br>・ゲームをやめるには「🌸 ゲーム終了」ボタンを押してください。</p>
+<h4>■ お花畑ゲーム 🌸</h4>
+            <p>・制限時間60秒以内に駐車場をたくさんタップしてお花畑🌸にすることで、できるだけ多くのスコアを獲得するゲームです。</p>
+            <p>・駐車場エリアをタップすると🌸が設置されます。🌸は周囲の図形を破壊します。</p>
+            <p>・各図形にはランダムな耐久値が設定されており、🌸がヒットするたびにダメージを受けます。</p>
+            <p>・<b>ひび割れ：</b>図形が破壊される前にひび割れ、スコアを獲得できます。</p>
+            <p>・<b>破壊：</b>ひび割れた図形にさらにダメージを与えると破壊され、高スコアを獲得できます。破壊された図形は破片となってその場に残り続けます。</p>
+            <p>・<b>破片の破壊：</b>残った破片をさらに爆発で破壊すると、スコアが加算され、細かい🌸や🍃に変わります。</p>
+            <p>・<b>ボーナス：</b>連続でお花畑🌸化させるとコンボボーナスが、一つの🌸で複数の対象を同時に巻き込むとスコアが倍増するボーナスがあります。</p>
+            <p>・タイムアップになると最終スコアとそのプレイでの最高コンボ数が表示されます。スコアが自己ベストを更新するとハイスコアが保存されます。</p>
+            <p>・「もう一度トライする」で再度ゲームに挑戦するか、または「ゲームを終了する」を選択して駐車場シミュレーター画面に戻ることができます。</p>
         `;
+        
+        history.pushState({ manualOpen: true }, '', '#manual');
 
-        // モーダルにHTMLを挿入して表示
         manualBody.innerHTML = manualHTMLContent;
         manualOverlay.classList.remove('dialog-hidden');
         
-        // 閉じるボタンのイベントリスナー
-// ▼▼▼ この closeManual 関数を置き換えてください ▼▼▼
-        const closeManual = () => {
-            // 1. まずマニュアル画面を非表示にする
-            manualOverlay.classList.add('dialog-hidden');
-            manualOverlay.removeEventListener('click', closeManualOnClickOutside);
-
-            // 2. タイトル画面（splash-screen）を取得して表示する
-            const splashScreen = document.getElementById('splash-screen');
-            if (splashScreen) {
-                splashScreen.style.display = 'flex';
-                splashScreen.classList.remove('fade-out');
-
-                // 3. 1秒後（1000ミリ秒後）にフェードアウト処理を開始
-                setTimeout(() => {
-                    splashScreen.classList.add('fade-out');
-                    // フェードアウトアニメーション(0.5秒)が終わった後に非表示にする
-                    setTimeout(() => {
-                        splashScreen.style.display = 'none';
-                    }, 500);
-                }, 1000);
-            }
-        };
-        // ▲▲▲ ここまで置き換え ▲▲▲
-        
         const closeManualOnClickOutside = (e) => {
             if (e.target === manualOverlay) {
-                closeManual();
+                history.back();
             }
         };
-
-        manualCloseButton.addEventListener('click', closeManual, { once: true });
+        
+        manualCloseButton.addEventListener('click', () => history.back(), { once: true });
         manualOverlay.addEventListener('click', closeManualOnClickOutside);
     });
     
     resetButton.addEventListener('click', async () => {
+        history.pushState({ dialogOpen: true }, '', '#dialog');
         const userChoice = await customConfirm('すべての図形を初期配置に戻します。\nこの操作は元に戻せません。\nよろしいですか？');
+        if(history.state && history.state.dialogOpen) history.back();
+
         if (userChoice) {
             if (Game.isActive) {
+                clearTimeout(countdownTimerId);
                 Game.stop();
             }
             localStorage.removeItem(autoSaveStorageKey);
@@ -675,14 +678,16 @@ manualButton.addEventListener('click', () => {
         const countdownOverlay = document.getElementById('game-start-countdown');
         const countdownNumber = document.getElementById('countdown-number');
         if (!countdownOverlay || !countdownNumber) return;
-
+        
+        history.pushState({ gameActive: true }, '', '#game');
+        
         let count = 3;
 
         const startCountdown = () => {
             if (count > 0) {
                 countdownNumber.textContent = count;
                 count--;
-                setTimeout(startCountdown, 1000);
+                countdownTimerId = setTimeout(startCountdown, 1000);
             } else {
                 countdownOverlay.classList.add('hidden');
                 
@@ -708,12 +713,42 @@ manualButton.addEventListener('click', () => {
 
     gameButton.addEventListener('click', startGameSequence);
 
-    exitGameButton.addEventListener('click', () => Game.stop());
+    // ▼▼▼ この exitGameButton イベントリスナーを置き換えてください ▼▼▼
+    exitGameButton.addEventListener('click', async () => {
+        // ボタンが押されたら、履歴操作なしで直接ダイアログを呼び出す
+        const userChoice = await customConfirm('ゲームを終了しますか？');
+        if (userChoice) {
+            // OKが押されたらゲームを停止し、履歴を戻す
+            Game.stop();
+            if (history.state && history.state.gameActive) {
+                history.back();
+            }
+        }
+        // キャンセルの場合は何もせず、ゲームが継続される
+    });
+    // ▲▲▲ ここまで置き換え ▲▲▲
 
+    // ▼▼▼ この retryButton イベントリスナーを置き換えてください ▼▼▼
     retryButton.addEventListener('click', () => {
+        // ゲームオーバー画面を隠す
         document.getElementById('game-over-screen').classList.add('hidden');
+        // ゲームの状態を完全にリセットする
+        Game.resetElements();
+        // 新しいゲームを開始する
         startGameSequence();
     });
+    // ▲▲▲ ここまで置き換え ▲▲▲
+
+        
+    // ▼▼▼ ここから追加 ▼▼▼
+    exitAfterGameButton.addEventListener('click', () => {
+        // ゲームオーバー画面を隠す
+        document.getElementById('game-over-screen').classList.add('hidden');
+        // ゲームを停止してシミュレーター画面に戻す
+        Game.stop();
+    });
+    // ▲▲▲ ここまで追加 ▲▲▲
+
 
     saveButton.addEventListener('click', async () => {
         await saveToSlot();
@@ -722,12 +757,9 @@ manualButton.addEventListener('click', () => {
         await loadFromSlot();
     });
 
-    // ▼▼▼ ここから追加 ▼▼▼
-    // スロットが変更されたら、その番号をlocalStorageに保存
     slotSelect.addEventListener('change', () => {
         localStorage.setItem('lastSelectedSlot', slotSelect.value);
     });
-    // ▲▲▲ ここまで追加 ▲▲▲
 
     const displayVersionInfo = async () => {
         const filesToTrack = [
@@ -774,10 +806,75 @@ manualButton.addEventListener('click', () => {
         }
     };
 
+    // ▼▼▼ この popstate イベントリスナーを置き換えてください ▼▼▼
+    const handleGameExitConfirmation = async () => {
+        const userChoice = await customConfirm('ゲームを終了しますか？');
+        if (userChoice) {
+            // OKならゲームを停止（履歴はpopstateで既に戻っている）
+            Game.stop();
+        } else {
+            // キャンセルなら履歴を元に戻す
+            history.pushState({ gameActive: true }, '', '#game');
+        }
+    };
+
     // === 初期化処理 ===
     loadLayout();
     addOrderLabels();
     modify1000mmLabels();
     initializeSlots();
     displayVersionInfo();
+
+    history.replaceState({ page: 'simulator' }, 'Simulator', window.location.pathname);
+
+    window.addEventListener('popstate', (event) => {
+        const manualOverlay = document.getElementById('manual-overlay');
+        const countdownOverlay = document.getElementById('game-start-countdown');
+
+        // 【優先度1】ダイアログが表示されている場合の処理
+        if (!dialogOverlay.classList.contains('dialog-hidden')) {
+            hideDialog();
+            return;
+        }
+
+        // 【優先度2】マニュアルが表示されている場合の処理
+        if (!manualOverlay.classList.contains('dialog-hidden')) {
+            manualOverlay.classList.add('dialog-hidden');
+            if (splashScreen) {
+                splashScreen.style.display = 'flex';
+                splashScreen.classList.remove('fade-out');
+                setTimeout(() => {
+                    splashScreen.classList.add('fade-out');
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                    }, 500);
+                }, 1000);
+            }
+            return;
+        }
+        
+        // 【優先度3】ゲームカウントダウン中の処理
+        if (!countdownOverlay.classList.contains('hidden')) {
+            clearTimeout(countdownTimerId);
+            countdownOverlay.classList.add('hidden');
+            Game.stop();
+            return;
+        }
+
+        // 【優先度4】ゲーム中の処理（物理的な「戻る」操作）
+        if (Game.isActive) {
+            handleGameExitConfirmation();
+            return;
+        }
+
+        // 【優先度5】画面が拡大されている場合の処理
+        if (isZoomed) {
+            scale = 1;
+            pan = { x: 0, y: 0 };
+            isZoomed = false;
+            applyTransform({ withTransition: true });
+            return;
+        }
+    });
+    // ▲▲▲ ここまで置き換え ▲▲▲
 });
