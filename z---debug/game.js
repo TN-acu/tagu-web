@@ -61,8 +61,8 @@ class Bomb {
     }
 }
 
-const GAME_DURATION = 60; // ゲームの制限時間（秒）
-const HIGH_SCORE_KEY = 'parkingGameHighScore'; // ハイスコア保存用のキー
+const GAME_DURATION = 60;
+const HIGH_SCORE_KEY = 'parkingGameHighScore';
 
 const SCORE_CRACK = 25;
 const SCORE_DESTROY_CAR = 150;
@@ -77,7 +77,7 @@ const Game = {
     score: 0,
     highScore: 0,
     highScoreElement: null,
-    maxScore: 1500000, // 50万点から150万点に変更
+    maxScore: 1500000,
     scoreElement: null,
     bombsActive: 0,
     comboCount: 0,
@@ -99,7 +99,6 @@ const Game = {
         this.comboCountElement = document.getElementById('combo-count');
         this.timerElement = document.getElementById('game-timer');
         this.highScoreElement = document.getElementById('high-score-layer');
-        // localStorageからハイスコアを読み込む
         const savedHighScore = localStorage.getItem(HIGH_SCORE_KEY) || 0;
         this.highScore = parseInt(savedHighScore, 10);
         this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`;
@@ -110,11 +109,11 @@ const Game = {
         this.isActive = true;
         this.score = 0;
         this.bombsActive = 0;
-        this.maxCombo = 0; // 最高コンボ数をリセット
+        this.maxCombo = 0;
         if (this.exitButton) this.exitButton.disabled = false;
         this.resetCombo();
         this.updateScore(0);
-        this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`; // ゲーム開始時にハイスコアを再表示
+        this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`;
         document.body.classList.add('game-mode');
         this.parkingArea.addEventListener('click', this.handleAreaClick);
         
@@ -123,7 +122,14 @@ const Game = {
             el.dataset.currentHits = 0;
         });
 
-        // --- タイマー処理を開始 ---
+        // Google Analyticsに「ゲーム開始」イベントを送信
+        if (typeof gtag === 'function') {
+            gtag('event', 'start_game', {
+                'event_category': 'Game',
+                'event_label': 'Flower Game Start'
+            });
+        }
+
         this.timeRemaining = GAME_DURATION;
         this.timerElement.textContent = `タイム ${String(Math.floor(this.timeRemaining / 60)).padStart(2, '0')}:${String(this.timeRemaining % 60).padStart(2, '0')}`;
         
@@ -131,35 +137,51 @@ const Game = {
             this.timeRemaining--;
             this.timerElement.textContent = `タイム ${String(Math.floor(this.timeRemaining / 60)).padStart(2, '0')}:${String(this.timeRemaining % 60).padStart(2, '0')}`;
             if (this.timeRemaining <= 0) {
-                this.end(); // 時間が来たらゲームオーバー
+                this.end();
             }
         }, 1000);
         
         customAlert('【ゲームモード】\n駐車場エリアをタップして桜を咲かせよう！');
     },
 
-    // ▼▼▼ この stop 関数をすべて置き換えてください ▼▼▼
     stop() {
-        // 常にクリーンアップ処理が走るように、以前の条件判定を削除
+        // ゲームがアクティブな場合のみイベントを送信（重複防止）
+        if (this.isActive) {
+            if (typeof gtag === 'function') {
+                gtag('event', 'end_game', {
+                    'event_category': 'Game',
+                    'event_label': 'Manual Exit',
+                    'value': this.score // 最終スコアを記録
+                });
+            }
+        }
+        
         this.isActive = false;
         this.bombsActive = 0;
         this.resetCombo();
         if (this.exitButton) this.exitButton.disabled = false;
         
-        clearInterval(this.timerId); // タイマーを停止
+        clearInterval(this.timerId);
         this.timerId = null;
-        if(this.timerElement) this.timerElement.textContent = ''; // タイマー表示をクリア
+        if(this.timerElement) this.timerElement.textContent = '';
 
         document.body.classList.remove('game-mode');
         this.parkingArea.removeEventListener('click', this.handleAreaClick);
         this.resetElements();
     },
-    // ▲▲▲ ここまで置き換え ▲▲▲
 
-    // ▼▼▼ この end 関数をすべて置き換えてください ▼▼▼
     end() {
-        // --- ゲームオーバー処理 ---
         if (!this.isActive) return;
+
+        if (typeof gtag === 'function') {
+            gtag('event', 'end_game', {
+                'event_category': 'Game',
+                'event_label': 'Time Up',
+                'value': this.score, // 最終スコアを記録
+                'max_combo': this.maxCombo // 最高コンボ数を記録
+            });
+        }
+
         this.isActive = false;
 
         clearInterval(this.timerId);
@@ -167,16 +189,13 @@ const Game = {
 
         this.parkingArea.removeEventListener('click', this.handleAreaClick);
         
-        // UIをシミュレーターモードに戻す
         document.body.classList.remove('game-mode');
 
-        // ハイスコアをチェックして更新
         if (this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem(HIGH_SCORE_KEY, this.highScore);
         }
         
-        // ゲームオーバー画面を表示
         const gameOverScreen = document.getElementById('game-over-screen');
         const finalScoreElement = document.getElementById('final-score');
         const maxComboElement = document.getElementById('max-combo-display');
@@ -186,7 +205,7 @@ const Game = {
 
         gameOverScreen.classList.remove('hidden');
     },
-    // ▲▲▲ ここまで置き換え ▲▲▲
+
     updateScore(points) {
         if (!this.isActive) return;
         this.score += points;
@@ -227,7 +246,6 @@ const Game = {
     handleExplosion: (bomb) => {
         clearTimeout(Game.comboResetTimer);
         Game.comboCount++;
-        // 最高コンボ数を更新
         if (Game.comboCount > Game.maxCombo) {
             Game.maxCombo = Game.comboCount;
         }
