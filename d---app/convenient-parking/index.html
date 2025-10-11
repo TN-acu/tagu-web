@@ -58,7 +58,13 @@
                     <div id="high-score-layer">ハイスコア 0点</div>
                     <div id="score-layer">お花スコア 0点</div>
                 </div>
-                <div id="game-timer"></div>
+                <div id="game-stats-container">
+                    <div id="game-timer"></div>
+                    <div id="turf-rate-container">
+                        <span class="turf-rate-label">ナワバリ率</span>
+                        <span id="turf-rate-display">お花畑率 0%</span>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="simulator-container">
@@ -130,6 +136,7 @@
             <p>タイムアップ！</p>
             <div id="final-score"></div>
             <div id="max-combo-display"></div>
+            <div id="final-turf-rate-display"></div>
         </div>
         <div id="game-over-buttons">
             <button id="retry-button">もう一度<br>トライする</button>
