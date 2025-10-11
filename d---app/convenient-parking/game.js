@@ -69,7 +69,7 @@ const SCORE_DESTROY_CAR = 150;
 const SCORE_DESTROY_SPACE = 75;
 const SCORE_DESTROY_SHATTER = 10;
 const MAX_INTERACTIVE_PIECES = 40;
-const MAX_SCORCH_MARKS = 300; // 画面に残す花のクラスターの最大数
+const MAX_SCORCH_MARKS = 400; // 画面に残す花のクラスターの最大数
 const FRAGMENT_POOL_SIZE = 60; // オブジェクトプーリング用の破片の数
 
 const Game = {
