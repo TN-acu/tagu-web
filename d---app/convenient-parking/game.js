@@ -61,7 +61,7 @@ class Bomb {
     }
 }
 
-const GAME_DURATION = 60;
+const GAME_DURATION = 5;
 const HIGH_SCORE_KEY = 'parkingGameHighScore';
 
 const SCORE_CRACK = 500;
