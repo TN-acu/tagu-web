@@ -68,9 +68,15 @@ const SCORE_CRACK = 25;
 const SCORE_DESTROY_CAR = 150;
 const SCORE_DESTROY_SPACE = 75;
 const SCORE_DESTROY_SHATTER = 10;
+
+// ▼▼▼ スマートフォンでの快適動作を優先した推奨設定 ▼▼▼
 const MAX_INTERACTIVE_PIECES = 40;
-const MAX_SCORCH_MARKS = 400; // 画面に残す花のクラスターの最大数
-const FRAGMENT_POOL_SIZE = 60; // オブジェクトプーリング用の破片の数
+const MAX_SCORCH_MARKS = 400; 
+const FRAGMENT_POOL_SIZE = 60;
+// ▲▲▲ ここまで ▲▲▲
+
+const GRID_COLUMNS = 20; 
+const GRID_ROWS = 40;    
 
 const Game = {
     isActive: false,
@@ -100,6 +106,11 @@ const Game = {
     particles: [],
     fragmentPool: [],
 
+    turfGrid: new Set(),
+    turfRateElement: null,
+    finalTurfRateElement: null,
+    gridCellSize: { width: 0, height: 0 },
+
     init() {
         this.draggables = document.querySelectorAll('.draggable');
         this.parkingArea = document.getElementById('parking-area');
@@ -109,6 +120,8 @@ const Game = {
         this.comboCountElement = document.getElementById('combo-count');
         this.timerElement = document.getElementById('game-timer');
         this.highScoreElement = document.getElementById('high-score-layer');
+        this.turfRateElement = document.getElementById('turf-rate-display');
+        this.finalTurfRateElement = document.getElementById('final-turf-rate-display');
         const savedHighScore = localStorage.getItem(HIGH_SCORE_KEY) || 0;
         this.highScore = parseInt(savedHighScore, 10);
         this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`;
@@ -137,6 +150,8 @@ const Game = {
     resizeCanvas() {
         this.canvas.width = this.parkingArea.clientWidth;
         this.canvas.height = this.parkingArea.clientHeight;
+        this.gridCellSize.width = this.canvas.width / GRID_COLUMNS;
+        this.gridCellSize.height = this.canvas.height / GRID_ROWS;
     },
 
     gameLoop() {
@@ -175,6 +190,14 @@ const Game = {
         });
     },
 
+    updateTurfRateDisplay() {
+        const totalCells = GRID_COLUMNS * GRID_ROWS;
+        const paintedCells = this.turfGrid.size;
+        const percent = Math.floor((paintedCells / totalCells) * 100);
+        this.turfRateElement.textContent = `お花畑率 ${percent}%`;
+        return percent;
+    },
+
     start() {
         if (this.isActive) return;
         this.isActive = true;
@@ -187,6 +210,9 @@ const Game = {
         this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`;
         document.body.classList.add('game-mode');
         this.parkingArea.addEventListener('click', this.handleAreaClick);
+
+        this.turfGrid.clear();
+        this.updateTurfRateDisplay();
         
         this.draggables.forEach(el => {
             el.dataset.hitsRequired = Math.floor(Math.random() * 3) + 2; 
@@ -201,11 +227,11 @@ const Game = {
         }
 
         this.timeRemaining = GAME_DURATION;
-        this.timerElement.textContent = `タイム ${String(Math.floor(this.timeRemaining / 60)).padStart(2, '0')}:${String(this.timeRemaining % 60).padStart(2, '0')}`;
+        this.timerElement.textContent = `残タイム ${String(Math.floor(this.timeRemaining / 60)).padStart(2, '0')}:${String(this.timeRemaining % 60).padStart(2, '0')}`;
         
         this.timerId = setInterval(() => {
             this.timeRemaining--;
-            this.timerElement.textContent = `タイム ${String(Math.floor(this.timeRemaining / 60)).padStart(2, '0')}:${String(this.timeRemaining % 60).padStart(2, '0')}`;
+            this.timerElement.textContent = `残タイム ${String(Math.floor(this.timeRemaining / 60)).padStart(2, '0')}:${String(this.timeRemaining % 60).padStart(2, '0')}`;
             if (this.timeRemaining <= 0) {
                 this.end();
             }
@@ -243,12 +269,14 @@ const Game = {
         if (!this.isActive) return;
         this.isActive = false;
 
+        const finalPercent = this.updateTurfRateDisplay();
         if (typeof gtag === 'function') {
             gtag('event', 'end_game', {
                 'event_category': 'Game',
                 'event_label': 'Time Up',
                 'value': this.score,
-                'max_combo': this.maxCombo
+                'max_combo': this.maxCombo,
+                'turf_percent': finalPercent
             });
         }
 
@@ -269,10 +297,24 @@ const Game = {
         
         finalScoreElement.textContent = `${this.score}点`;
         maxComboElement.textContent = `最高COMBO数 ${this.maxCombo}`;
+        this.finalTurfRateElement.textContent = `お花畑率 ${finalPercent}%`;
 
         gameOverScreen.classList.remove('hidden');
         gameOverScreen.classList.add('show');
         
+        const retryButton = document.getElementById('retry-button');
+        const exitAfterGameButton = document.getElementById('exit-after-game-button');
+
+        // ボタンを無効化
+        retryButton.disabled = true;
+        exitAfterGameButton.disabled = true;
+
+        // 3秒後にボタンを有効化
+        setTimeout(() => {
+            retryButton.disabled = false;
+            exitAfterGameButton.disabled = false;
+        }, 3000);
+
         this.isGameOverTransition = true;
         setTimeout(() => {
             this.isGameOverTransition = false;
@@ -295,6 +337,8 @@ const Game = {
         this.scorchMarks = [];
         this.particles = [];
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.turfGrid.clear();
+        if (this.turfRateElement) this.turfRateElement.textContent = `お花畑率 0%`;
         
         this.draggables.forEach(el => {
             el.style.visibility = 'visible';
@@ -359,12 +403,12 @@ const Game = {
             height: '1px'
         });
 
-        const flowerCount = 3 + Math.floor(Math.random() * 3);
+        // ▼▼▼ ここから変更 ▼▼▼
+        const flowerCount = 4 + Math.floor(Math.random() * 3);
+        // ▲▲▲ ここまで変更 ▲▲▲
         for (let i = 0; i < flowerCount; i++) {
             const emojiObject = document.createElement('span');
-            // ▼▼▼ この行を変更 ▼▼▼
             emojiObject.textContent = ['🍃', '🌸'][Math.floor(Math.random() * 2)];
-            // ▲▲▲ ここまで変更 ▲▲▲
             
             const angle = Math.random() * Math.PI * 2;
             const radius = Math.random() * (Bomb.EXPLOSION_RADIUS / 2);
@@ -383,11 +427,35 @@ const Game = {
         Game.parkingArea.appendChild(scorch);
         Game.scorchMarks.push(scorch);
         if (Game.scorchMarks.length > MAX_SCORCH_MARKS) {
-            const oldestScorch = Game.scorchMarks.shift();
-            oldestScorch.classList.add('fading-out');
-            oldestScorch.addEventListener('transitionend', () => {
-                oldestScorch.remove();
-            }, { once: true });
+            Game.scorchMarks.shift().remove();
+        }
+
+        const explosionX = bomb.pos.x - parkRect.left;
+        const explosionY = bomb.pos.y - parkRect.top;
+        const startCol = Math.floor((explosionX - Bomb.EXPLOSION_RADIUS) / Game.gridCellSize.width);
+        const endCol = Math.ceil((explosionX + Bomb.EXPLOSION_RADIUS) / Game.gridCellSize.width);
+        const startRow = Math.floor((explosionY - Bomb.EXPLOSION_RADIUS) / Game.gridCellSize.height);
+        const endRow = Math.ceil((explosionY + Bomb.EXPLOSION_RADIUS) / Game.gridCellSize.height);
+
+        let paintedNewCell = false;
+        for (let r = startRow; r < endRow; r++) {
+            for (let c = startCol; c < endCol; c++) {
+                if (r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLUMNS) {
+                    const cellIndex = r * GRID_COLUMNS + c;
+                    if (Game.turfGrid.has(cellIndex)) continue;
+
+                    const cellCenterX = c * Game.gridCellSize.width + Game.gridCellSize.width / 2;
+                    const cellCenterY = r * Game.gridCellSize.height + Game.gridCellSize.height / 2;
+                    const distance = Math.sqrt(Math.pow(cellCenterX - explosionX, 2) + Math.pow(cellCenterY - explosionY, 2));
+                    if (distance < Bomb.EXPLOSION_RADIUS) {
+                        Game.turfGrid.add(cellIndex);
+                        paintedNewCell = true;
+                    }
+                }
+            }
+        }
+        if (paintedNewCell) {
+            Game.updateTurfRateDisplay();
         }
 
         let scoreFromThisBomb = 0;
@@ -399,7 +467,9 @@ const Game = {
             const elCenter = { x: elRect.left + elRect.width / 2, y: elRect.top + elRect.height / 2 };
             const distance = Math.sqrt(Math.pow(elCenter.x - bomb.pos.x, 2) + Math.pow(elCenter.y - bomb.pos.y, 2));
 
-            if (distance < Bomb.EXPLOSION_RADIUS) {
+            const hitRadius = Bomb.EXPLOSION_RADIUS + (Math.max(elRect.width, elRect.height) / 2);
+
+            if (distance < hitRadius) {
                 itemsHitThisBomb++;
                 let currentHits = parseInt(el.dataset.currentHits || '0');
                 const hitsRequired = parseInt(el.dataset.hitsRequired || '2');
@@ -454,7 +524,9 @@ const Game = {
     createShatterEffect: (sourceElement) => {
         const rect = sourceElement.getBoundingClientRect();
         const parkRect = Game.parkingArea.getBoundingClientRect();
-        const count = 2 + Math.floor(Math.random() * 2);
+        // ▼▼▼ ここから変更 ▼▼▼
+        const count = 2;
+        // ▲▲▲ ここまで変更 ▲▲▲
         const sourceColor = window.getComputedStyle(sourceElement).backgroundColor;
 
         for (let i = 0; i < count; i++) {
