@@ -68,6 +68,9 @@ const SCORE_CRACK = 25;
 const SCORE_DESTROY_CAR = 150;
 const SCORE_DESTROY_SPACE = 75;
 const SCORE_DESTROY_SHATTER = 10;
+const MAX_INTERACTIVE_PIECES = 40;
+const MAX_SCORCH_MARKS = 300; // 画面に残す花のクラスターの最大数
+const FRAGMENT_POOL_SIZE = 60; // オブジェクトプーリング用の破片の数
 
 const Game = {
     isActive: false,
@@ -86,10 +89,17 @@ const Game = {
     comboDisplayElement: null,
     comboCountElement: null,
     shatterPieces: [],
+    scorchMarks: [],
     timerId: null,
     timeRemaining: 0,
     timerElement: null,
-    
+    isGameOverTransition: false,
+
+    canvas: null,
+    ctx: null,
+    particles: [],
+    fragmentPool: [],
+
     init() {
         this.draggables = document.querySelectorAll('.draggable');
         this.parkingArea = document.getElementById('parking-area');
@@ -102,6 +112,67 @@ const Game = {
         const savedHighScore = localStorage.getItem(HIGH_SCORE_KEY) || 0;
         this.highScore = parseInt(savedHighScore, 10);
         this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`;
+
+        this.canvas = document.getElementById('particle-canvas');
+        this.ctx = this.canvas.getContext('2d');
+
+        this.initPools();
+        this.resizeCanvas();
+        window.addEventListener('resize', this.resizeCanvas.bind(this));
+
+        this.gameLoop = this.gameLoop.bind(this);
+        this.gameLoop();
+    },
+
+    initPools() {
+        for (let i = 0; i < FRAGMENT_POOL_SIZE; i++) {
+            const fragment = document.createElement('div');
+            fragment.className = 'fragment-debris';
+            fragment.style.opacity = '0';
+            this.parkingArea.appendChild(fragment);
+            this.fragmentPool.push(fragment);
+        }
+    },
+
+    resizeCanvas() {
+        this.canvas.width = this.parkingArea.clientWidth;
+        this.canvas.height = this.parkingArea.clientHeight;
+    },
+
+    gameLoop() {
+        if (this.isActive) {
+            this.updateParticles();
+            this.drawParticles();
+        }
+        requestAnimationFrame(this.gameLoop);
+    },
+
+    updateParticles() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= p.decay;
+            if (p.alpha <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
+    },
+
+    drawParticles() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.particles.forEach(p => {
+            this.ctx.save();
+            this.ctx.globalAlpha = p.alpha;
+            this.ctx.font = `${p.size}px sans-serif`;
+            this.ctx.fillStyle = '#fff';
+            this.ctx.shadowColor = 'rgba(0,0,0,0.7)';
+            this.ctx.shadowBlur = 3;
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rotation);
+            this.ctx.fillText(p.text, 0, 0);
+            this.ctx.restore();
+        });
     },
 
     start() {
@@ -122,7 +193,6 @@ const Game = {
             el.dataset.currentHits = 0;
         });
 
-        // Google Analyticsに「ゲーム開始」イベントを送信
         if (typeof gtag === 'function') {
             gtag('event', 'start_game', {
                 'event_category': 'Game',
@@ -145,13 +215,12 @@ const Game = {
     },
 
     stop() {
-        // ゲームがアクティブな場合のみイベントを送信（重複防止）
         if (this.isActive) {
             if (typeof gtag === 'function') {
                 gtag('event', 'end_game', {
                     'event_category': 'Game',
                     'event_label': 'Manual Exit',
-                    'value': this.score // 最終スコアを記録
+                    'value': this.score
                 });
             }
         }
@@ -172,21 +241,19 @@ const Game = {
 
     end() {
         if (!this.isActive) return;
+        this.isActive = false;
 
         if (typeof gtag === 'function') {
             gtag('event', 'end_game', {
                 'event_category': 'Game',
                 'event_label': 'Time Up',
-                'value': this.score, // 最終スコアを記録
-                'max_combo': this.maxCombo // 最高コンボ数を記録
+                'value': this.score,
+                'max_combo': this.maxCombo
             });
         }
 
-        this.isActive = false;
-
         clearInterval(this.timerId);
         this.timerId = null;
-
         this.parkingArea.removeEventListener('click', this.handleAreaClick);
         
         document.body.classList.remove('game-mode');
@@ -204,6 +271,12 @@ const Game = {
         maxComboElement.textContent = `最高COMBO数 ${this.maxCombo}`;
 
         gameOverScreen.classList.remove('hidden');
+        gameOverScreen.classList.add('show');
+        
+        this.isGameOverTransition = true;
+        setTimeout(() => {
+            this.isGameOverTransition = false;
+        }, 2000);
     },
 
     updateScore(points) {
@@ -216,10 +289,13 @@ const Game = {
     },
     
     resetElements() {
-        document.querySelectorAll('.debris').forEach(d => d.remove());
         document.querySelectorAll('.scorch-mark').forEach(s => s.remove());
         document.querySelectorAll('.shatter-piece').forEach(p => p.remove());
         this.shatterPieces = [];
+        this.scorchMarks = [];
+        this.particles = [];
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
         this.draggables.forEach(el => {
             el.style.visibility = 'visible';
             el.style.pointerEvents = 'auto';
@@ -255,7 +331,7 @@ const Game = {
             Game.updateScore(Game.comboCount * 10);
             const comboEl = Game.comboDisplayElement;
             comboEl.classList.remove('show');
-            setTimeout(() => { comboEl.classList.add('show'); }, 10);
+            requestAnimationFrame(() => comboEl.classList.add('show'));
         }
         Game.comboResetTimer = setTimeout(() => { Game.resetCombo(); }, 2000);
 
@@ -275,23 +351,44 @@ const Game = {
         const parkRect = Game.parkingArea.getBoundingClientRect();
         const scorch = document.createElement('div');
         scorch.className = 'scorch-mark';
-        Object.assign(scorch.style, {
-            left: `${bomb.pos.x - parkRect.left - Bomb.EXPLOSION_RADIUS / 2}px`,
-            top: `${bomb.pos.y - parkRect.top - Bomb.EXPLOSION_RADIUS / 2}px`,
-            width: `${Bomb.EXPLOSION_RADIUS}px`, height: `${Bomb.EXPLOSION_RADIUS}px`,
-        });
         
-        const flowerCount = 5 + Math.floor(Math.random() * 3);
+        Object.assign(scorch.style, {
+            left: `${bomb.pos.x - parkRect.left}px`,
+            top: `${bomb.pos.y - parkRect.top}px`,
+            width: '1px',
+            height: '1px'
+        });
+
+        const flowerCount = 3 + Math.floor(Math.random() * 3);
         for (let i = 0; i < flowerCount; i++) {
-            const flower = document.createElement('span');
-            flower.textContent = '🌸';
-            Object.assign(flower.style, {
-                left: `${Math.random() * 90}%`, top: `${Math.random() * 90}%`,
-                fontSize: `${15 + Math.random() * 10}px`, transform: `rotate(${Math.random() * 360}deg)`
+            const emojiObject = document.createElement('span');
+            // ▼▼▼ この行を変更 ▼▼▼
+            emojiObject.textContent = ['🍃', '🌸'][Math.floor(Math.random() * 2)];
+            // ▲▲▲ ここまで変更 ▲▲▲
+            
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.random() * (Bomb.EXPLOSION_RADIUS / 2);
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            
+            Object.assign(emojiObject.style, {
+                left: `${x}px`,
+                top: `${y}px`,
+                fontSize: `${15 + Math.random() * 10}px`,
+                transform: `rotate(${Math.random() * 360}deg)`
             });
-            scorch.appendChild(flower);
+            scorch.appendChild(emojiObject);
         }
+        
         Game.parkingArea.appendChild(scorch);
+        Game.scorchMarks.push(scorch);
+        if (Game.scorchMarks.length > MAX_SCORCH_MARKS) {
+            const oldestScorch = Game.scorchMarks.shift();
+            oldestScorch.classList.add('fading-out');
+            oldestScorch.addEventListener('transitionend', () => {
+                oldestScorch.remove();
+            }, { once: true });
+        }
 
         let scoreFromThisBomb = 0;
         let itemsHitThisBomb = 0;
@@ -376,92 +473,71 @@ const Game = {
             });
             
             Game.parkingArea.appendChild(piece);
-            Game.shatterPieces.push(piece);
-
-            setTimeout(() => {
+            
+            if (Game.shatterPieces.length < MAX_INTERACTIVE_PIECES) {
+                Game.shatterPieces.push(piece);
+            }
+            
+            requestAnimationFrame(() => {
                 const angle = Math.random() * Math.PI * 2;
                 const force = 40 + Math.random() * 50;
                 const endX = Math.cos(angle) * force;
                 const endY = Math.sin(angle) * force;
                 const rotation = Math.random() * 720 - 360;
                 piece.style.transform = `translate(${endX}px, ${endY}px) rotate(${rotation}deg)`;
-            }, 10);
+            });
         }
     },
     
     createFragmentDebris: (sourceElement) => {
+        if (Game.fragmentPool.length === 0) return;
+
+        const fragment = Game.fragmentPool.pop();
         const rect = sourceElement.getBoundingClientRect();
-        const count = 1 + Math.floor(Math.random() * 2);
-        const sourceColor = window.getComputedStyle(sourceElement).backgroundColor;
+        const parkRect = Game.parkingArea.getBoundingClientRect();
+        
+        Object.assign(fragment.style, {
+            backgroundColor: window.getComputedStyle(sourceElement).backgroundColor,
+            left: `${rect.left - parkRect.left + Math.random() * rect.width}px`,
+            top: `${rect.top - parkRect.top + Math.random() * rect.height}px`,
+            transform: `scale(${Math.random() * 0.5 + 0.5})`,
+            opacity: '1'
+        });
 
-        for (let i = 0; i < count; i++) {
-            const fragment = document.createElement('div');
-            fragment.className = 'fragment-debris';
-            
-            const startX = rect.left + Math.random() * rect.width;
-            const startY = rect.top + Math.random() * rect.height;
-
-            Object.assign(fragment.style, {
-                left: `${startX}px`, top: `${startY}px`,
-                backgroundColor: sourceColor,
-                transform: `scale(${Math.random() * 0.5 + 0.5})`
-            });
-            
-            document.body.appendChild(fragment);
-
-            setTimeout(() => {
-                const angle = Math.random() * Math.PI * 2;
-                const force = 30 + Math.random() * 40;
-                const endX = Math.cos(angle) * force;
-                const endY = Math.sin(angle) * force;
-                const rotation = Math.random() * 720 - 360;
-                fragment.style.transform = `translate(${endX}px, ${endY}px) rotate(${rotation}deg) scale(0)`;
-                fragment.style.opacity = '0';
-            }, 10);
-            
-            setTimeout(() => { fragment.remove(); }, 1000);
-        }
+        requestAnimationFrame(() => {
+            const angle = Math.random() * Math.PI * 2;
+            const force = 30 + Math.random() * 40;
+            fragment.style.transform = `translate(${Math.cos(angle) * force}px, ${Math.sin(angle) * force}px) rotate(${Math.random() * 720 - 360}deg) scale(0)`;
+            fragment.style.opacity = '0';
+        });
+        
+        setTimeout(() => {
+            Game.fragmentPool.push(fragment);
+        }, 1000);
     },
     
     createDebris: (sourceElement, level) => {
         const rect = sourceElement.getBoundingClientRect();
-        const count = level === 1 ? 2 : 1;
-        const baseSizeVmin = 4;
-        const size = `calc(${level === 1 ? baseSizeVmin : baseSizeVmin / 1.5}vmin)`;
+        const parkRect = Game.parkingArea.getBoundingClientRect();
+        const count = 2;
 
         for (let i = 0; i < count; i++) {
-            const debris = document.createElement('div');
-            debris.className = 'debris';
-            debris.dataset.level = level;
-            
-            const petals = ['🍃', '🌸'];
-            debris.textContent = petals[Math.floor(Math.random() * petals.length)];
-            
-            const startX = rect.left + Math.random() * rect.width;
-            const startY = rect.top + Math.random() * rect.height;
-
-            Object.assign(debris.style, {
-                left: `${startX}px`, top: `${startY}px`,
-                zIndex: '5', fontSize: size
-            });
-            
-            document.body.appendChild(debris);
-
-            setTimeout(() => {
-                const angle = Math.random() * Math.PI * 2;
-                const force = 50 + Math.random() * 50;
-                const endX = Math.cos(angle) * force;
-                const endY = Math.sin(angle) * force;
-                const rotation = Math.random() * 720 - 360;
-                debris.style.transform = `translate(${endX}px, ${endY}px) rotate(${rotation}deg)`;
-            }, 10);
+            const angle = Math.random() * Math.PI * 2;
+            const force = 0.5 + Math.random() * 1.5;
+            const particle = {
+                x: rect.left - parkRect.left + rect.width / 2,
+                y: rect.top - parkRect.top + rect.height / 2,
+                vx: Math.cos(angle) * force,
+                vy: Math.sin(angle) * force,
+                alpha: 1,
+                decay: 0.02 + Math.random() * 0.01,
+                size: 12 + Math.random() * 8,
+                rotation: Math.random() * Math.PI * 2,
+                text: ['🍃', '🌸'][Math.floor(Math.random() * 2)]
+            };
+            Game.particles.push(particle);
         }
     }
 };
 
-Game.init = Game.init.bind(Game);
-Game.start = Game.start.bind(Game);
-Game.stop = Game.stop.bind(Game);
-Game.end = Game.end.bind(Game);
-Game.resetElements = Game.resetElements.bind(Game);
 Game.init();

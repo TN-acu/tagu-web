@@ -60,9 +60,10 @@
                 </div>
                 <div id="game-timer"></div>
             </div>
-            </div>
+        </div>
         <div id="simulator-container">
             <div id="parking-area">
+                <canvas id="particle-canvas"></canvas>
                 <div id="car_3395_1" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
                 <div id="car_3395_2" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
                 <div id="car_3395_12" class="draggable shape car" data-type="3395mm"><span>3,395<br>mm</span></div>
@@ -130,9 +131,11 @@
             <div id="final-score"></div>
             <div id="max-combo-display"></div>
         </div>
-        <button id="retry-button">もう一度トライする</button>
-        <button id="exit-after-game-button">ゲームを終了する</button>
-    </div>
+        <div id="game-over-buttons">
+            <button id="retry-button">もう一度<br>トライする</button>
+            <button id="exit-after-game-button">ゲームを<br>終了する</button>
+        </div>
+        </div>
 
     <div id="game-start-countdown" class="hidden">
         <p class="countdown-text">制限時間内に駐車場をタップして<br>お花畑に変えよう!!</p>

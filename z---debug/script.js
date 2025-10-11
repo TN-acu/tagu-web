@@ -18,9 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameButton = document.getElementById('game-button');
     const exitGameButton = document.getElementById('exit-game-button');
     const retryButton = document.getElementById('retry-button');
-        // ▼▼▼ この1行を追加 ▼▼▼
     const exitAfterGameButton = document.getElementById('exit-after-game-button');
-    // ▲▲▲ ここまで追加 ▲▲▲
     const autoSaveStorageKey = 'parkingSimulatorLayout';
     const slotStorageKeyPrefix = 'parkingSimulatorSlot_';
 
@@ -79,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="dialog-btn-confirm">OK</button>
             `;
             dialogButtons.querySelector('.dialog-btn-confirm').onclick = () => {
-                // ボタンの責務はダイアログを閉じて結果を返すことだけにする
                 hideDialog();
                 resolve(true);
             };
@@ -87,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideDialog();
                 resolve(false);
             };
-            // ダイアログ表示時は履歴を追加しないように変更
             dialogOverlay.classList.remove('dialog-hidden');
         });
     };
@@ -285,8 +281,6 @@ const presetLayout = [
     };
 
     const saveToSlot = async () => {
-        // ▼▼▼ ここから変更 ▼▼▼
-        // 通常のダイアログは履歴を追加する
         history.pushState({ dialogOpen: true }, '', '#dialog');
         const userChoice = await customConfirm('現在の配置を選択中のスロットに\nセーブしますか？');
         if (!userChoice) {
@@ -294,7 +288,6 @@ const presetLayout = [
             return;
         }
         if(history.state && history.state.dialogOpen) history.back();
-        // ▲▲▲ ここまで変更 ▲▲▲
         
         const slotIndex = slotSelect.value;
         const currentLayout = getCurrentLayout();
@@ -324,7 +317,6 @@ const presetLayout = [
             return;
         }
 
-        // ▼▼▼ ここから変更 ▼▼▼
         history.pushState({ dialogOpen: true }, '', '#dialog');
         const userChoice = await customConfirm('選択中のスロットのデータを\nロードしますか？\n（現在の配置は上書きされます）');
         if (!userChoice) {
@@ -332,7 +324,6 @@ const presetLayout = [
             return;
         }
         if(history.state && history.state.dialogOpen) history.back();
-        // ▲▲▲ ここまで変更 ▲▲▲
 
         try {
             const parsedData = JSON.parse(savedData);
@@ -386,7 +377,14 @@ const presetLayout = [
         document.removeEventListener('touchend', panEnd);
     };
 
+    // ▼▼▼ この dragStart 関数をすべて置き換えてください ▼▼▼
     const dragStart = (e) => {
+        // カウントダウン中は操作を無効化
+        const countdownOverlay = document.getElementById('game-start-countdown');
+        if (!countdownOverlay.classList.contains('hidden')) {
+            return;
+        }
+
         if (Game.isActive) {
             return;
         }
@@ -446,6 +444,7 @@ const presetLayout = [
         document.addEventListener('mouseup', dragEnd);
         document.addEventListener('touchend', dragEnd);
     };
+    // ▲▲▲ ここまで置き換え ▲▲▲
 
     const dragMove = (e) => {
         if (e.touches && e.touches.length > 1) {
@@ -563,7 +562,20 @@ const presetLayout = [
     draggables.forEach(elem => { elem.addEventListener('contextmenu', e => e.preventDefault()); });
     parkingArea.addEventListener('click', (e) => { if(e.target === parkingArea) { deactivateAll(); } });
     
+     // ▼▼▼ この dblclick イベントリスナーを置き換えてください ▼▼▼
     simulatorContainer.addEventListener('dblclick', (e) => {
+        // ゲームオーバー画面表示中は操作を無効化
+        const gameOverScreen = document.getElementById('game-over-screen');
+        if (gameOverScreen.classList.contains('show')) {
+            return;
+        }
+
+        // カウントダウン中は操作を無効化
+        const countdownOverlay = document.getElementById('game-start-countdown');
+        if (!countdownOverlay.classList.contains('hidden')) {
+            return;
+        }
+        
         if (e.target.classList.contains('rotate-handle')) {
             return;
         }
@@ -595,6 +607,7 @@ const presetLayout = [
         }
         applyTransform({ withTransition: true });
     });
+    // ▲▲▲ ここまで置き換え ▲▲▲
 
 manualButton.addEventListener('click', () => {
         const manualOverlay = document.getElementById('manual-overlay');
@@ -632,10 +645,20 @@ manualButton.addEventListener('click', () => {
             <br><span class="warning">※一度「初期配置に戻す」と戻せませんのでご注意ください。なお、この操作でセーブデータは消えません。</span></p>
             <h4>■ 配置の共有</h4>
             <p>・気に入った駐車場配置やハチワレルールよりも良いルールができたら各自のスマートフォンのスクリーンショット機能などを使って画像を保存して、駐車場ライングループなどで共有・提案してください😄</p>
-<h4>■ お花畑ゲーム 🌸</h4>
-            <p>・制限時間60秒以内に駐車場をたくさんタップしてお花畑🌸にすることで、できるだけ多くのスコアを獲得するゲームです。
-            <br>・駐車場エリアをタップすると🌸が設置され、🌸が図形にヒットするたびにスコアが獲得できます。
-            <br>・<b>ボーナス：</b>連続でお花畑🌸化させるとコンボボーナスが、一つの🌸で複数の図形を同時に巻き込むとスコアが倍増するボーナスがあります。</p>
+            <h4>■ お花畑ゲーム 🌸 (新ルール)</h4>
+            <h4>【ルール】</h4>
+            <p>・制限時間60秒以内に、駐車場をタップしてできるだけ多くのスコアを獲得するゲームです。</p>
+            <h4>【操作方法】</h4>
+            <p>・駐車場エリアをタップするとカウントダウンが始まり、爆弾が設置されます。爆弾は周囲の図形や破片を破壊します。</p>
+            <h4>【スコアの仕組み】</h4>
+            <p>・各図形にはランダムな耐久値が設定されており、爆発がヒットするたびにダメージを受けます。</p>
+            <p>・<b>ひび割れ：</b>図形が破壊される前にひび割れ、スコアを獲得できます。</p>
+            <p>・<b>破壊：</b>ひび割れた図形にさらにダメージを与えると破壊され、高スコアを獲得できます。破壊された図形は破片となってその場に残り続けます。</p>
+            <p>・<b>破片の破壊：</b>残った破片をさらに爆発で破壊すると、スコアが加算され、細かい花や葉っぱに変わります。</p>
+            <p>・<b>ボーナス：</b>連続で爆発させるとコンボボーナスが、一つの爆弾で複数の対象を同時に巻き込むとスコアが倍増するボーナスがあります。</p>
+            <h4>【ゲーム終了後】</h4>
+            <p>・タイムアップになると、最終スコアと、そのプレイでの最高コンボ数が表示されます。スコアが自己ベストを更新すると、ハイスコアが保存されます。</p>
+            <p>・「もう一度トライする」か、「ゲームを終了する」を選択してシミュレーター画面に戻ることができます。</p>
         `;
         
         history.pushState({ manualOpen: true }, '', '#manual');
@@ -707,42 +730,40 @@ manualButton.addEventListener('click', () => {
 
     gameButton.addEventListener('click', startGameSequence);
 
-    // ▼▼▼ この exitGameButton イベントリスナーを置き換えてください ▼▼▼
     exitGameButton.addEventListener('click', async () => {
-        // ボタンが押されたら、履歴操作なしで直接ダイアログを呼び出す
         const userChoice = await customConfirm('ゲームを終了しますか？');
         if (userChoice) {
-            // OKが押されたらゲームを停止し、履歴を戻す
             Game.stop();
             if (history.state && history.state.gameActive) {
                 history.back();
             }
         }
-        // キャンセルの場合は何もせず、ゲームが継続される
     });
-    // ▲▲▲ ここまで置き換え ▲▲▲
 
     // ▼▼▼ この retryButton イベントリスナーを置き換えてください ▼▼▼
     retryButton.addEventListener('click', () => {
-        // ゲームオーバー画面を隠す
-        document.getElementById('game-over-screen').classList.add('hidden');
-        // ゲームの状態を完全にリセットする
+        // 画面移行中は処理しない
+        if (Game.isGameOverTransition) return;
+
+        const gameOverScreen = document.getElementById('game-over-screen');
+        gameOverScreen.classList.remove('show');
+        gameOverScreen.classList.add('hidden');
         Game.resetElements();
-        // 新しいゲームを開始する
         startGameSequence();
     });
     // ▲▲▲ ここまで置き換え ▲▲▲
-
-        
-    // ▼▼▼ ここから追加 ▼▼▼
+    
+    // ▼▼▼ この exitAfterGameButton イベントリスナーを置き換えてください ▼▼▼
     exitAfterGameButton.addEventListener('click', () => {
-        // ゲームオーバー画面を隠す
-        document.getElementById('game-over-screen').classList.add('hidden');
-        // ゲームを停止してシミュレーター画面に戻す
+        // 画面移行中は処理しない
+        if (Game.isGameOverTransition) return;
+
+        const gameOverScreen = document.getElementById('game-over-screen');
+        gameOverScreen.classList.remove('show');
+        gameOverScreen.classList.add('hidden');
         Game.stop();
     });
-    // ▲▲▲ ここまで追加 ▲▲▲
-
+    // ▲▲▲ ここまで置き換え ▲▲▲
 
     saveButton.addEventListener('click', async () => {
         await saveToSlot();
@@ -800,14 +821,11 @@ manualButton.addEventListener('click', () => {
         }
     };
 
-    // ▼▼▼ この popstate イベントリスナーを置き換えてください ▼▼▼
     const handleGameExitConfirmation = async () => {
         const userChoice = await customConfirm('ゲームを終了しますか？');
         if (userChoice) {
-            // OKならゲームを停止（履歴はpopstateで既に戻っている）
             Game.stop();
         } else {
-            // キャンセルなら履歴を元に戻す
             history.pushState({ gameActive: true }, '', '#game');
         }
     };
@@ -825,13 +843,11 @@ manualButton.addEventListener('click', () => {
         const manualOverlay = document.getElementById('manual-overlay');
         const countdownOverlay = document.getElementById('game-start-countdown');
 
-        // 【優先度1】ダイアログが表示されている場合の処理
         if (!dialogOverlay.classList.contains('dialog-hidden')) {
             hideDialog();
             return;
         }
 
-        // 【優先度2】マニュアルが表示されている場合の処理
         if (!manualOverlay.classList.contains('dialog-hidden')) {
             manualOverlay.classList.add('dialog-hidden');
             if (splashScreen) {
@@ -847,7 +863,6 @@ manualButton.addEventListener('click', () => {
             return;
         }
         
-        // 【優先度3】ゲームカウントダウン中の処理
         if (!countdownOverlay.classList.contains('hidden')) {
             clearTimeout(countdownTimerId);
             countdownOverlay.classList.add('hidden');
@@ -855,13 +870,11 @@ manualButton.addEventListener('click', () => {
             return;
         }
 
-        // 【優先度4】ゲーム中の処理（物理的な「戻る」操作）
         if (Game.isActive) {
             handleGameExitConfirmation();
             return;
         }
 
-        // 【優先度5】画面が拡大されている場合の処理
         if (isZoomed) {
             scale = 1;
             pan = { x: 0, y: 0 };
@@ -870,5 +883,4 @@ manualButton.addEventListener('click', () => {
             return;
         }
     });
-    // ▲▲▲ ここまで置き換え ▲▲▲
 });
