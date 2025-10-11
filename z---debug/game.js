@@ -64,10 +64,10 @@ class Bomb {
 const GAME_DURATION = 60;
 const HIGH_SCORE_KEY = 'parkingGameHighScore';
 
-const SCORE_CRACK = 25;
-const SCORE_DESTROY_CAR = 150;
-const SCORE_DESTROY_SPACE = 75;
-const SCORE_DESTROY_SHATTER = 10;
+const SCORE_CRACK = 500;
+const SCORE_DESTROY_CAR = 5000;
+const SCORE_DESTROY_SPACE = 2500;
+const SCORE_DESTROY_SHATTER = 1000;
 
 // ▼▼▼ スマートフォンでの快適動作を優先した推奨設定 ▼▼▼
 const MAX_INTERACTIVE_PIECES = 40;
@@ -86,7 +86,7 @@ const Game = {
     score: 0,
     highScore: 0,
     highScoreElement: null,
-    maxScore: 1500000,
+    maxScore: 10000000,
     scoreElement: null,
     bombsActive: 0,
     comboCount: 0,
@@ -121,10 +121,9 @@ const Game = {
         this.timerElement = document.getElementById('game-timer');
         this.highScoreElement = document.getElementById('high-score-layer');
         this.turfRateElement = document.getElementById('turf-rate-display');
-        this.finalTurfRateElement = document.getElementById('final-turf-rate-display');
         const savedHighScore = localStorage.getItem(HIGH_SCORE_KEY) || 0;
         this.highScore = parseInt(savedHighScore, 10);
-        this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`;
+        this.highScoreElement.textContent = `ハイスコア ${this.highScore.toLocaleString()}点`;
 
         this.canvas = document.getElementById('particle-canvas');
         this.ctx = this.canvas.getContext('2d');
@@ -194,7 +193,7 @@ const Game = {
         const totalCells = GRID_COLUMNS * GRID_ROWS;
         const paintedCells = this.turfGrid.size;
         const percent = Math.floor((paintedCells / totalCells) * 100);
-        this.turfRateElement.textContent = `お花畑率 ${percent}%`;
+        this.turfRateElement.textContent = `お花畑率： ${percent}%`;
         return percent;
     },
 
@@ -207,7 +206,7 @@ const Game = {
         if (this.exitButton) this.exitButton.disabled = false;
         this.resetCombo();
         this.updateScore(0);
-        this.highScoreElement.textContent = `ハイスコア ${this.highScore}点`;
+        this.highScoreElement.textContent = `ハイスコア： ${this.highScore.toLocaleString()}点`;
         document.body.classList.add('game-mode');
         this.parkingArea.addEventListener('click', this.handleAreaClick);
 
@@ -239,6 +238,7 @@ const Game = {
         
         customAlert('【ゲームモード】\n駐車場エリアをタップして桜を咲かせよう！');
     },
+// ▲▲▲ ここまで変更 ▲▲▲
 
     stop() {
         if (this.isActive) {
@@ -265,16 +265,19 @@ const Game = {
         this.resetElements();
     },
 
+// ▼▼▼ ここから変更 ▼▼▼
     end() {
         if (!this.isActive) return;
         this.isActive = false;
 
         const finalPercent = this.updateTurfRateDisplay();
+        const finalScore = Math.floor(this.score * (finalPercent / 100)); // 最終スコアを計算
+
         if (typeof gtag === 'function') {
             gtag('event', 'end_game', {
                 'event_category': 'Game',
                 'event_label': 'Time Up',
-                'value': this.score,
+                'value': finalScore, // 最終スコアを送信
                 'max_combo': this.maxCombo,
                 'turf_percent': finalPercent
             });
@@ -286,18 +289,23 @@ const Game = {
         
         document.body.classList.remove('game-mode');
 
-        if (this.score > this.highScore) {
-            this.highScore = this.score;
+        if (finalScore > this.highScore) { // 最終スコアでハイスコアを比較
+            this.highScore = finalScore;
             localStorage.setItem(HIGH_SCORE_KEY, this.highScore);
         }
         
         const gameOverScreen = document.getElementById('game-over-screen');
+        const baseScoreElement = document.getElementById('base-score');
+        const finalTurfRateMultiplierElement = document.getElementById('final-turf-rate-multiplier');
         const finalScoreElement = document.getElementById('final-score');
         const maxComboElement = document.getElementById('max-combo-display');
+        const finalHighScoreElement = document.getElementById('final-high-score-display');
         
-        finalScoreElement.textContent = `${this.score}点`;
-        maxComboElement.textContent = `最高COMBO数 ${this.maxCombo}`;
-        this.finalTurfRateElement.textContent = `お花畑率 ${finalPercent}%`;
+        baseScoreElement.textContent = `${this.score.toLocaleString()}点`;
+        finalTurfRateMultiplierElement.textContent = `お花畑率 ${finalPercent}%`;
+        finalScoreElement.textContent = `${finalScore.toLocaleString()}点`;
+        maxComboElement.textContent = `最高COMBO数： ${this.maxCombo}`;
+        finalHighScoreElement.textContent = `ハイスコア： ${this.highScore.toLocaleString()}点`;
 
         gameOverScreen.classList.remove('hidden');
         gameOverScreen.classList.add('show');
@@ -320,15 +328,18 @@ const Game = {
             this.isGameOverTransition = false;
         }, 2000);
     },
+// ▲▲▲ ここまで変更 ▲▲▲
 
+ // ▼▼▼ ここから変更 ▼▼▼
     updateScore(points) {
         if (!this.isActive) return;
         this.score += points;
         if (this.score > this.maxScore) {
             this.score = this.maxScore;
         }
-        this.scoreElement.textContent = `お花スコア　${this.score}点`;
+        this.scoreElement.textContent = `お花スコア： ${this.score.toLocaleString()}点`;
     },
+// ▲▲▲ ここまで変更 ▲▲▲
     
     resetElements() {
         document.querySelectorAll('.scorch-mark').forEach(s => s.remove());
@@ -338,7 +349,7 @@ const Game = {
         this.particles = [];
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.turfGrid.clear();
-        if (this.turfRateElement) this.turfRateElement.textContent = `お花畑率 0%`;
+        if (this.turfRateElement) this.turfRateElement.textContent = `お花畑率： 0% (ナワバリ率)`;
         
         this.draggables.forEach(el => {
             el.style.visibility = 'visible';

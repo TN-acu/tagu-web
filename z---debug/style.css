@@ -126,63 +126,55 @@ body {
     justify-content: center;
 }
 
+/* ▼▼▼ ここから変更 ▼▼▼ */
 #game-info-container {
     display: flex;
+        font-size: 16px; /* スコア表示とフォントサイズを調整 */
+        color: #ff00ff;
+            font-weight: 900;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: flex-end; /* 右寄せに変更 */
     gap: 2px;
 }
 
 #high-score-layer {
-    color: #555;
-    font-weight: bold;
-    font-size: 14px;
+    color: #000000;
+    font-size: 16px; /* スコア表示とフォントサイズを調整 */
+    font-weight: 900;
     white-space: nowrap;
-}
-
-#score-layer {
-    color: red;
-    font-weight: bold;
-    font-style: italic;
-    font-size: 18px;
-    white-space: nowrap;
-}
-
-/* ▼▼▼ ここから変更 ▼▼▼ */
-#game-stats-container {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    justify-content: center;
+    align-items: flex-end; /* 右寄せに変更 */
 }
 
 #turf-rate-container {
-    display: flex;
+    color: #0000cd;
+        display: flex;
+            font-size: 15px; 
+                font-weight: 900;
     flex-direction: column;
-    align-items: center;
-    min-width: 120px;
-}
-
-.turf-rate-label {
-    font-size: 12px;
-    font-weight: bold;
-    color: #333;
+    align-items: flex-end; /* 右寄せに変更 */
+    margin-top: 5px; /* お花スコアからの間隔 */
 }
 
 #turf-rate-display {
     color: #0000cd;
-    font-size: 18px;
+    font-size: 20px; /* スコア表示とフォントサイズを調整 */
     font-weight: 900;
     white-space: nowrap;
 }
 
 #game-timer {
     color: blue;
-    font-size: 21px;
+    font-size: 20px; /* フォントサイズを調整 */
     font-weight: 900;
-    min-width: 120px;
     text-align: center;
     white-space: nowrap;
+    margin-top: 10px; /* ゲーム終了ボタンからの間隔 */
+}
+
+#exit-and-timer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 /* ▲▲▲ ここまで変更 ▲▲▲ */
 
@@ -684,14 +676,48 @@ body.game-mode #parking-area {
 
 /* ▼▼▼ ここから変更 ▼▼▼ */
 #final-score-container p {
-    font-size: 8vmin;
-    margin: 0;
+    font-size: 6vmin;
+        font-weight: 900;
+    margin: 0 0 10px 0;
     color: #FF1493;
     background-color: rgba(255, 255, 254, 0.65);
     padding: 5px 15px;
     border-radius: 10px;
-    border: 2px solid #fff;
+    border: 2px solid #000000;
     display: inline-block;
+    text-shadow: 0 0 10px #FFC0CB;
+}
+
+#final-score-calculation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    font-size: 6vmin;
+    font-weight: bold;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid #000000;
+    margin-bottom: 10px;
+}
+
+#base-score, #final-turf-rate-multiplier {
+    white-space: nowrap;
+}
+
+#final-score-result-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+#equal-symbol {
+    font-size: 8vmin;
+    font-weight: bold;
+    color: #FF1493;
     text-shadow: 0 0 10px #FFC0CB;
 }
 
@@ -699,15 +725,15 @@ body.game-mode #parking-area {
     font-size: 15vmin;
     font-weight: 900;
     color: #FF1493;
-    background-color: rgba(244, 248, 243, 0.65);
-    padding: 5px 25px;
+    background-color: rgba(244, 248, 243, 0.2);
+    padding: 0px 0px;
     border-radius: 15px;
-    border: 2px solid #fff;
-    margin-top: 10px;
+    border: 0px solid #000000;
 }
 /* ▲▲▲ ここまで変更 ▲▲▲ */
 
-#max-combo-display, #final-turf-rate-display {
+/* ▼▼▼ ここから変更 ▼▼▼ */
+#max-combo-display, #final-high-score-display {
     margin-top: 15px;
     font-size: 22px;
     font-weight: bold;
@@ -715,8 +741,39 @@ body.game-mode #parking-area {
     background-color: rgba(0, 0, 0, 0.6);
     padding: 5px 15px;
     border-radius: 10px;
-    border: 2px solid #fff;
+    border: 2px solid #000000;
 }
+
+#final-score-result-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background-color: rgba(244, 248, 243, 0.4);
+    border-radius: 15px;
+    border: 2px solid #000000;
+    padding: 0px 10px;
+}
+
+#equal-symbol {
+    font-size: 10vmin;
+    font-weight: bold;
+        font-weight: 900;
+    color: #FF1493;
+    text-shadow: 0 0 10px #FFC0CB;
+}
+
+#final-score {
+    font-size: 15vmin;
+    font-weight: 900;
+    color: #FF1493;
+    /* 背景スタイルは親要素に移動したため削除 */
+}
+
+#final-stats-container {
+    text-align: center;
+}
+/* ▲▲▲ ここまで変更 ▲▲▲ */
 
 @keyframes rainbow-animation {
     0% { background-position: 0% 50%; }
@@ -759,7 +816,7 @@ body.game-mode #parking-area {
     padding: 15px 30px;
     font-size: 20px;
     font-weight: bold;
-    border: none;
+    border: 2px solid #000000;
     border-radius: 10px;
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -772,7 +829,7 @@ body.game-mode #parking-area {
     padding: 10px 25px;
     font-size: 16px;
     font-weight: bold;
-    border: none;
+    border: 2px solid #000000;
     border-radius: 8px;
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);

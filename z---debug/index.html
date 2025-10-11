@@ -52,16 +52,15 @@
                     <option value="3">③ 空データ</option>
                 </select>
             </div>
-            <div class="control-group" id="game-controls">
-                <button id="exit-game-button">🌸 ゲーム終了</button>
+<div class="control-group" id="game-controls">
+                <div id="exit-and-timer-container">
+                    <button id="exit-game-button">🌸 ゲーム終了</button>
+                    <div id="game-timer"></div>
+                </div>
                 <div id="game-info-container">
                     <div id="high-score-layer">ハイスコア 0点</div>
                     <div id="score-layer">お花スコア 0点</div>
-                </div>
-                <div id="game-stats-container">
-                    <div id="game-timer"></div>
                     <div id="turf-rate-container">
-                        <span class="turf-rate-label">ナワバリ率</span>
                         <span id="turf-rate-display">お花畑率 0%</span>
                     </div>
                 </div>
@@ -132,11 +131,21 @@
     </div>
     
     <div id="game-over-screen" class="hidden">
-        <div id="final-score-container">
+<div id="final-score-container">
             <p>タイムアップ！</p>
-            <div id="final-score"></div>
-            <div id="max-combo-display"></div>
-            <div id="final-turf-rate-display"></div>
+            <div id="final-score-calculation">
+                <div id="base-score">0点</div>
+                <div id="multiplier-symbol">×</div>
+                <div id="final-turf-rate-multiplier">お花畑率 0%</div>
+            </div>
+            <div id="final-score-result-container">
+                <div id="equal-symbol">=</div>
+                <div id="final-score">0点</div>
+            </div>
+            <div id="final-stats-container">
+                <div id="max-combo-display"></div>
+                <div id="final-high-score-display"></div>
+            </div>
         </div>
         <div id="game-over-buttons">
             <button id="retry-button">もう一度<br>トライする</button>
